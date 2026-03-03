@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { api } from "@/lib/api";
-import { type Job } from "@/lib/mock-data";
+import { Job } from "@/types/jobs";
+import { MatchedJob } from "@/types/jobs";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import Navbar from "@/components/Navbar";
@@ -8,72 +9,125 @@ import Footer from "@/components/Footer";
 import { Sparkles, MapPin, Briefcase, Building2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { motion } from "framer-motion";
+import { useSearchParams } from "react-router-dom";
+import { jobService } from "@/services/jobService";
+import { useNavigate } from "react-router-dom";
+
 
 const MatchedJobs = () => {
   const { toast } = useToast();
-  const [jobs, setJobs] = useState<Job[]>([]);
+  const navigate = useNavigate();
+  const [jobs, setJobs] = useState<MatchedJob[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const [selectedJob, setSelectedJob] = useState<Job | null>(null);
+  const [searchParams, setSearchParams] = useSearchParams();
+
   useEffect(() => {
-    api.getMatchedJobs().then((data) => { setJobs(data); setLoading(false); });
+    // استدعاء الـ API الجديد
+    const fetchMatchedJobs = async () => {
+      try {
+        setLoading(true);
+    const data = await jobService.getMatchedJobs() as MatchedJob[];
+      setJobs(data);
+    } catch (error) {
+      console.error("Error fetching matched jobs:", error);
+      
+    }
+    finally {      setLoading(false);
+    }
+  };
+  
+  fetchMatchedJobs();
   }, []);
 
+  const handleJobSelect = async (job: Job) => {
+    
+    setSearchParams({ id: job.id.toString() });
+    setSelectedJob(job);
+    if (!job.description) {
+      const details = await jobService.getJobById(job.id); //
+      setSelectedJob((prev) => ({ ...prev, ...details }));
+    }
+  };
+  
   return (
-    <div className="flex min-h-screen flex-col bg-background">
-      <Navbar />
-      <div className="container flex-1 py-8">
-        <div className="mb-8 flex items-center gap-3">
-          <Sparkles className="h-7 w-7 text-accent" />
-          <div>
-            <h1 className="font-display text-3xl font-bold text-foreground">Jobs Matched for You</h1>
-            <p className="text-muted-foreground">AI-ranked based on your profile and skills</p>
-          </div>
+  <div className="flex min-h-screen flex-col bg-background">
+    <Navbar />
+    <main className="container flex-1 py-8">
+      
+      {/* 1. حالة التحميل */}
+      {loading ? (
+        <div className="flex flex-col items-center justify-center py-20">
+          <div className="h-10 w-10 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+          <p className="mt-4 text-muted-foreground animate-pulse">Analyzing your profile...</p>
         </div>
-
-        {loading ? (
-          <div className="flex items-center justify-center py-20">
-            <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-          </div>
-        ) : (
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {jobs.map((job, i) => (
-              <motion.div
-                key={job.id}
-                initial={{ opacity: 0, y: 12 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: i * 0.08 }}
-                className="group rounded-xl border border-border bg-card p-5 transition-all hover:shadow-elevated"
+      ) : (
+        <>
+          {/* 2. حالة البروفايل الفاضي ( jobs.length === 0 ) */}
+          {jobs.length === 0 ? (
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="mx-auto max-w-lg flex flex-col items-center justify-center py-16 px-6 text-center border-2 border-dashed border-muted rounded-3xl bg-card/50"
+            >
+              <div className="mb-6 rounded-full bg-accent/10 p-5">
+                <Sparkles className="h-12 w-12 text-accent" />
+              </div>
+              <h2 className="text-2xl font-bold text-foreground">Unlock Your AI Career Matches</h2>
+              <p className="mt-3 text-muted-foreground">
+                We couldn't find any matches because your profile is still empty. 
+                Fill in your skills and experience to let our AI find the perfect roles for you.
+              </p>
+              <Button 
+                className="mt-8 gradient-accent px-10 h-12 text-lg font-bold shadow-lg hover:shadow-accent/20 transition-all"
+                onClick={() => navigate("/profile") }
               >
-                <div className="flex items-start justify-between">
-                  <h3 className="font-display font-semibold text-foreground">{job.title}</h3>
-                  <Badge className="gradient-accent border-0 text-accent-foreground font-bold">
-                    {job.matchPercentage}%
-                  </Badge>
-                </div>
-                <p className="mt-1 flex items-center gap-1 text-sm text-muted-foreground">
-                  <Building2 className="h-3.5 w-3.5" /> {job.organization}
-                </p>
-                <div className="mt-3 flex flex-wrap gap-2 text-xs text-muted-foreground">
-                  <span className="flex items-center gap-1"><MapPin className="h-3 w-3" />{job.location}</span>
-                  <span className="flex items-center gap-1"><Briefcase className="h-3 w-3" />{job.type}</span>
-                </div>
-                <div className="mt-3 flex flex-wrap gap-1">
-                  {job.skills.slice(0, 3).map((s) => (
-                    <Badge key={s} variant="secondary" className="text-xs">{s}</Badge>
-                  ))}
-                  {job.skills.length > 3 && <Badge variant="secondary" className="text-xs">+{job.skills.length - 3}</Badge>}
-                </div>
-                <Button className="mt-4 w-full gradient-primary border-0" size="sm" onClick={() => toast({ title: "Applied!", description: `Application sent to ${job.organization}.` })}>
-                  Apply Now
-                </Button>
-              </motion.div>
-            ))}
-          </div>
-        )}
-      </div>
-      <Footer />
-    </div>
-  );
+                Complete My Profile
+              </Button>
+            </motion.div>
+          ) : (
+            
+            /* 3. حالة عرض الوظائف (لو فيه داتا) */
+            <div className="space-y-6">
+              <div className="mb-8">
+                <h1 className="text-3xl font-bold font-display">Recommended Jobs</h1>
+                <p className="text-muted-foreground">Top picks based on your unique skill set</p>
+              </div>
+
+              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                {jobs.map((job, i) => (
+                  <motion.div
+                    key={job.id}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: i * 0.1 }}
+                    className="group relative rounded-2xl border border-border bg-card p-6 hover:border-accent/50 transition-all hover:shadow-elevated"
+                  >
+                    {/* محتوى كرت الوظيفة */}
+                    <div className="flex justify-between items-start mb-4">
+                       <Badge className="bg-accent/10 text-accent border-0 font-bold">
+                         {job.matchPercentage}% Match
+                       </Badge>
+                    </div>
+                    <h3 className="text-xl font-bold mb-1">{job.title}</h3>
+                    <p className="text-muted-foreground flex items-center gap-2 mb-4">
+                       <Building2 className="h-4 w-4" /> {job.organizationName}
+                    </p>
+                    <Button className="w-full variant-outline group-hover:gradient-accent transition-all">
+                      View Recommendation
+                    </Button>
+                  </motion.div>
+                ))}
+              </div>
+            </div>
+          )}
+        </>
+      )}
+    </main>
+    <Footer />
+  </div>
+);
 };
 
 export default MatchedJobs;

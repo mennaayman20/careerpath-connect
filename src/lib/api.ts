@@ -1,49 +1,38 @@
-// Centralized API service - replace with real API calls when backend is ready
-import { mockJobs, mockApplications, type Job, type Application } from "./mock-data";
+import axios from "axios";
 
-const delay = (ms: number) => new Promise((r) => setTimeout(r, ms));
+const api = axios.create({
+  // بما إنك حاطط الـ Base URL في vite config، سيبه هنا فاضي أو حط البداية بس
+  baseURL: '', 
+});
 
-export const api = {
-  // Jobs
-  async getJobs(): Promise<Job[]> {
-    await delay(300);
-    return mockJobs;
-  },
-  async getJob(id: string): Promise<Job | undefined> {
-    await delay(200);
-    return mockJobs.find((j) => j.id === id);
-  },
-  async getMatchedJobs(): Promise<Job[]> {
-    await delay(400);
-    return mockJobs.filter((j) => j.matchPercentage && j.matchPercentage > 60).sort((a, b) => (b.matchPercentage || 0) - (a.matchPercentage || 0));
-  },
+// ديه "نقطة التفتيش" اللي لازم تزيد عشان التوكن يتبعت
+api.interceptors.request.use(
+  (config) => {
+    // هنجيب التوكن اللي اتسيف وقت الـ Login
+    const token = localStorage.getItem("token");
 
-  // Applications
-  async getApplications(): Promise<Application[]> {
-    await delay(300);
-    return mockApplications;
-  },
-  async applyToJob(jobId: string): Promise<{ success: boolean }> {
-    await delay(500);
-    return { success: true };
-  },
+    // لو التوكن موجود، بنحطه في الـ Headers عشان الباك اند يوافق يبعت الداتا
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
 
-  // Auth (mock)
-  async login(email: string, password: string): Promise<{ success: boolean; token?: string }> {
-    await delay(500);
-    if (email && password) return { success: true, token: "mock-token" };
-    return { success: false };
+    return config;
   },
-  async signup(data: { name: string; email: string; password: string }): Promise<{ success: boolean }> {
-    await delay(500);
-    return { success: true };
-  },
-  async forgotPassword(email: string): Promise<{ success: boolean }> {
-    await delay(500);
-    return { success: true };
-  },
-  async resetPassword(token: string, password: string): Promise<{ success: boolean }> {
-    await delay(500);
-    return { success: true };
-  },
-};
+  (error) => {
+    return Promise.reject(error);
+  }
+);
+
+// لو التوكن انتهى (401)، يرجعك للـ login بدل ما يعلق في صفحة فاضية
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response && error.response.status === 401) {
+      localStorage.removeItem("token");
+      window.location.href = "/login";
+    }
+    return Promise.reject(error);
+  }
+);
+
+export { api };

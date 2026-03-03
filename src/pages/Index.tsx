@@ -82,21 +82,28 @@ const Index = () => {
       </section>
 
       {/* About */}
-      <section className="bg-secondary/40 py-16 md:py-20">
-        <div className="container">
+      <section className="py-20 bg-secondary/30">
+      <div className="container mx-auto px-6">
+        <div className="grid md:grid-cols-[auto_1fr] gap-8 items-start max-w-4xl mx-auto">
           <motion.div
-            className="flex flex-col items-start gap-8 md:flex-row"
-            initial="hidden"
-            whileInView="visible"
+            initial={{ opacity: 0, x: -30 }}
+            whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
-            variants={fadeIn}
           >
-            <div className="shrink-0">
-              <h2 className="font-display text-3xl font-bold text-foreground md:text-4xl">
-                About<br />Upply
-              </h2>
-            </div>
-            <p className="text-muted-foreground leading-relaxed">
+            <h2 className="text-3xl sm:text-4xl font-bold">
+              About{" "}
+              <span className="text-accent">Upply</span>
+            </h2>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, x: 30 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true }}
+            className="relative"
+          >
+            <div className="absolute -left-4 top-0 bottom-0 w-1 bg-gradient-to-b from-accent to-primary rounded-full hidden md:block" />
+            <p className="text-muted-foreground text-lg leading-relaxed">
               Where talent meets opportunity. Whether you're a job seeker searching for your dream company or a
               recruiter looking for top talent, our platform uses intelligent ranking and smart matching to connect
               the right people with the right opportunities. Hiring has never been easier—personalized, precise, and
@@ -104,7 +111,8 @@ const Index = () => {
             </p>
           </motion.div>
         </div>
-      </section>
+      </div>
+    </section>
 
       {/* How It Works */}
       <section className="container py-16 md:py-20">

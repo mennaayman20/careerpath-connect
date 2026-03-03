@@ -1,4 +1,7 @@
+import axios from "axios";
 import { useState } from "react";
+import { registerUser } from "@/services/authService";
+import { toast } from "@/hooks/use-toast";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,7 +10,7 @@ import { Briefcase, Eye, EyeOff } from "lucide-react";
 
 const Signup = () => {
   const navigate = useNavigate();
-  const [form, setForm] = useState({ name: "", email: "", password: "", confirm: "" });
+  const [form, setForm] = useState<{ name: string; email: string; password: string; confirm: string }>({ name: "", email: "", password: "", confirm: "" });
   const [showPw, setShowPw] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -18,11 +21,33 @@ const Signup = () => {
     if (form.password !== form.confirm) { setError("Passwords do not match"); return; }
     if (form.password.length < 6) { setError("Password must be at least 6 characters"); return; }
     setLoading(true);
-    // Mock signup
-    setTimeout(() => {
+    try {
+      const [firstName, ...rest] = form.name.trim().split(" ");
+      const lastName = rest.join(" ");
+      const res = await registerUser({
+        firstName: firstName || "",
+        lastName: lastName || "",
+        email: form.email,
+        password: form.password,
+      });
+      if (res.status === 200 || res.status === 201) {
+        toast({
+          title: "Account created!",
+          description: "Check your email to activate your account.",
+        });
+        navigate("/verification-pending");
+      } else {
+        setError("Registration failed. Please try again.");
+      }
+    } catch (err: unknown) {
+     if (axios.isAxiosError(err)) {
+        setError(err.response?.data?.message || "Registration failed. Please try again.");
+      } else {
+        setError("An unexpected error occurred. Please try again.");
+      }
+     } finally {
       setLoading(false);
-      navigate("/verification-pending");
-    }, 800);
+    }
   };
 
   const update = (k: string, v: string) => setForm((p) => ({ ...p, [k]: v }));

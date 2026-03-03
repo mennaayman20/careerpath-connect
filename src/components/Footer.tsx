@@ -2,37 +2,29 @@ import { Briefcase } from "lucide-react";
 import { Link } from "react-router-dom";
 
 const Footer = () => (
-  <footer className="border-t border-border bg-card">
-    <div className="container py-12">
-      <div className="grid gap-8 md:grid-cols-3">
-        <div>
-          <Link to="/" className="flex items-center gap-2 font-display text-xl font-bold text-primary">
-            <Briefcase className="h-5 w-5" />
-            Upply
-          </Link>
-          <p className="mt-3 text-sm text-muted-foreground">
-            AI-powered recruitment connecting the right talent with the right opportunity.
-          </p>
-        </div>
-        <div>
-          <h4 className="mb-3 font-display font-semibold text-foreground">Platform</h4>
-          <div className="flex flex-col gap-2 text-sm text-muted-foreground">
-            <Link to="/jobs" className="hover:text-primary transition-colors">Browse Jobs</Link>
-            <Link to="/login" className="hover:text-primary transition-colors">Get Started</Link>
+  <footer className="py-12 border-t border-border/50 bg-primary/9">
+      <div className="container mx-auto px-6 text-center space-y-4">
+        {/* Logo */}
+        <Link to="/" className="inline-flex items-center gap-1">
+          <span className="text-2xl tracking-tight ">
+            <span className="text-primary">U</span>
+            <span className="text-primary">pply</span>
+          </span>
+          <div className="flex flex-col gap-[2px] ml-0.5 mt-1">
+            <div className="w-1 h-1 rounded-full bg-accent" />
+            <div className="w-1 h-1 rounded-full bg-accent" />
           </div>
-        </div>
-        <div>
-          <h4 className="mb-3 font-display font-semibold text-foreground">About</h4>
-          <p className="text-sm text-muted-foreground">
-            Upply is a graduation project built to showcase modern AI-powered recruitment solutions.
-          </p>
-        </div>
+        </Link>
+
+        <p className="text-muted-foreground text-sm">
+          Where talent meets opportunity through AI-driven job matching.
+        </p>
+
+        <p className="text-muted-foreground text-xs">
+          A Graduation Project developed by Team Upply · Faculty of Computers & Artificial Intelligence © 2026
+        </p>
       </div>
-      <div className="mt-8 border-t border-border pt-6 text-center text-xs text-muted-foreground">
-        © 2026 Upply. A graduation project — built with ❤️
-      </div>
-    </div>
-  </footer>
+    </footer>
 );
 
 export default Footer;

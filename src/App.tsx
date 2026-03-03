@@ -18,6 +18,8 @@ import Applications from "./pages/Applications";
 import Profile from "./pages/Profile";
 import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
+import ActivateAccount from "./pages/ActivateAccount";
+
 
 const queryClient = new QueryClient();
 
@@ -33,7 +35,11 @@ const App = () => (
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
             <Route path="/verification-pending" element={<VerificationPending />} />
+            
             <Route path="/email-verified" element={<EmailVerified />} />
+
+            <Route path="/activate" element={<ActivateAccount />} />
+            
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/jobs" element={<Jobs />} />

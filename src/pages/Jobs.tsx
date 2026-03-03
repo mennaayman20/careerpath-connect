@@ -2,7 +2,10 @@ import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { api } from "@/lib/api";
-import { type Job } from "@/lib/mock-data";
+import { Job } from "@/types/jobs";
+import { jobService } from "@/services/jobService";
+import { JobDetails } from "@/types/jobdetails";
+import { useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -12,6 +15,26 @@ import { Search, MapPin, Clock, Building2, Briefcase, X } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { motion } from "framer-motion";
 
+const getRelativeTime = (date: string | Date): string => {
+  const now = new Date();
+  const pastDate = new Date(date);
+  const seconds = Math.floor((now.getTime() - pastDate.getTime()) / 1000);
+  
+  if (seconds < 60) return "just now";
+  const minutes = Math.floor(seconds / 60);
+  if (minutes < 60) return `${minutes}m ago`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours}h ago`;
+  const days = Math.floor(hours / 24);
+  if (days < 7) return `${days}d ago`;
+  const weeks = Math.floor(days / 7);
+  if (weeks < 4) return `${weeks}w ago`;
+  return pastDate.toLocaleDateString();
+};
+
+
+
+
 const Jobs = () => {
   const { isAuthenticated } = useAuth();
   const { toast } = useToast();
@@ -20,17 +43,71 @@ const Jobs = () => {
   const [search, setSearch] = useState("");
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
   const [loading, setLoading] = useState(true);
+const [searchParams, setSearchParams] = useSearchParams();
+const jobIdFromUrl = searchParams.get("id");
+ // 1. اجعلي الـ useEffect تجلب القائمة الأساسية فقط
+useEffect(() => {
+  const fetchJobsAndInitialDetails = async () => {
+    try {
+      setLoading(true);
+      const data = await jobService.getAllJobs();
+      const jobsFromApi = (data.content || []).map((j: Job) => ({
+        ...j,
+        organization: j.organizationName,
+      }));
+      setJobs(jobsFromApi);
 
-  useEffect(() => {
-    api.getJobs().then((data) => { setJobs(data); setLoading(false); });
-  }, []);
+      // لو فيه ID في الرابط، ابحث عنه في القائمة واجلب تفاصيله
+      if (jobIdFromUrl) {
+        const foundJob = jobsFromApi.find(j => j.id.toString() === jobIdFromUrl);
+        if (foundJob) {
+          // جلب التفاصيل الكاملة (الوصف والمهارات) للوظيفة المختارة في الرابط
+          const details = await jobService.getJobById(foundJob.id);
+          setSelectedJob({ ...foundJob, ...details });
+        }
+      }
+    } catch (error) {
+      console.error("Failed to fetch jobs", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  const filtered = jobs.filter(
-    (j) =>
-      j.title.toLowerCase().includes(search.toLowerCase()) ||
-      j.organization.toLowerCase().includes(search.toLowerCase()) ||
-      j.skills.some((s) => s.toLowerCase().includes(search.toLowerCase()))
-  );
+  fetchJobsAndInitialDetails();
+}, []); // بنشغلها مرة واحدة عند فتح الصفحة
+
+
+
+
+// 2. دالة جديدة لجلب التفاصيل عند الضغط على الوظيفة فقط
+const handleJobSelect = async (job: Job) => {
+ setSearchParams({ id: job.id.toString() }); // تحديث الرابط بالـ ID
+ setSelectedJob(job); // عرض البيانات الأساسية أولاً
+  try {
+    // اجلبي التفاصيل الإضافية (الوصف والمهارات) لو لم تكن موجودة
+    if (!job.description) {
+      const details = await jobService.getJobById(job.id);
+      setSelectedJob(prev => prev?.id === job.id ? { ...prev, ...details } : prev);
+      setJobs(prevJobs => prevJobs.map(j => j.id === job.id ? { ...j, ...details } : j)); //
+      // تحديث القائمة الأصلية لكي لا نحتاج لجلب البيانات مرة أخرى لنفس الوظيفة
+    }
+  } catch (error) {
+    console.error("Error fetching job details", error);
+  }
+};
+
+  const filtered = jobs.filter((j) => {
+    const q = search.toLowerCase();
+    return (
+      j.title.toLowerCase().includes(q) ||
+      (j.organizationName ?? "").toLowerCase().includes(q) ||
+      j.type.toLowerCase().includes(q) ||
+      j.seniority.toLowerCase().includes(q) ||
+      j.model.toLowerCase().includes(q) ||
+      j.status.toLowerCase().includes(q) ||
+      j.location.toLowerCase().includes(q)
+    );
+  });
 
   const handleApply = (job: Job) => {
     if (!isAuthenticated) {
@@ -38,8 +115,10 @@ const Jobs = () => {
       setTimeout(() => navigate("/login"), 1500);
       return;
     }
-    toast({ title: "Application Submitted!", description: `You've applied to ${job.title} at ${job.organization}.` });
+    toast({ title: "Application Submitted!", description: `You've applied to ${job.title} at ${job.organizationName}.` });
   };
+
+
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
@@ -59,7 +138,9 @@ const Jobs = () => {
             <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
           </div>
         ) : (
+
           <div className="flex gap-6">
+          
             {/* Job list */}
             <div className={`flex-1 space-y-4 ${selectedJob ? "hidden md:block md:max-w-md" : ""}`}>
               {filtered.length === 0 ? (
@@ -72,13 +153,13 @@ const Jobs = () => {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: i * 0.05 }}
                     className={`cursor-pointer rounded-xl border bg-card p-5 transition-all hover:shadow-card ${selectedJob?.id === job.id ? "border-primary shadow-card" : "border-border"}`}
-                    onClick={() => setSelectedJob(job)}
+                    onClick={() => handleJobSelect(job)}
                   >
                     <div className="flex items-start justify-between">
                       <div>
                         <h3 className="font-display font-semibold text-foreground">{job.title}</h3>
                         <p className="mt-1 flex items-center gap-1 text-sm text-muted-foreground">
-                          <Building2 className="h-3.5 w-3.5" /> {job.organization}
+                          <Building2 className="h-3.5 w-3.5" /> {job.organizationName}
                         </p>
                       </div>
                       <Badge variant={job.status === "Open" ? "default" : "secondary"} className={job.status === "Open" ? "bg-success text-success-foreground" : ""}>
@@ -88,8 +169,8 @@ const Jobs = () => {
                     <div className="mt-3 flex flex-wrap gap-2 text-xs text-muted-foreground">
                       <span className="flex items-center gap-1"><MapPin className="h-3 w-3" />{job.location}</span>
                       <span className="flex items-center gap-1"><Briefcase className="h-3 w-3" />{job.type}</span>
-                      {job.hybrid && <Badge variant="outline" className="text-xs">Hybrid</Badge>}
-                      <span className="flex items-center gap-1"><Clock className="h-3 w-3" />{job.postedAt}</span>
+                      {/* No hybrid or postedAt in new API. Show createdDate as posted date */}
+                      <span className="flex items-center gap-1"><Clock className="h-3 w-3" />{new Date(job.createdDate).toLocaleDateString()}</span>
                     </div>
                   </motion.div>
                 ))
@@ -97,6 +178,7 @@ const Jobs = () => {
             </div>
 
             {/* Detail panel */}
+          
             {selectedJob && (
               <motion.div
                 initial={{ opacity: 0, x: 20 }}
@@ -106,37 +188,56 @@ const Jobs = () => {
                 <div className="flex items-start justify-between">
                   <div>
                     <h2 className="font-display text-2xl font-bold text-foreground">{selectedJob.title}</h2>
-                    <p className="mt-1 text-muted-foreground">{selectedJob.organization} · {selectedJob.location}</p>
+                    <p className="mt-1 text-muted-foreground">{selectedJob.organizationName} · {selectedJob.location}</p>
                   </div>
-                  <Button variant="ghost" size="icon" className="md:hidden" onClick={() => setSelectedJob(null)}>
+                  <Button variant="ghost" size="icon" className="md:hidden" 
+                  onClick={() => {
+                    setSelectedJob(null);
+                    setSearchParams(prev => {
+                      const newParams = new URLSearchParams(prev);
+                      newParams.delete("id");
+                      return newParams;
+                    });
+                  }}>
                     <X className="h-4 w-4" />
                   </Button>
                 </div>
                 <div className="mt-4 flex flex-wrap gap-2">
                   <Badge>{selectedJob.type}</Badge>
-                  {selectedJob.hybrid && <Badge variant="outline">Hybrid</Badge>}
-                  <Badge variant={selectedJob.status === "Open" ? "default" : "secondary"} className={selectedJob.status === "Open" ? "bg-success text-success-foreground" : ""}>
-                    {selectedJob.status}
-                  </Badge>
+                   <Badge>{selectedJob.status}</Badge>
+                  {/* No hybrid in new API */}
+                  <Badge>{selectedJob.seniority}</Badge>
+                  <Badge>{selectedJob.model}</Badge>
+
+                  {/* created date  */}
+                  <Badge>Posted {getRelativeTime(selectedJob.createdDate)}</Badge>
+
+                  
                 </div>
+                {/* Job Description */}
                 <div className="mt-6">
-                  <h3 className="font-display font-semibold text-foreground">Description</h3>
-                  <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{selectedJob.description}</p>
+                  <h4 className="font-semibold text-base text-foreground mb-1">Description</h4>
+                  <p className="text-sm text-muted-foreground whitespace-pre-line">{selectedJob.description}</p>
                 </div>
-                <div className="mt-6">
-                  <h3 className="font-display font-semibold text-foreground">Required Skills</h3>
-                  <div className="mt-2 flex flex-wrap gap-2">
-                    {selectedJob.skills.map((s) => (
-                      <Badge key={s} variant="secondary">{s}</Badge>
-                    ))}
+
+                {/* Required Skills */}
+                {selectedJob.skills && selectedJob.skills.length > 0 && (
+                  <div className="mt-6">
+                    <h4 className="font-semibold text-base text-foreground mb-1">Required Skills</h4>
+                    <div className="flex flex-wrap gap-2">
+                      {selectedJob.skills.map((skill) => (
+                        <Badge key={skill.skillId} variant="secondary">{skill.skillName}</Badge>
+                      ))}
+                    </div>
                   </div>
-                </div>
+                )}
+
                 <Button className="mt-8 w-full gradient-primary border-0" onClick={() => handleApply(selectedJob)} disabled={selectedJob.status === "Closed"}>
                   {selectedJob.status === "Closed" ? "Position Closed" : "Apply Now"}
                 </Button>
               </motion.div>
             )}
-          </div>
+          </div> 
         )}
       </div>
       <Footer />
