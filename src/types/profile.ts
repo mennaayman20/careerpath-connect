@@ -2,7 +2,7 @@
 import { N } from 'vitest/dist/chunks/environment.d.cL3nLXbE.js';
 // interfaces/user-profile.interface.ts
 
-export interface UserProfile {
+export interface personal {
   id: number;
   firstName: string;
   lastName: string;

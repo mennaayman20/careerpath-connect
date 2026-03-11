@@ -3,6 +3,10 @@ import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Briefcase, Menu, X, LogOut, User, Settings } from "lucide-react";
+import '../styles/logo.css'
+import React from 'react';
+import myLogo from '../assets/Copy_of_Green_Modern_Marketing_Logo__2_-removebg-preview.svg'; // اتأكد إن المسار صح حسب مكان الملف
+import darkLogo from '../assets/Copy_of_Green_Modern_Marketing_Logo-removebg-preview.svg'; // استبدل بالمسار الصحيح لشعار الدارك مود
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -15,13 +19,17 @@ const Navbar = () => {
   const { isAuthenticated, user, logout } = useAuth();
   const navigate = useNavigate();
   const [mobileOpen, setMobileOpen] = useState(false);
-
+ const [isDark, setIsDark] = useState(false);
   return (
     <nav className="sticky top-0 z-50 border-b border-border bg-card/80 backdrop-blur-xl">
       <div className="container flex h-16 items-center justify-between">
-        <Link to="/" className="flex items-center gap-2 font-display text-xl font-bold text-primary">
-          <Briefcase className="h-6 w-6" />
-          Upply
+        {/* Logo */}
+        <Link to="/" className="flex items-center gap-8">
+          {/* صورة اللايت مود */}
+      <img src={myLogo} className="logo logo-light" alt="Light Logo" />
+      
+      {/* صورة الدارك مود */}
+      <img src={darkLogo} className="logo logo-dark" alt="Dark Logo" />
         </Link>
 
         {/* Desktop */}

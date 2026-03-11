@@ -6,12 +6,30 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import { Sparkles, MapPin, Briefcase, Building2 } from "lucide-react";
+import { Sparkles, MapPin, Briefcase, Building2, X, Clock } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { motion } from "framer-motion";
 import { useSearchParams } from "react-router-dom";
 import { jobService } from "@/services/jobService";
 import { useNavigate } from "react-router-dom";
+import { ApplyModal } from "@/features/application/components/applyModal";
+
+const getRelativeTime = (date: string | Date): string => {
+  const now = new Date();
+  const pastDate = new Date(date);
+  const seconds = Math.floor((now.getTime() - pastDate.getTime()) / 1000);
+  
+  if (seconds < 60) return "just now";
+  const minutes = Math.floor(seconds / 60);
+  if (minutes < 60) return `${minutes}m ago`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours}h ago`;
+  const days = Math.floor(hours / 24);
+  if (days < 7) return `${days}d ago`;
+  const weeks = Math.floor(days / 7);
+  if (weeks < 4) return `${weeks}w ago`;
+  return pastDate.toLocaleDateString();
+};
 
 
 const MatchedJobs = () => {
@@ -22,6 +40,12 @@ const MatchedJobs = () => {
 
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
   const [searchParams, setSearchParams] = useSearchParams();
+
+
+  const [isApplyModalOpen, setIsApplyModalOpen] = useState(false);
+const [applyingJobId, setApplyingJobId] = useState<number | null>(null);
+
+
 
   useEffect(() => {
     // استدعاء الـ API الجديد
@@ -50,7 +74,10 @@ const MatchedJobs = () => {
       setSelectedJob((prev) => ({ ...prev, ...details }));
     }
   };
-  
+
+  const handleApply = (job: Job) => {
+    toast({ title: "Application Submitted!", description: `You've applied to ${job.title} at ${job.organizationName}.` });
+  };
   return (
   <div className="flex min-h-screen flex-col bg-background">
     <Navbar />
@@ -95,31 +122,111 @@ const MatchedJobs = () => {
                 <p className="text-muted-foreground">Top picks based on your unique skill set</p>
               </div>
 
-              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                {jobs.map((job, i) => (
-                  <motion.div
-                    key={job.id}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: i * 0.1 }}
-                    className="group relative rounded-2xl border border-border bg-card p-6 hover:border-accent/50 transition-all hover:shadow-elevated"
-                  >
-                    {/* محتوى كرت الوظيفة */}
-                    <div className="flex justify-between items-start mb-4">
-                       <Badge className="bg-accent/10 text-accent border-0 font-bold">
-                         {job.matchPercentage}% Match
-                       </Badge>
+              {!selectedJob ? (
+                <div className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3  ">
+                  {jobs.map((job, i) => (
+                    <motion.div
+                      key={job.id}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: i * 0.1 }}
+                      className="group relative rounded-2xl border border-border bg-card p-6 hover:border-accent/50 hover:shadow-elevated transition-all cursor-pointer"
+                      onClick={() => handleJobSelect(job)}
+                    >
+                      {/* محتوى كرت الوظيفة */}
+                      
+                      <div className="flex justify-between items-start mb-4  ">
+                         <Badge className="bg-accent/10 text-accent border-0 font-bold">
+                           {job.matchPercentage}% Match
+                         </Badge>
+                      </div>
+                      <h3 className="text-xl font-bold mb-1">{job.title}</h3>
+                      <p className="text-muted-foreground flex items-center gap-2 mb-4">
+                         <Building2 className="h-4 w-4" /> {job.organizationName}
+                      </p>
+                      <Button className="w-full variant-outline group-hover:gradient-accent transition-all"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleJobSelect(job);
+                        }}
+                      >
+                        View job details
+                      </Button>
+                    </motion.div>
+                  ))}
+                </div>
+              ) : (
+                <motion.div
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  className="max-w-3xl rounded-2xl border border-border bg-card p-6 shadow-elevated mx-auto"
+                >
+                  <div className="flex items-start justify-between mb-4 ">
+                    <div>
+                      <h2 className="font-display text-2xl font-bold text-foreground">{selectedJob.title}</h2>
+                      <p className="mt-1 text-muted-foreground">{selectedJob.organizationName} · {selectedJob.location}</p>
                     </div>
-                    <h3 className="text-xl font-bold mb-1">{job.title}</h3>
-                    <p className="text-muted-foreground flex items-center gap-2 mb-4">
-                       <Building2 className="h-4 w-4" /> {job.organizationName}
-                    </p>
-                    <Button className="w-full variant-outline group-hover:gradient-accent transition-all">
-                      View Recommendation
+                    <Button variant="ghost" size="icon" 
+                    onClick={() => {
+                      setSelectedJob(null);
+                      setSearchParams(prev => {
+                        const newParams = new URLSearchParams(prev);
+                        newParams.delete("id");
+                        return newParams;
+                      });
+                    }}>
+                      <X className="h-4 w-4" />
                     </Button>
-                  </motion.div>
-                ))}
-              </div>
+                  </div>
+
+                  <div className="flex flex-wrap gap-2 mb-4">
+                    <Badge className="bg-accent/10 text-accent border-0 font-bold">
+                      {selectedJob.matchPercentage}% Match
+                    </Badge>
+                    <Badge>{selectedJob.type}</Badge>
+                    <Badge>{selectedJob.status}</Badge>
+                    <Badge>{selectedJob.seniority}</Badge>
+                    <Badge>{selectedJob.model}</Badge>
+                    <Badge>Posted {getRelativeTime(selectedJob.createdDate)}</Badge>
+                  </div>
+
+                  {/* Job Description */}
+                  {selectedJob.description && (
+                    <div className="mt-6">
+                      <h4 className="font-semibold text-base text-foreground mb-2">Description</h4>
+                      <p className="text-sm text-muted-foreground whitespace-pre-line">{selectedJob.description}</p>
+                    </div>
+                  )}
+
+                  {/* Required Skills */}
+                  {selectedJob.skills && selectedJob.skills.length > 0 && (
+                    <div className="mt-6">
+                      <h4 className="font-semibold text-base text-foreground mb-2">Required Skills</h4>
+                      <div className="flex flex-wrap gap-2">
+                        {selectedJob.skills.map((skill) => (
+                          <Badge key={skill.skillId} variant="secondary">{skill.skillName}</Badge>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  <Button 
+                    onClick={() => setIsApplyModalOpen(true)}
+                    className="mt-8 w-full gradient-primary border-0"
+                    disabled={selectedJob.status === "Closed"}
+                  >
+                    {selectedJob.status === "Closed" ? "Position Closed" : "Apply Now"}
+                  </Button>
+                  
+                  {/* المودال - بنبعت بيانات الـ selectedJob */}
+                  <ApplyModal 
+                    jobId={selectedJob.id} 
+                    jobTitle={selectedJob.title} 
+                    isOpen={isApplyModalOpen} 
+                    onClose={() => setIsApplyModalOpen(false)} 
+                  />
+                </motion.div>
+              )}
             </div>
           )}
         </>

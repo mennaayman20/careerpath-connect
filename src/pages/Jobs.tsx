@@ -6,6 +6,7 @@ import { Job } from "@/types/jobs";
 import { jobService } from "@/services/jobService";
 import { JobDetails } from "@/types/jobdetails";
 import { useSearchParams } from "react-router-dom";
+import { Resume } from "../features/application/types/application.types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -14,6 +15,24 @@ import Footer from "@/components/Footer";
 import { Search, MapPin, Clock, Building2, Briefcase, X } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { motion } from "framer-motion";
+
+import { ApplyModal } from "@/features/application/components/applyModal";
+import { error } from "console";
+
+interface JobCardProps {
+  job: {
+    id: number;
+    title: string;
+    company: string;
+    location: string;
+    type: string;
+    postedAt: string;
+    status: string;
+  };
+}
+
+export const JobCard = ({ job }: JobCardProps) => {
+  const [isApplyModalOpen, setIsApplyModalOpen] = useState(false);}
 
 const getRelativeTime = (date: string | Date): string => {
   const now = new Date();
@@ -45,6 +64,19 @@ const Jobs = () => {
   const [loading, setLoading] = useState(true);
 const [searchParams, setSearchParams] = useSearchParams();
 const jobIdFromUrl = searchParams.get("id");
+
+const [isApplyModalOpen, setIsApplyModalOpen] = useState(false);
+const [applyingJobId, setApplyingJobId] = useState<number | null>(null);
+
+
+
+
+
+
+
+
+
+
  // 1. اجعلي الـ useEffect تجلب القائمة الأساسية فقط
 useEffect(() => {
   const fetchJobsAndInitialDetails = async () => {
@@ -109,14 +141,21 @@ const handleJobSelect = async (job: Job) => {
     );
   });
 
-  const handleApply = (job: Job) => {
-    if (!isAuthenticated) {
-      toast({ title: "Please login to apply", description: "Create an account or sign in to apply for jobs.", variant: "destructive" });
-      setTimeout(() => navigate("/login"), 1500);
-      return;
-    }
-    toast({ title: "Application Submitted!", description: `You've applied to ${job.title} at ${job.organizationName}.` });
-  };
+const handleApplyClick = (job: Job) => {
+  if (!isAuthenticated) {
+    toast({
+      title: "Please login to apply",
+      description: "Create an account or sign in to apply for jobs.",
+      variant: "destructive",
+    });
+    setTimeout(() => navigate("/login"), 1500);
+    return;
+  }
+  setApplyingJobId(job.id);
+  setIsApplyModalOpen(true);
+
+};
+
 
 
 
@@ -232,14 +271,65 @@ const handleJobSelect = async (job: Job) => {
                   </div>
                 )}
 
-                <Button className="mt-8 w-full gradient-primary border-0" onClick={() => handleApply(selectedJob)} disabled={selectedJob.status === "Closed"}>
-                  {selectedJob.status === "Closed" ? "Position Closed" : "Apply Now"}
-                </Button>
+                {/* <Button
+        className="mt-8 w-full gradient-primary border-0"
+        onClick={() => handleApplyClick(selectedJob)}
+        disabled={selectedJob.status === "Closed"}
+      >
+        {selectedJob.status === "Closed" ? "Position Closed" : "Apply Now"}
+      </Button>
+
+      <ApplyModal
+        isOpen={isOpen}
+        onClose={closeModal}
+        onSubmit={submitApplication}
+        jobTitle={selectedJob?.title ?? ""}
+        companyName={selectedJob?.organizationName ?? ""}
+        resumes={[]}
+        selectedResumeId={null}
+        onSelectResume={setSelectedResumeId}
+        coverLetter={""}
+        onCoverLetterChange={setCoverLetter}
+        isFetchingResumes={false}
+        isSubmitting={isSubmitting}
+        error={applyError}
+      /> */}
+
+
+{/* زرار الـ Apply Now */}
+<Button 
+  onClick={() => setIsApplyModalOpen(true)}
+  className="mt-8 w-full gradient-primary border-0"
+  disabled={selectedJob.status === "Closed"}
+>
+  {selectedJob.status === "Closed" ? "Position Closed" : "Apply Now"}
+</Button>
+
+{/* المودال - بنبعت بيانات الـ selectedJob */}
+<ApplyModal 
+  jobId={selectedJob.id} 
+  jobTitle={selectedJob.title} 
+  isOpen={isApplyModalOpen} 
+  onClose={() => setIsApplyModalOpen(false)} 
+/>
+
+
+
+
+
+
               </motion.div>
             )}
           </div> 
         )}
       </div>
+
+
+
+ {/* Apply Modal — add once, anywhere inside the return */}
+ 
+
+
       <Footer />
     </div>
   );

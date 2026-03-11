@@ -1,0 +1,33 @@
+.logo-light {
+  height: 90px; /* جرب تخليها بالبكسل عشان تتحكم بدقة */
+  width: auto;
+  padding: 1rem;
+  will-change: filter;
+  transition: filter 300ms;
+}
+.logo-dark{
+    display: none; /* نخفي اللوجو الداكن بشكل افتراضي */
+}
+
+.logo-light:hover {
+  filter: drop-shadow(0 0 2em #b479e4c1);
+}
+.logo-light.react:hover {
+  filter: drop-shadow(0 0 2em #61dafbaa);
+}
+
+.dark .logo-dark {
+  display: block;
+  height: 90px; /* جرب تخليها بالبكسل عشان تتحكم بدقة */
+  width: auto;
+  padding: 1rem;
+  will-change: filter;
+  transition: filter 300ms;
+  
+
+}
+.dark .logo-light {
+  display: none;
+}
+
+  /* brightness(0) بيخليه أسود تماماً، و invert(1) بيقلبه أبيض ناصع */

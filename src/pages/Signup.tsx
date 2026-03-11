@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Briefcase, Eye, EyeOff } from "lucide-react";
-
+import styled from "styled-components";
 const Signup = () => {
   const navigate = useNavigate();
   const [form, setForm] = useState<{ name: string; email: string; password: string; confirm: string }>({ name: "", email: "", password: "", confirm: "" });
@@ -67,7 +67,10 @@ const Signup = () => {
           <Link to="/" className="mb-8 flex items-center gap-2 font-display text-xl font-bold text-primary lg:hidden">
             <Briefcase className="h-6 w-6" /> Upply
           </Link>
-          <h1 className="font-display text-2xl font-bold text-foreground">Create Account</h1>
+          {/* 2. استبدال الـ h1 العادي بـ PulsingTitle */}
+          <PulsingTitle className="font-display text-2xl font-bold text-foreground">
+            Create Account
+          </PulsingTitle>
           <p className="mt-1 text-sm text-muted-foreground">Fill in your details to get started</p>
 
           <form onSubmit={handleSubmit} className="mt-6 space-y-4">
@@ -107,5 +110,53 @@ const Signup = () => {
     </div>
   );
 };
+
+
+
+
+
+
+const PulsingTitle = styled.h1`
+  position: relative;
+  display: flex;
+  align-items: center;
+  padding-left: 30px; /* مسافة للنقطة */
+
+  /* النقطة الثابتة */
+  &::before {
+    position: absolute;
+    content: "";
+    height: 16px;
+    width: 16px;
+    border-radius: 50%;
+    left: 0px;
+    /* استخدمت لون الـ primary بتاعك (أزرق) */
+    background-color: hsl(var(--primary)); 
+  }
+
+  /* النقطة اللي بتنبض */
+  &::after {
+    position: absolute;
+    content: "";
+    height: 16px;
+    width: 16px;
+    border-radius: 50%;
+    left: 0px;
+    background-color: hsl(var(--primary));
+    animation: pulse 1s linear infinite;
+  }
+
+  @keyframes pulse {
+    from {
+      transform: scale(0.9);
+      opacity: 1;
+    }
+
+    to {
+      transform: scale(1.8);
+      opacity: 0;
+    }
+  }
+`;
 
 export default Signup;

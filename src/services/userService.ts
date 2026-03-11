@@ -1,6 +1,6 @@
 
 import {api} from "@/lib/api";
-import { UserProfile, SocialLinkRequest , SkillRequest , ExperienceRequest ,Experience, ProjectRequest, Project, SocialLink, Skill } from "@/types/profile";
+import { personal, SocialLinkRequest , SkillRequest , ExperienceRequest ,Experience, ProjectRequest, Project, SocialLink, Skill } from "@/types/profile";
 
 export const userProfileService = {
 
@@ -9,8 +9,8 @@ export const userProfileService = {
     return response.data;
   }
   ,
-  updateUserProfile: async (profileData: UserProfile) => {
-    const response = await api.put('/api/user/me', profileData)
+  updateUserProfile: async (personalData: personal) => {
+    const response = await api.put('/api/user/me', personalData)
     return response.data;
   }   ,
 
@@ -44,13 +44,13 @@ getUserExperiences: async (): Promise<Experience[]> => {
     return response.data;
   },
 
-  updateUserExperience: async (id: string | number, data: ExperienceRequest): Promise<Experience> => {
-    const response = await api.put(`/api/user/me/experiences/${id}`, data);
+  updateUserExperience: async (experienceId: string | number, data: ExperienceRequest): Promise<Experience> => {
+    const response = await api.put(`/api/user/me/experiences/${experienceId}`, data);
     return response.data;
   },
 
-  deleteUserExperience: async (id: string | number): Promise<void> => {
-    await api.delete(`/api/user/me/experiences/${id}`);
+  deleteUserExperience: async (experienceId: string | number): Promise<void> => {
+    await api.delete(`/api/user/me/experiences/${experienceId}`);
   },
 
 
