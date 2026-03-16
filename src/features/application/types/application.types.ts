@@ -53,3 +53,7 @@ export interface ApplicationResponse {
   matchingRatio: number;
   // ... باقي البيانات اللي في الصورة
 }
+
+
+
+

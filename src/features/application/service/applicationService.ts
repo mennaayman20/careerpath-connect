@@ -44,4 +44,17 @@ export const applicationService = {
   applyToJob: async (payload: ApplicationRequest) => {
     return api.post<ApplicationResponse>("/applications", payload);
   },
+
+
+  submitedApplications: async () => {
+    return api.get<ApplicationResponse[]>("/applications/my");
+  }
+
+
+
+
+
+
+
+
 };

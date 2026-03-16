@@ -3,6 +3,9 @@ import { ResumeResponse, ResumeUploadResponse } from "../types/resume.types";
 import { ApplicationRequest, ApplicationResponse } from "@/features/application/types/application.types";
 
 class ResumeService {
+  getMyApplications() {
+      throw new Error("Method not implemented.");
+  }
   private api: AxiosInstance;
 
   constructor() {
@@ -126,6 +129,8 @@ class ResumeService {
   const response = await this.api.post<ApplicationResponse>("/applications", data);
   return response.data;
 }
+
+
 
 
 
