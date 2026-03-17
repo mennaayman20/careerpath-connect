@@ -19,6 +19,7 @@ import Profile from "./pages/Profile";
 import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
 import ActivateAccount from "./pages/ActivateAccount";
+import ResumeAnalysis from "./pages/ResumeAnalysis";
 
 
 const queryClient = new QueryClient();
