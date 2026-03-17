@@ -21,7 +21,7 @@ export const SkillsSection = () => {
       // هنا الـ Logic الذكي:
       // لو عندك قائمة مهارات ثابتة (Master Skills) ممكن تشوفي لو الاسم موجود تاخدي الـ ID
       // حالياً هنفترض إنه بيضيف بالاسم مباشرة حسب الـ Flow البسيط
-      const newSkill = await userProfileService.addSkillByName({ skillName: inputValue });
+      const newSkill = await userProfileService.addSkill({ skillName: inputValue });
       
       setSkills([...skills, newSkill]);
       setInputValue("");
