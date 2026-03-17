@@ -60,10 +60,10 @@ export const SkillsSection = () => {
 
       <div className="flex flex-wrap gap-2">
         {skills.map((skill) => (
-          <Badge key={skill.id} variant="secondary" className="px-3 py-1 gap-2 text-sm">
+          <Badge key={skill.skillId} variant="secondary" className="px-3 py-1 gap-2 text-sm">
             {skill.skillName}
             <button 
-              onClick={() => handleDelete(skill.id)}
+              onClick={() => handleDelete(skill.skillId)}
               className="hover:text-destructive transition-colors"
             >
               <X className="w-3 h-3" />
