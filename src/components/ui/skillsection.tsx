@@ -32,8 +32,8 @@ export const SkillsSection = () => {
 
   const handleDelete = async (id: number) => {
     try {
-        await userProfileService.deleteUserSkill(id);
-      setSkills(skills.filter(s => s.id !== id));
+        await userProfileService.deleteSkill(id);
+      setSkills(skills.filter(s => s.skillId !== id));
     } catch (error) {
       console.error("Delete failed");
     }
