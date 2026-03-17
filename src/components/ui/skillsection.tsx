@@ -21,7 +21,7 @@ export const SkillsSection = () => {
       // هنا الـ Logic الذكي:
       // لو عندك قائمة مهارات ثابتة (Master Skills) ممكن تشوفي لو الاسم موجود تاخدي الـ ID
       // حالياً هنفترض إنه بيضيف بالاسم مباشرة حسب الـ Flow البسيط
-      const newSkill = await userProfileService.addSkillByName({ skillName: inputValue });
+      const newSkill = await userProfileService.addSkill({ skillName: inputValue });
       
       setSkills([...skills, newSkill]);
       setInputValue("");
@@ -32,8 +32,8 @@ export const SkillsSection = () => {
 
   const handleDelete = async (id: number) => {
     try {
-        await userProfileService.deleteUserSkill(id);
-      setSkills(skills.filter(s => s.id !== id));
+        await userProfileService.deleteSkill(id);
+      setSkills(skills.filter(s => s.skillId !== id));
     } catch (error) {
       console.error("Delete failed");
     }
@@ -60,10 +60,10 @@ export const SkillsSection = () => {
 
       <div className="flex flex-wrap gap-2">
         {skills.map((skill) => (
-          <Badge key={skill.id} variant="secondary" className="px-3 py-1 gap-2 text-sm">
+          <Badge key={skill.skillId} variant="secondary" className="px-3 py-1 gap-2 text-sm">
             {skill.skillName}
             <button 
-              onClick={() => handleDelete(skill.id)}
+              onClick={() => handleDelete(skill.skillId)}
               className="hover:text-destructive transition-colors"
             >
               <X className="w-3 h-3" />
