@@ -21,6 +21,7 @@ import NotFound from "./pages/NotFound";
 import ActivateAccount from "./pages/ActivateAccount";
 
 
+
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -46,6 +47,9 @@ const App = () => (
             <Route path="/matched-jobs" element={<ProtectedRoute><MatchedJobs /></ProtectedRoute>} />
             <Route path="/applications" element={<ProtectedRoute><Applications /></ProtectedRoute>} />
             <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+
+          
+            
             <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
             <Route path="*" element={<NotFound />} />
           </Routes>

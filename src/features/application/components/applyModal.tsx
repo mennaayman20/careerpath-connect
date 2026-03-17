@@ -202,6 +202,7 @@ export const ApplyModal = ({ jobId, jobTitle, isOpen, onClose }: ApplyModalProps
 
         <div className="grid gap-6 py-4">
           {/* اختيار الـ Resume */}
+          
           <div className="grid gap-2">
             <Label htmlFor="resume">Select Resume</Label>
             <Select

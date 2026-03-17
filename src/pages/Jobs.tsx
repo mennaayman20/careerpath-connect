@@ -12,12 +12,13 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import { Search, MapPin, Clock, Building2, Briefcase, X } from "lucide-react";
+import { Search, MapPin, Clock, Building2, Briefcase, X, Sparkles } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { motion } from "framer-motion";
 
 import { ApplyModal } from "@/features/application/components/applyModal";
 import { error } from "console";
+
 
 interface JobCardProps {
   job: {
@@ -68,7 +69,7 @@ const jobIdFromUrl = searchParams.get("id");
 const [isApplyModalOpen, setIsApplyModalOpen] = useState(false);
 const [applyingJobId, setApplyingJobId] = useState<number | null>(null);
 
-
+const [isAnalysisOpen, setIsAnalysisOpen] = useState(false);
 
 
 
@@ -315,7 +316,16 @@ const handleApplyClick = (job: Job) => {
 
 
 
+<Button 
+      variant="outline" 
+      className="w-full gap-2 border-primary/20 text-primary hover:bg-primary/5 mt-5"
+      onClick={() => setIsAnalysisOpen(true)}
+    >
+      <Sparkles size={16} /> Analyze My Resume
+    </Button>
 
+    {/* استدعاء الـ Modal */}
+     
 
 
               </motion.div>
