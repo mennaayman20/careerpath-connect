@@ -11,7 +11,7 @@ export const ExperienceSection = () => { // ✅ مبيخدش Props عشان كد
 
   const loadData = async () => {
     console.log("Loading experiences...");
-    const data = await userProfileService.getUserExperience();
+    const data = await userProfileService.getUserExperiences();
     setExperiences(data);
   };
 
