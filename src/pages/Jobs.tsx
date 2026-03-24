@@ -15,9 +15,11 @@ import Footer from "@/components/Footer";
 import { Search, MapPin, Clock, Building2, Briefcase, X, Sparkles } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { motion } from "framer-motion";
+import { useQuery } from "@tanstack/react-query";
 
 import { ApplyModal } from "@/features/application/components/applyModal";
 import { error } from "console";
+import ResumeAnalysis from "./ResumeAnalysis";
 
 
 interface JobCardProps {
@@ -56,20 +58,65 @@ const getRelativeTime = (date: string | Date): string => {
 
 
 const Jobs = () => {
+
+
+
   const { isAuthenticated } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
-  const [jobs, setJobs] = useState<Job[]>([]);
   const [search, setSearch] = useState("");
-  const [selectedJob, setSelectedJob] = useState<Job | null>(null);
-  const [loading, setLoading] = useState(true);
-const [searchParams, setSearchParams] = useSearchParams();
-const jobIdFromUrl = searchParams.get("id");
+  const [searchParams, setSearchParams] = useSearchParams();
+  const jobIdFromUrl = searchParams.get("id");
+
+  // 1. جلب كل الوظائف (بدل الـ useEffect)
+  const { 
+    data: jobsData, 
+    isLoading: isJobsLoading 
+  } = useQuery({
+    queryKey: ['jobs'],
+    queryFn: () => jobService.getAllJobs(),
+    select: (data) => (data.content || []).map(j => ({
+      ...j,
+      organization: j.organizationName,
+    })),
+  });
+
+  const jobs = jobsData || [];
+
+  // 2. جلب تفاصيل الوظيفة المختارة (لو فيه ID في الرابط)
+  const { 
+    data: selectedJobDetails, 
+    isLoading: isDetailsLoading 
+  } = useQuery({
+    queryKey: ['jobDetails', jobIdFromUrl],
+    queryFn: () => jobService.getJobById(jobIdFromUrl!),
+    enabled: !!jobIdFromUrl, // مش هيشتغل غير لو فيه ID فعلاً
+    staleTime: 1000 * 60 * 10, // التفاصيل مش بتتغير كتير، احفظها 10 دقائق
+  });
+
+  // تحديد الـ selectedJob الحالية
+  // بنعمل merge بين البيانات الأساسية والتفاصيل اللي جت من الـ API التاني
+  const currentJobBase = jobs.find(j => j.id.toString() === jobIdFromUrl);
+  const selectedJob = selectedJobDetails ? { ...currentJobBase, ...selectedJobDetails } : currentJobBase;
+
+  const handleJobSelect = (job: Job) => {
+    setSearchParams({ id: job.id.toString() });
+    // مفيش داعي لـ setSelectedJob يدوي، الـ useQuery اللي فوق هتلقط التغيير في الـ URL وتجيب الداتا
+  };
+//   const { isAuthenticated } = useAuth();
+//   const { toast } = useToast();
+//   const navigate = useNavigate();
+//   const [jobs, setJobs] = useState<Job[]>([]);
+//   const [search, setSearch] = useState("");
+//   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
+//   const [loading, setLoading] = useState(true);
+// const [searchParams, setSearchParams] = useSearchParams();
+// const jobIdFromUrl = searchParams.get("id");
 
 const [isApplyModalOpen, setIsApplyModalOpen] = useState(false);
 const [applyingJobId, setApplyingJobId] = useState<number | null>(null);
 
-const [isAnalysisOpen, setIsAnalysisOpen] = useState(false);
+// const [isAnalysisOpen, setIsAnalysisOpen] = useState(false);
 
 
 
@@ -78,56 +125,56 @@ const [isAnalysisOpen, setIsAnalysisOpen] = useState(false);
 
 
 
- // 1. اجعلي الـ useEffect تجلب القائمة الأساسية فقط
-useEffect(() => {
-  const fetchJobsAndInitialDetails = async () => {
-    try {
-      setLoading(true);
-      const data = await jobService.getAllJobs();
-      const jobsFromApi = (data.content || []).map((j: Job) => ({
-        ...j,
-        organization: j.organizationName,
-      }));
-      setJobs(jobsFromApi);
+//  // 1. اجعلي الـ useEffect تجلب القائمة الأساسية فقط
+// useEffect(() => {
+//   const fetchJobsAndInitialDetails = async () => {
+//     try {
+//       setLoading(true);
+//       const data = await jobService.getAllJobs();
+//       const jobsFromApi = (data.content || []).map((j: Job) => ({
+//         ...j,
+//         organization: j.organizationName,
+//       }));
+//       setJobs(jobsFromApi);
 
-      // لو فيه ID في الرابط، ابحث عنه في القائمة واجلب تفاصيله
-      if (jobIdFromUrl) {
-        const foundJob = jobsFromApi.find(j => j.id.toString() === jobIdFromUrl);
-        if (foundJob) {
-          // جلب التفاصيل الكاملة (الوصف والمهارات) للوظيفة المختارة في الرابط
-          const details = await jobService.getJobById(foundJob.id);
-          setSelectedJob({ ...foundJob, ...details });
-        }
-      }
-    } catch (error) {
-      console.error("Failed to fetch jobs", error);
-    } finally {
-      setLoading(false);
-    }
-  };
+//       // لو فيه ID في الرابط، ابحث عنه في القائمة واجلب تفاصيله
+//       if (jobIdFromUrl) {
+//         const foundJob = jobsFromApi.find(j => j.id.toString() === jobIdFromUrl);
+//         if (foundJob) {
+//           // جلب التفاصيل الكاملة (الوصف والمهارات) للوظيفة المختارة في الرابط
+//           const details = await jobService.getJobById(foundJob.id);
+//           setSelectedJob({ ...foundJob, ...details });
+//         }
+//       }
+//     } catch (error) {
+//       console.error("Failed to fetch jobs", error);
+//     } finally {
+//       setLoading(false);
+//     }
+//   };
 
-  fetchJobsAndInitialDetails();
-}, []); // بنشغلها مرة واحدة عند فتح الصفحة
-
-
+//   fetchJobsAndInitialDetails();
+// }, []); // بنشغلها مرة واحدة عند فتح الصفحة
 
 
-// 2. دالة جديدة لجلب التفاصيل عند الضغط على الوظيفة فقط
-const handleJobSelect = async (job: Job) => {
- setSearchParams({ id: job.id.toString() }); // تحديث الرابط بالـ ID
- setSelectedJob(job); // عرض البيانات الأساسية أولاً
-  try {
-    // اجلبي التفاصيل الإضافية (الوصف والمهارات) لو لم تكن موجودة
-    if (!job.description) {
-      const details = await jobService.getJobById(job.id);
-      setSelectedJob(prev => prev?.id === job.id ? { ...prev, ...details } : prev);
-      setJobs(prevJobs => prevJobs.map(j => j.id === job.id ? { ...j, ...details } : j)); //
-      // تحديث القائمة الأصلية لكي لا نحتاج لجلب البيانات مرة أخرى لنفس الوظيفة
-    }
-  } catch (error) {
-    console.error("Error fetching job details", error);
-  }
-};
+
+
+// // 2. دالة جديدة لجلب التفاصيل عند الضغط على الوظيفة فقط
+// const handleJobSelect = async (job: Job) => {
+//  setSearchParams({ id: job.id.toString() }); // تحديث الرابط بالـ ID
+//  setSelectedJob(job); // عرض البيانات الأساسية أولاً
+//   try {
+//     // اجلبي التفاصيل الإضافية (الوصف والمهارات) لو لم تكن موجودة
+//     if (!job.description) {
+//       const details = await jobService.getJobById(job.id);
+//       setSelectedJob(prev => prev?.id === job.id ? { ...prev, ...details } : prev);
+//       setJobs(prevJobs => prevJobs.map(j => j.id === job.id ? { ...j, ...details } : j)); //
+//       // تحديث القائمة الأصلية لكي لا نحتاج لجلب البيانات مرة أخرى لنفس الوظيفة
+//     }
+//   } catch (error) {
+//     console.error("Error fetching job details", error);
+//   }
+// };
 
   const filtered = jobs.filter((j) => {
     const q = search.toLowerCase();
@@ -173,7 +220,7 @@ const handleApplyClick = (job: Job) => {
           </div>
         </div>
 
-        {loading ? (
+        {isJobsLoading ? (
           <div className="flex items-center justify-center py-20">
             <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
           </div>
@@ -232,7 +279,8 @@ const handleApplyClick = (job: Job) => {
                   </div>
                   <Button variant="ghost" size="icon" className="md:hidden" 
                   onClick={() => {
-                    setSelectedJob(null);
+
+                   
                     setSearchParams(prev => {
                       const newParams = new URLSearchParams(prev);
                       newParams.delete("id");
@@ -272,29 +320,7 @@ const handleApplyClick = (job: Job) => {
                   </div>
                 )}
 
-                {/* <Button
-        className="mt-8 w-full gradient-primary border-0"
-        onClick={() => handleApplyClick(selectedJob)}
-        disabled={selectedJob.status === "Closed"}
-      >
-        {selectedJob.status === "Closed" ? "Position Closed" : "Apply Now"}
-      </Button>
-
-      <ApplyModal
-        isOpen={isOpen}
-        onClose={closeModal}
-        onSubmit={submitApplication}
-        jobTitle={selectedJob?.title ?? ""}
-        companyName={selectedJob?.organizationName ?? ""}
-        resumes={[]}
-        selectedResumeId={null}
-        onSelectResume={setSelectedResumeId}
-        coverLetter={""}
-        onCoverLetterChange={setCoverLetter}
-        isFetchingResumes={false}
-        isSubmitting={isSubmitting}
-        error={applyError}
-      /> */}
+                
 
 
 {/* زرار الـ Apply Now */}
@@ -317,14 +343,14 @@ const handleApplyClick = (job: Job) => {
 
 
 <Button 
-      variant="outline" 
-      className="w-full gap-2 border-primary/20 text-primary hover:bg-primary/5 mt-5"
-      onClick={() => setIsAnalysisOpen(true)}
-    >
-      <Sparkles size={16} /> Analyze My Resume
-    </Button>
+  variant="outline" 
+  className="w-full gap-2 border-primary/20 text-primary hover:bg-primary/5 mt-5"
+  onClick={() => navigate(`/resume-analysis?jobId=${jobIdFromUrl}`)} // نفترض إن عندك jobId هنا
+>
+  <Sparkles size={16} /> Analyze My Resume
+</Button>
 
-    {/* استدعاء الـ Modal */}
+
      
 
 
@@ -333,10 +359,6 @@ const handleApplyClick = (job: Job) => {
           </div> 
         )}
       </div>
-
-
-
- {/* Apply Modal — add once, anywhere inside the return */}
  
 
 

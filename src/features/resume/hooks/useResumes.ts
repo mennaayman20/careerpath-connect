@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { ResumeResponse } from "../types/resume.types";
+import { ResumeFeedbackResponse, ResumeResponse } from "../types/resume.types";
 import { resumeService } from "../services/resume.service";
 import { useToast } from "@/hooks/use-toast";
 
@@ -10,6 +10,10 @@ export const useResumes = () => {
   const [error, setError] = useState<string | null>(null);
   const [viewerOpen, setViewerOpen] = useState(false);
   const [selectedResume, setSelectedResume] = useState<{ id: number; fileName: string; pdfUrl: string } | null>(null);
+
+
+const [analysisData, setAnalysisData] = useState<ResumeFeedbackResponse | null>(null);
+
 
   /**
    * Fetch all resumes
@@ -151,6 +155,33 @@ export const useResumes = () => {
     fetchResumes();
   }, [fetchResumes]);
 
+
+const analyzeResume = useCallback(async (resumeId: number, jobId?: string) => {
+  setIsLoading(true);
+  try {
+    const data = await resumeService.getResumeAnalysis(resumeId, jobId);
+    setAnalysisData(data);
+    return data;
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Analysis failed";
+    toast({ variant: "destructive", title: "Analysis Error", description: message });
+    throw err;
+  } finally {
+    setIsLoading(false);
+  }
+}, [toast]);
+
+// رجع analyzeResume و analysisData في الـ return
+
+
+
+
+
+
+
+
+
+
   return {
     resumes,
     isLoading,
@@ -163,5 +194,8 @@ export const useResumes = () => {
     viewerOpen,
     selectedResume,
     closeViewer,
+    
+    analyzeResume,
+    analysisData,
   };
 };

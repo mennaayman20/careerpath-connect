@@ -1,5 +1,5 @@
 import axios, { AxiosInstance } from "axios";
-import { ResumeResponse, ResumeUploadResponse } from "../types/resume.types";
+import { ResumeFeedbackResponse, ResumeResponse, ResumeUploadResponse } from "../types/resume.types";
 import { ApplicationRequest, ApplicationResponse } from "@/features/application/types/application.types";
 
 class ResumeService {
@@ -127,6 +127,20 @@ class ResumeService {
 
   async applyToJob(data: ApplicationRequest): Promise<ApplicationResponse> {
   const response = await this.api.post<ApplicationResponse>("/applications", data);
+  return response.data;
+}
+
+
+
+
+// services/resume.service.ts
+async getResumeAnalysis(resumeId: number, jobId?: string): Promise<ResumeFeedbackResponse> {
+  // لو فيه jobId نستخدم الـ endpoint المخصص للوظيفة، لو مفيش نستخدم العام
+  const url = jobId 
+    ? `/user/me/resume/feedback/${resumeId}/job/${jobId}`
+    : `/user/me/resume/feedback/${resumeId}`;
+    
+  const response = await this.api.get<ResumeFeedbackResponse>(url);
   return response.data;
 }
 

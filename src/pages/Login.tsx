@@ -34,20 +34,25 @@ const Login = () => {
   return (
     <div className="flex min-h-screen">
       {/* Left panel */}
-      <div className="hidden w-1/2 items-center justify-center gradient-hero lg:flex">
-        <div className="max-w-sm text-center text-primary-foreground">
-          <Briefcase className="mx-auto mb-4 h-12 w-12" />
-          <h2 className="font-display text-3xl font-bold">Welcome Back</h2>
-          <p className="mt-3 text-primary-foreground/80">Sign in to access your dashboard, applications, and AI-matched jobs.</p>
+      <HeroSection className="hidden lg:flex">
+        <div className="max-w-sm text-center mr-36">
+          <h2 className="text-4xl tracking-tight">welcome back ..</h2>
+          <p className="mt-4 text-purple-100/80">
+            Sign in to your account and continue your career journey with us.
+          </p>
         </div>
-      </div>
+      </HeroSection>
 
       {/* Form */}
+
+      
       <div className="flex flex-1 items-center justify-center px-6 py-12">
+         <FormContainer>
+
         <div className="w-full max-w-sm">
-          <Link to="/" className="mb-8 flex items-center gap-2 font-display text-xl font-bold text-primary lg:hidden">
+          {/* <Link to="/" className="mb-8 flex items-center gap-2 font-display text-xl font-bold text-primary lg:hidden">
             <Briefcase className="h-6 w-6" /> Upply
-          </Link>
+          </Link> */}
           {/* 2. استبدال الـ h1 العادي بـ PulsingTitle */}
           <PulsingTitle className="font-display text-2xl font-bold text-foreground">
             Sign In
@@ -81,7 +86,11 @@ const Login = () => {
             <Link to="/signup" className="font-medium text-primary hover:underline">Sign Up</Link>
           </p>
         </div>
+</FormContainer>
+
       </div>
+
+
     </div>
   );
 };
@@ -130,5 +139,38 @@ const PulsingTitle = styled.h1`
   }
 `;
 
+
+const HeroSection = styled.div`
+  /* العرض والظهور */
+  display: none; /* مخفي افتراضياً في الموبايل */
+  
+  @media (min-width: 1024px) {
+  
+    display: flex;
+    flex: 1.2; /* بياخد مساحة أكبر شوية من الفورم */
+  background: #2D236A;
+    clip-path: polygon(0 0, 100% 0, 65% 100%, 0% 100%);
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    padding: 40px;
+
+
+  }
+
+`;
+
+const FormContainer = styled.div`
+  display: flex;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+  padding: 28px;
+  border-radius: 20px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); /* ظل خفيف للفورم */
+  border: 1px solid rgba(0, 0, 0, 0.1); /* حدود خفيفة للفورم */
+  background-color: white; /* أو لون خلفية الفورم */
+`;
 
 export default Login;
