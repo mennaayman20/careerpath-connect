@@ -39,6 +39,12 @@ getUserExperiences: async (): Promise<Experience[]> => {
     return response.data; // هنا الـ data هتكون مصفوفة من الـ Experience
   },
 
+  getUserExperiencesbyId: async (): Promise<Experience[]> => {
+    const response = await api.get('/api/user/me/experiences{$id}');
+    return response.data; // هنا الـ data هتكون مصفوفة من الـ Experience
+  },
+
+
   addUserExperience: async (experienceData: ExperienceRequest): Promise<Experience> => {
     const response = await api.post('/api/user/me/experiences', experienceData);
     return response.data;
@@ -102,29 +108,7 @@ deleteUserSocialLink: async (socialId: number | string): Promise<void> => {
 
 
 
-// social links
-// getUserSocialLinks: async () => {
-//   const response = await api.get('/api/user/me/social-links');
-//   return response.data;}
-// ,
-// addUserSocialLink: async (socialLinkData: SocialLinkRequest) => {
-//   const response = await api.post('/api/user/me/social-links', socialLinkData);
-//   return response.data;} ,
 
-
-// addUserSocialLinkByType: async (socialType: string, socialLinkData: SocialLinkRequest) => {
-//   const response = await api.post(`/api/user/me/social-links/${socialType}`, socialLinkData);
-//   return response.data;} ,
-
-
-
-// updateUserSocialLink: async (socialLinkId: string | number, socialLinkData: SocialLinkRequest) => {
-//   const response = await api.put(`/api/user/me/social-links/${socialLinkId}`, socialLinkData);
-//   return response.data;
-// },
-
-// deleteUserSocialLink: async (socialLinkId: string | number) => {
-//   await api.delete(`/api/user/me/social-links/${socialLinkId}`); }
 
 
 

@@ -13,6 +13,7 @@ import { useSearchParams } from "react-router-dom";
 import { jobService } from "@/services/jobService";
 import { useNavigate } from "react-router-dom";
 import { ApplyModal } from "@/features/application/components/applyModal";
+import { useMatchedJobs } from "@/hooks/useJobs";
 
 const getRelativeTime = (date: string | Date): string => {
   const now = new Date();
@@ -35,35 +36,42 @@ const getRelativeTime = (date: string | Date): string => {
 const MatchedJobs = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
-  const [jobs, setJobs] = useState<MatchedJob[]>([]);
-  const [loading, setLoading] = useState(true);
+//   const [jobs, setJobs] = useState<MatchedJob[]>([]);
+//   const [loading, setLoading] = useState(true);
 
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
   const [searchParams, setSearchParams] = useSearchParams();
 
 
   const [isApplyModalOpen, setIsApplyModalOpen] = useState(false);
-const [applyingJobId, setApplyingJobId] = useState<number | null>(null);
+// const [applyingJobId, setApplyingJobId] = useState<number | null>(null);
 
 
 
-  useEffect(() => {
-    // استدعاء الـ API الجديد
-    const fetchMatchedJobs = async () => {
-      try {
-        setLoading(true);
-    const data = await jobService.getMatchedJobs() as MatchedJob[];
-      setJobs(data);
-    } catch (error) {
-      console.error("Error fetching matched jobs:", error);
+//   useEffect(() => {
+//     // استدعاء الـ API الجديد
+//     const fetchMatchedJobs = async () => {
+//       try {
+//         setLoading(true);
+//     const data = await jobService.getMatchedJobs() as MatchedJob[];
+//       setJobs(data);
+//     } catch (error) {
+//       console.error("Error fetching matched jobs:", error);
       
-    }
-    finally {      setLoading(false);
-    }
-  };
+//     }
+//     finally {      setLoading(false);
+//     }
+//   };
   
-  fetchMatchedJobs();
-  }, []);
+//   fetchMatchedJobs();
+//   }, []);
+
+
+const { 
+  data: jobs = [], 
+  isLoading, 
+  error 
+} = useMatchedJobs();
 
   const handleJobSelect = async (job: Job) => {
     
@@ -84,7 +92,7 @@ const [applyingJobId, setApplyingJobId] = useState<number | null>(null);
     <main className="container flex-1 py-8">
       
       {/* 1. حالة التحميل */}
-      {loading ? (
+      {isLoading ? (
         <div className="flex flex-col items-center justify-center py-20">
           <div className="h-10 w-10 animate-spin rounded-full border-4 border-primary border-t-transparent" />
           <p className="mt-4 text-muted-foreground animate-pulse">Analyzing your profile...</p>

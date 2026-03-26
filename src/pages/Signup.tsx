@@ -91,7 +91,7 @@ const isFormValid = passwordRequirements.every(req => req.met) && form.email.inc
 
         <div className="max-w-sm text-center mr-36">
 
-                    <div className="card">
+                    {/* <div className="card">
   <div className="loader ">
     <p>APPLY</p>
     <div className="words">
@@ -102,16 +102,16 @@ const isFormValid = passwordRequirements.every(req => req.met) && form.email.inc
       <span className="word">Easily</span>
     </div>
   </div>
-</div>
+</div> */}
 
 
 
 
-          {/* <Briefcase className="mx-auto mb-6 h-16 w-16" />
+          
           <h2 className="text-4xl font-bold tracking-tight">Join Upply</h2>
           <p className="mt-4 text-lg text-purple-100/80">
             Create your account and start your journey with AI-powered recruitment.
-          </p> */}
+          </p>
         </div>
 
 

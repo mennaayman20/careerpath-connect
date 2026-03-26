@@ -1,25 +1,22 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
-import { api } from "@/lib/api";
 import { Job } from "@/types/jobs";
 import { jobService } from "@/services/jobService";
-import { JobDetails } from "@/types/jobdetails";
 import { useSearchParams } from "react-router-dom";
-import { Resume } from "../features/application/types/application.types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import { Search, MapPin, Clock, Building2, Briefcase, X, Sparkles } from "lucide-react";
+import { Search, MapPin, Clock, Building2, Briefcase, X, Sparkles, Star, Globe } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { motion } from "framer-motion";
 import { useQuery } from "@tanstack/react-query";
-
 import { ApplyModal } from "@/features/application/components/applyModal";
-import { error } from "console";
-import ResumeAnalysis from "./ResumeAnalysis";
+import { cn } from "@/lib/utils";
+import { useJobDetails, useJobs } from "@/hooks/useJobs";
+
 
 
 interface JobCardProps {
@@ -68,113 +65,22 @@ const Jobs = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const jobIdFromUrl = searchParams.get("id");
 
-  // 1. جلب كل الوظائف (بدل الـ useEffect)
-  const { 
-    data: jobsData, 
-    isLoading: isJobsLoading 
-  } = useQuery({
-    queryKey: ['jobs'],
-    queryFn: () => jobService.getAllJobs(),
-    select: (data) => (data.content || []).map(j => ({
-      ...j,
-      organization: j.organizationName,
-    })),
-  });
 
-  const jobs = jobsData || [];
 
-  // 2. جلب تفاصيل الوظيفة المختارة (لو فيه ID في الرابط)
-  const { 
-    data: selectedJobDetails, 
-    isLoading: isDetailsLoading 
-  } = useQuery({
-    queryKey: ['jobDetails', jobIdFromUrl],
-    queryFn: () => jobService.getJobById(jobIdFromUrl!),
-    enabled: !!jobIdFromUrl, // مش هيشتغل غير لو فيه ID فعلاً
-    staleTime: 1000 * 60 * 10, // التفاصيل مش بتتغير كتير، احفظها 10 دقائق
-  });
+const { data: jobs = [], isLoading: isJobsLoading } = useJobs();
+const { data: selectedJobDetails, isLoading: isDetailsLoading } = useJobDetails(jobIdFromUrl);
 
-  // تحديد الـ selectedJob الحالية
-  // بنعمل merge بين البيانات الأساسية والتفاصيل اللي جت من الـ API التاني
+  
   const currentJobBase = jobs.find(j => j.id.toString() === jobIdFromUrl);
   const selectedJob = selectedJobDetails ? { ...currentJobBase, ...selectedJobDetails } : currentJobBase;
 
   const handleJobSelect = (job: Job) => {
     setSearchParams({ id: job.id.toString() });
-    // مفيش داعي لـ setSelectedJob يدوي، الـ useQuery اللي فوق هتلقط التغيير في الـ URL وتجيب الداتا
+    
   };
-//   const { isAuthenticated } = useAuth();
-//   const { toast } = useToast();
-//   const navigate = useNavigate();
-//   const [jobs, setJobs] = useState<Job[]>([]);
-//   const [search, setSearch] = useState("");
-//   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
-//   const [loading, setLoading] = useState(true);
-// const [searchParams, setSearchParams] = useSearchParams();
-// const jobIdFromUrl = searchParams.get("id");
 
 const [isApplyModalOpen, setIsApplyModalOpen] = useState(false);
 const [applyingJobId, setApplyingJobId] = useState<number | null>(null);
-
-// const [isAnalysisOpen, setIsAnalysisOpen] = useState(false);
-
-
-
-
-
-
-
-
-//  // 1. اجعلي الـ useEffect تجلب القائمة الأساسية فقط
-// useEffect(() => {
-//   const fetchJobsAndInitialDetails = async () => {
-//     try {
-//       setLoading(true);
-//       const data = await jobService.getAllJobs();
-//       const jobsFromApi = (data.content || []).map((j: Job) => ({
-//         ...j,
-//         organization: j.organizationName,
-//       }));
-//       setJobs(jobsFromApi);
-
-//       // لو فيه ID في الرابط، ابحث عنه في القائمة واجلب تفاصيله
-//       if (jobIdFromUrl) {
-//         const foundJob = jobsFromApi.find(j => j.id.toString() === jobIdFromUrl);
-//         if (foundJob) {
-//           // جلب التفاصيل الكاملة (الوصف والمهارات) للوظيفة المختارة في الرابط
-//           const details = await jobService.getJobById(foundJob.id);
-//           setSelectedJob({ ...foundJob, ...details });
-//         }
-//       }
-//     } catch (error) {
-//       console.error("Failed to fetch jobs", error);
-//     } finally {
-//       setLoading(false);
-//     }
-//   };
-
-//   fetchJobsAndInitialDetails();
-// }, []); // بنشغلها مرة واحدة عند فتح الصفحة
-
-
-
-
-// // 2. دالة جديدة لجلب التفاصيل عند الضغط على الوظيفة فقط
-// const handleJobSelect = async (job: Job) => {
-//  setSearchParams({ id: job.id.toString() }); // تحديث الرابط بالـ ID
-//  setSelectedJob(job); // عرض البيانات الأساسية أولاً
-//   try {
-//     // اجلبي التفاصيل الإضافية (الوصف والمهارات) لو لم تكن موجودة
-//     if (!job.description) {
-//       const details = await jobService.getJobById(job.id);
-//       setSelectedJob(prev => prev?.id === job.id ? { ...prev, ...details } : prev);
-//       setJobs(prevJobs => prevJobs.map(j => j.id === job.id ? { ...j, ...details } : j)); //
-//       // تحديث القائمة الأصلية لكي لا نحتاج لجلب البيانات مرة أخرى لنفس الوظيفة
-//     }
-//   } catch (error) {
-//     console.error("Error fetching job details", error);
-//   }
-// };
 
   const filtered = jobs.filter((j) => {
     const q = search.toLowerCase();
@@ -189,24 +95,32 @@ const [applyingJobId, setApplyingJobId] = useState<number | null>(null);
     );
   });
 
-const handleApplyClick = (job: Job) => {
-  if (!isAuthenticated) {
-    toast({
-      title: "Please login to apply",
-      description: "Create an account or sign in to apply for jobs.",
-      variant: "destructive",
-    });
-    setTimeout(() => navigate("/login"), 1500);
-    return;
-  }
-  setApplyingJobId(job.id);
-  setIsApplyModalOpen(true);
 
+  const getSkillStyle = (index: number) => {
+  const styles = [
+    { bg: "bg-blue-50 text-blue-900 border-blue-200 dark:bg-blue-950/50 dark:text-blue-200 dark:border-blue-800", dot: "bg-blue-400" },
+    { bg: "bg-violet-50 text-violet-900 border-violet-200 dark:bg-violet-950/50 dark:text-violet-200 dark:border-violet-800", dot: "bg-violet-400" },
+    { bg: "bg-teal-50 text-teal-900 border-teal-200 dark:bg-teal-950/50 dark:text-teal-200 dark:border-teal-800", dot: "bg-teal-400" },
+    { bg: "bg-amber-50 text-amber-900 border-amber-200 dark:bg-amber-950/50 dark:text-amber-200 dark:border-amber-800", dot: "bg-amber-400" },
+    { bg: "bg-rose-50 text-rose-900 border-rose-200 dark:bg-rose-950/50 dark:text-rose-200 dark:border-rose-800", dot: "bg-rose-400" },
+  ];
+  return styles[index % styles.length];
 };
 
+// const handleApplyClick = (job: Job) => {
+//   if (!isAuthenticated) {
+//     toast({
+//       title: "Please login to apply",
+//       description: "Create an account or sign in to apply for jobs.",
+//       variant: "destructive",
+//     });
+//     setTimeout(() => navigate("/login"), 1500);
+//     return;
+//   }
+//   setApplyingJobId(job.id);
+//   setIsApplyModalOpen(true);
 
-
-
+// };
   return (
     <div className="flex min-h-screen flex-col bg-background">
       <Navbar />
@@ -214,10 +128,24 @@ const handleApplyClick = (job: Job) => {
         <div className="mb-8">
           <h1 className="font-display text-3xl font-bold text-foreground">Browse Jobs</h1>
           <p className="mt-1 text-muted-foreground">Find your next opportunity</p>
-          <div className="relative mt-4 max-w-md">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search by title, company, or skill…" className="pl-10" />
-          </div>
+        
+          {/* Search bar */}
+<div className="relative mt-4 max-w-md">
+  <Search
+  id="search-input" 
+  className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground transition-colors peer-focus:text-blue-500" />
+
+  <Input
+    value={search}
+    onChange={(e) => setSearch(e.target.value)}
+    placeholder="Search by title, company, or skill…"
+    className="peer h-11 rounded-full pl-11 pr-20 border-border/60  border-blue-300  
+               focus:border-blue-400 focus:ring-2 focus:ring-blue-100
+               dark:focus:ring-blue-950 transition-all"
+  />
+
+  
+</div>
         </div>
 
         {isJobsLoading ? (
@@ -290,18 +218,77 @@ const handleApplyClick = (job: Job) => {
                     <X className="h-4 w-4" />
                   </Button>
                 </div>
-                <div className="mt-4 flex flex-wrap gap-2">
+
+
+                {/* <div className="mt-4 flex flex-wrap gap-2">
                   <Badge>{selectedJob.type}</Badge>
                    <Badge>{selectedJob.status}</Badge>
-                  {/* No hybrid in new API */}
+                
                   <Badge>{selectedJob.seniority}</Badge>
                   <Badge>{selectedJob.model}</Badge>
 
-                  {/* created date  */}
+                 
                   <Badge>Posted {getRelativeTime(selectedJob.createdDate)}</Badge>
 
                   
-                </div>
+                </div> */}
+
+
+
+
+                <div className="mt-4 flex flex-wrap gap-2 items-center">
+
+  {/* type */}
+  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium border
+    bg-blue-50 text-blue-900 border-blue-200
+    dark:bg-blue-950/50 dark:text-blue-200 dark:border-blue-800">
+    <Briefcase className="w-3 h-3" />
+    {selectedJob.type}
+  </span>
+
+  {/* status — نقطة خضراء نابضة لو active */}
+  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium border
+    bg-green-50 text-green-900 border-green-200
+    dark:bg-green-950/50 dark:text-green-200 dark:border-green-800">
+    <span className={cn(
+      "w-1.5 h-1.5 rounded-full flex-shrink-0",
+      selectedJob.status === "Active"
+        ? "bg-green-500 animate-pulse"
+        : "bg-muted-foreground"
+    )} />
+    {selectedJob.status}
+  </span>
+
+  {/* seniority */}
+  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium border
+    bg-amber-50 text-amber-900 border-amber-200
+    dark:bg-amber-950/50 dark:text-amber-200 dark:border-amber-800">
+    <Star className="w-3 h-3" />
+    {selectedJob.seniority}
+  </span>
+
+  {/* model */}
+  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium border
+    bg-violet-50 text-violet-900 border-violet-200
+    dark:bg-violet-950/50 dark:text-violet-200 dark:border-violet-800">
+    <Globe className="w-3 h-3" />
+    {selectedJob.model}
+  </span>
+
+  {/* date */}
+  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium border
+   bg-yellow-200 text-violet-900 border-violet-200
+    dark:text-violet-200 dark:border-yellow-100
+    border-border/50 text-muted-foreground bg-muted/40">
+    <Clock className="w-3 h-3" />
+    {getRelativeTime(selectedJob.createdDate)}
+  </span>
+
+</div>
+
+                
+
+
                 {/* Job Description */}
                 <div className="mt-6">
                   <h4 className="font-semibold text-base text-foreground mb-1">Description</h4>
@@ -309,22 +296,41 @@ const handleApplyClick = (job: Job) => {
                 </div>
 
                 {/* Required Skills */}
-                {selectedJob.skills && selectedJob.skills.length > 0 && (
-                  <div className="mt-6">
-                    <h4 className="font-semibold text-base text-foreground mb-1">Required Skills</h4>
-                    <div className="flex flex-wrap gap-2">
-                      {selectedJob.skills.map((skill) => (
-                        <Badge key={skill.skillId} variant="secondary">{skill.skillName}</Badge>
-                      ))}
-                    </div>
-                  </div>
-                )}
+                {selectedJob.skills?.length > 0 && (
+  <div className="mt-8">
+    {/* Header */}
+    <div className="flex items-center justify-between mb-4">
+      <h4 className="text-[11px] font-bold uppercase tracking-[0.15em] text-muted-foreground flex items-center gap-2">
+        <Sparkles className="w-3.5 h-3.5 text-blue-500" />
+        Required Skills
+      </h4>
+     
+    </div>
+
+    {/* Skills Grid */}
+    <div className="flex flex-wrap gap-2.5">
+      {selectedJob.skills.map((skill, i) => {
+        const { bg, dot } = getSkillStyle(i);
+        return (
+          <span
+            key={skill.skillId}
+            className={`inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-[13px] font-semibold border transition-all hover:scale-105 cursor-default ${bg}`}
+          >
+            <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${dot} shadow-[0_0_8px_rgba(0,0,0,0.1)]`} />
+            {skill.skillName}
+          </span>
+        );
+      })}
+    </div>
+  </div>
+)}
 
                 
 
 
 {/* زرار الـ Apply Now */}
 <Button 
+
   onClick={() => setIsApplyModalOpen(true)}
   className="mt-8 w-full gradient-primary border-0"
   disabled={selectedJob.status === "Closed"}

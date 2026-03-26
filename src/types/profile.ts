@@ -1,4 +1,5 @@
 
+
 import { N } from 'vitest/dist/chunks/environment.d.cL3nLXbE.js';
 // interfaces/user-profile.interface.ts
 
@@ -31,6 +32,7 @@ export interface Project {
 }
 
 export interface ProjectRequest {
+
   title: string; // Required
   description: string; // Required
   projectUrl?: string; 

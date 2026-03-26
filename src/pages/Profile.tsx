@@ -30,11 +30,54 @@ const Profile = () => {
   const { personal, setPersonal, loading, handleSave } = useProfileManager();
   const [newSkill, setNewSkill] = useState({ category: "Frontend", skillName: "" });
   const [activeSection, setActiveSection] = useState("personal");
+// السطر 33 المعدل
+const { 
+  experiences, 
+  addExperience, 
+  updateExperience, 
+  removeExperience, 
+  saveExperiences, 
+  validateExperiences, 
+  saveMutation,
+  errors, 
+  isLoading, 
+  isSaving 
+} = useExperience();
+  // const { experiences, addExperience, updateExperience, removeExperience, validateExperiences, saveExperiences, isInvalid, errors, isLoading } = useExperience();
+  // const { projects, addProject, updateProject, removeProject, saveProjects, isInvalidate, isLoading: isProjectsLoading } = useProject();
 
-  const { experiences, addExperience, updateExperience, removeExperience, validateExperiences, saveExperiences, isInvalid, errors, isLoading } = useExperience();
-  const { projects, addProject, updateProject, removeProject, saveProjects, isInvalidate, isLoading: isProjectsLoading } = useProject();
-  const { links, updateLink, saveSocialLinks, isLoading: isLinksLoading, removeSocialLink, addSocialLink, validateSocialLinks, isInvalidSocial } = useSocialLinks();
-  const { skills, isLoading: isSkillsLoading, handleAddSkill, handleRemoveSkill } = useSkills();
+  const { 
+  projects, 
+  addProject, 
+  updateProject, 
+  removeProject, 
+  saveProjects, 
+  
+  isProjectsSaving, // استخدمي دي للـ Loading بتاع الزراير
+  isLoading: isProjectsLoading 
+} = useProject();
+
+
+
+ const { 
+  links, 
+  addSocialLink, 
+  updateLink, 
+  saveSocialLink, // اتأكدي من الاسم هنا
+  removeSocialLink, 
+  isLoading: isLinksLoading, 
+  isLinksSaving,
+  validateSocialLinks 
+} = useSocialLinks();
+
+
+ const { 
+  skills, 
+  handleAddSkill, 
+  handleRemoveSkill, 
+  isLoading: isSkillsLoading, 
+  isSkillsSaving 
+} = useSkills();
 
   const navItems = [
     { id: "personal", label: "About Me", icon: User },
@@ -218,10 +261,20 @@ const Profile = () => {
                   Social <span className="text-accent">Links</span>
                 </h2>
               </div>
-              <Button onClick={addSocialLink} variant="outline" className="border-border text-foreground hover:bg-secondary">
-                <Plus className="mr-2 h-4 w-4" />
-                Add Link
-              </Button>
+             <Button 
+  onClick={() => addSocialLink()} 
+  disabled={isLinksSaving} // تعطيل الزرار أثناء الإضافة
+  variant="outline" 
+  className="border-border text-foreground hover:bg-secondary"
+>
+  {isLinksSaving ? (
+    <span className="flex items-center gap-2">Saving...</span>
+  ) : (
+    <>
+      <Plus className="mr-2 h-4 w-4" /> Add Link
+    </>
+  )}
+</Button>
             </div>
 
             {links.length === 0 ? (
@@ -242,13 +295,14 @@ const Profile = () => {
                         </span>
                       </div>
                       <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => removeSocialLink(link.id)}
-                        className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
+  variant="ghost"
+  size="sm"
+  onClick={() => removeSocialLink(link.id)}
+  disabled={isLinksSaving} // تعطيل المسح أثناء أي عملية حفظ
+  className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive disabled:opacity-50"
+>
+  <Trash2 className="h-4 w-4" />
+</Button>
                     </div>
 
                     <div className="grid gap-4 sm:grid-cols-[1fr_2fr]">
@@ -270,11 +324,11 @@ const Profile = () => {
                       <div className="space-y-2">
                         <Label>Profile URL</Label>
                         <Input
-                          value={link.url || ""}
-                          onChange={(e) => updateLink(link.id, "url", e.target.value)}
-                          placeholder="https://..."
-                          className="bg-input"
-                        />
+  value={link.url || ""}
+  onChange={(e) => updateLink(link.id, "url", e.target.value)}
+  placeholder="https://..."
+  className={`bg-input ${errors[`url-${link.id}`] ? "border-destructive focus-visible:ring-destructive" : ""}`}
+/>
                         {errors[`url-${link.id}`] && (
                           <p className="text-sm text-destructive">{errors[`url-${link.id}`]}</p>
                         )}
@@ -283,13 +337,17 @@ const Profile = () => {
 
                     <div className="mt-6 flex justify-end">
                       <Button
-                        onClick={() => saveSocialLinks(link.id, link.socialType || "OTHER", link.url || "")}
-                        disabled={isLinksLoading || !link.url?.trim()}
-                        size="sm"
-                        className="gradient-accent border-0 text-accent-foreground"
-                      >
-                        {isLinksLoading ? "Saving..." : "Save Link"}
-                      </Button>
+  onClick={() => {
+    if (validateSocialLinks()) {
+      saveSocialLink(link.id, link.socialType || "OTHER", link.url || "");
+    }
+  }}
+  disabled={isLinksSaving || !link.url?.trim()} // تعطيل لو الـ URL فاضي أو فيه حفظ شغال
+  size="sm"
+  className="gradient-accent border-0 text-accent-foreground"
+>
+  {isLinksSaving ? "Saving..." : "Save Link"}
+</Button>
                     </div>
                   </div>
                 ))}
@@ -340,14 +398,19 @@ const Profile = () => {
                     className="bg-input"
                   />
                 </div>
-                <Button
-                  onClick={() => { handleAddSkill(newSkill.skillName); setNewSkill({ ...newSkill, skillName: "" }); }}
-                  disabled={isSkillsLoading || !newSkill.skillName.trim()}
-                  className="gradient-accent border-0 text-accent-foreground"
-                >
-                  <Plus className="mr-2 h-4 w-4" />
-                  Add
-                </Button>
+               <Button
+  onClick={() => { 
+    if (newSkill.skillName.trim()) {
+      handleAddSkill(newSkill.skillName); 
+      setNewSkill({ ...newSkill, skillName: "" }); 
+    }
+  }}
+  disabled={isSkillsSaving || !newSkill.skillName.trim()} // نستخدم الحالة الجديدة
+  className="gradient-accent border-0 text-accent-foreground"
+>
+  {isSkillsSaving ? "Adding..." : "Add"} 
+  {/* اختياري: ممكن تضيفي Spinner هنا */}
+</Button>
               </div>
             </div>
 
@@ -365,13 +428,14 @@ const Profile = () => {
                     <div className="mb-4 flex items-center justify-between">
                       <span className="font-display font-semibold text-foreground">{s.skillName}</span>
                       <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleRemoveSkill(s.skillId)}
-                        className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive"
-                      >
-                        <X className="h-4 w-4" />
-                      </Button>
+  variant="ghost"
+  size="sm"
+  onClick={() => handleRemoveSkill(s.skillId)}
+  disabled={isSkillsSaving} // نمنع الحذف أثناء وجود عملية تانية
+  className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive disabled:opacity-50"
+>
+  <X className="h-4 w-4" />
+</Button>
                     </div>
                     <div className="h-2 rounded-full bg-secondary">
                       <div
@@ -389,121 +453,132 @@ const Profile = () => {
           </div>
         )}
 
-        {/* Experience */}
-        {activeSection === "experience" && (
-          <div className="space-y-8">
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-              <div>
-                {/* <Badge variant="secondary" className="mb-4 gradient-accent text-accent-foreground">
-                  My Services
-                </Badge> */}
-                <h2 className="font-display text-3xl font-bold text-foreground">
-                  Work <span className="text-accent">Experience</span>
-                </h2>
+       {/* Experience */}
+{activeSection === "experience" && (
+  <div className="space-y-8">
+    <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div>
+        <h2 className="font-display text-3xl font-bold text-foreground">
+          Work <span className="text-accent">Experience</span>
+        </h2>
+      </div>
+      <Button onClick={() => addExperience()} disabled={isSaving}> 
+  <Plus className="mr-2 h-4 w-4" /> Add Experience 
+</Button>
+    </div>
+
+    {/* حالة الـ Loading لأول مرة جلب بيانات */}
+    {isLoading && experiences.length === 0 ? (
+      <div className="text-center py-10">Loading experiences...</div>
+    ) : experiences.length === 0 ? (
+      <div className="rounded-xl bg-card p-12 text-center shadow-card border border-border/50">
+        <Briefcase className="mx-auto h-12 w-12 text-muted-foreground/50" />
+        <h3 className="mt-4 font-display text-lg font-semibold text-foreground">No experience added yet</h3>
+        <p className="mt-2 text-muted-foreground">Add your work experience to showcase your professional journey.</p>
+      </div>
+    ) : (
+      <div className="space-y-6">
+        {experiences.map((exp) => (
+          <div key={exp.id} className="rounded-xl bg-card p-6 shadow-card border border-border/50">
+            <div className="mb-6 flex items-start justify-between">
+              <div className="flex items-center gap-4">
+                <div className="rounded-lg bg-accent/10 p-3">
+                  <Briefcase className="h-6 w-6 text-accent" />
+                </div>
+                <div>
+                  <h3 className="font-display font-semibold text-foreground">
+                    {exp.title || "Untitled Position"}
+                  </h3>
+                  {exp.organization && (
+                    <p className="text-accent font-medium">{exp.organization}</p>
+                  )}
+                </div>
               </div>
-              <Button onClick={addExperience} variant="outline" className="border-border text-foreground hover:bg-secondary">
-                <Plus className="mr-2 h-4 w-4" />
-                Add Experience
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => exp.id && removeExperience(exp.id)}
+                className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive"
+              >
+                <Trash2 className="h-4 w-4" />
               </Button>
             </div>
 
-            {experiences.length === 0 ? (
-              <div className="rounded-xl bg-card p-12 text-center shadow-card border border-border/50">
-                <Briefcase className="mx-auto h-12 w-12 text-muted-foreground/50" />
-                <h3 className="mt-4 font-display text-lg font-semibold text-foreground">No experience added yet</h3>
-                <p className="mt-2 text-muted-foreground">Add your work experience to showcase your professional journey.</p>
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+              {/* Job Title */}
+              <div className="space-y-2">
+                <Label>Job Title</Label>
+                <Input
+                  value={exp.title || ""}
+                  onChange={(e) => updateExperience(exp.id!, "title", e.target.value)}
+                  placeholder="Software Engineer"
+                  className={`bg-input ${errors[`title-${exp.id}`] ? "border-destructive" : ""}`}
+                />
+                {errors[`title-${exp.id}`] && <p className="text-xs text-destructive">{errors[`title-${exp.id}`]}</p>}
               </div>
-            ) : (
-              <div className="space-y-6">
-                {experiences.map((exp) => (
-                  <div key={exp.id} className="rounded-xl bg-card p-6 shadow-card border border-border/50">
-                    <div className="mb-6 flex items-start justify-between">
-                      <div className="flex items-center gap-4">
-                        <div className="rounded-lg bg-accent/10 p-3">
-                          <Briefcase className="h-6 w-6 text-accent" />
-                        </div>
-                        <div>
-                          <h3 className="font-display font-semibold text-foreground">
-                            {exp.title || `Experience ${exp.id}`}
-                          </h3>
-                          {exp.organization && (
-                            <p className="text-accent font-medium">{exp.organization}</p>
-                          )}
-                        </div>
-                      </div>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => removeExperience(exp.id)}
-                        className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
 
-                    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-                      <div className="space-y-2">
-                        <Label>Job Title</Label>
-                        <Input
-                          value={exp.title || ""}
-                          onChange={(e) => updateExperience(exp.id, "title", e.target.value)}
-                          placeholder="Software Engineer"
-                          className="bg-input"
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label>Organization</Label>
-                        <Input
-                          value={exp.organization || ""}
-                          onChange={(e) => updateExperience(exp.id, "organization", e.target.value)}
-                          placeholder="Company Name"
-                          className="bg-input"
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label>Start Date</Label>
-                        <Input
-                          type="date"
-                          value={exp.startDate || ""}
-                          onChange={(e) => updateExperience(exp.id, "startDate", e.target.value)}
-                          className="bg-input"
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label>End Date</Label>
-                        <Input
-                          type="date"
-                          value={exp.endDate || ""}
-                          onChange={(e) => updateExperience(exp.id, "endDate", e.target.value)}
-                          className="bg-input"
-                        />
-                      </div>
-                      <div className="space-y-2 md:col-span-2 lg:col-span-4">
-                        <Label>Description</Label>
-                        <Textarea
-                          value={exp.description || ""}
-                          onChange={(e) => updateExperience(exp.id, "description", e.target.value)}
-                          placeholder="Describe your role and achievements..."
-                          className="bg-input min-h-[100px] resize-none"
-                        />
-                      </div>
-                    </div>
-
-                    <div className="mt-6 flex justify-end">
-                      <Button
-                        onClick={() => saveExperiences(exp)}
-                        disabled={isLoading || !exp.title?.trim() || !exp.organization?.trim() || !exp.startDate}
-                        className="gradient-accent border-0 text-accent-foreground"
-                      >
-                        {isLoading ? "Saving..." : "Save Experience"}
-                      </Button>
-                    </div>
-                  </div>
-                ))}
+              {/* Organization */}
+              <div className="space-y-2">
+                <Label>Organization</Label>
+                <Input
+                  value={exp.organization || ""}
+                  onChange={(e) => updateExperience(exp.id!, "organization", e.target.value)}
+                  placeholder="Company Name"
+                  className={`bg-input ${errors[`org-${exp.id}`] ? "border-destructive" : ""}`}
+                />
+                {errors[`org-${exp.id}`] && <p className="text-xs text-destructive">{errors[`org-${exp.id}`]}</p>}
               </div>
-            )}
+
+              {/* Start Date */}
+              <div className="space-y-2">
+                <Label>Start Date</Label>
+                <Input
+                  type="date"
+                  value={exp.startDate ? exp.startDate.split('T')[0] : ""}
+                  onChange={(e) => updateExperience(exp.id!, "startDate", e.target.value)}
+                  className="bg-input"
+                />
+              </div>
+
+              {/* End Date */}
+              <div className="space-y-2">
+                <Label>End Date</Label>
+                <Input
+                  type="date"
+                  value={exp.endDate ? exp.endDate.split('T')[0] : ""}
+                  onChange={(e) => updateExperience(exp.id!, "endDate", e.target.value)}
+                  className={`bg-input ${errors[`date-${exp.id}`] ? "border-destructive" : ""}`}
+                />
+                {errors[`date-${exp.id}`] && <p className="text-xs text-destructive">{errors[`date-${exp.id}`]}</p>}
+              </div>
+
+              <div className="space-y-2 md:col-span-2 lg:col-span-4">
+                <Label>Description</Label>
+                <Textarea
+                  value={exp.description || ""}
+                  onChange={(e) => updateExperience(exp.id!, "description", e.target.value)}
+                  placeholder="Describe your role..."
+                  className="bg-input min-h-[100px] resize-none"
+                />
+              </div>
+            </div>
+
+            <div className="mt-6 flex justify-end">
+             <Button
+  onClick={() => saveExperiences(exp)}
+  // هنا بنقوله: لو فيه عملية حفظ شغالة "و" الـ ID اللي بيتحفظ هو نفس الـ ID بتاع الكارت ده بس
+  disabled={saveMutation.isPending && saveMutation.variables?.id === exp.id}
+  size="sm"
+>
+  {saveMutation.isPending && saveMutation.variables?.id === exp.id ? "Saving..." : "Save"}
+</Button>
+            </div>
           </div>
-        )}
+        ))}
+      </div>
+    )}
+  </div>
+)}
 
         {/* Projects */}
         {activeSection === "projects" && (
@@ -517,10 +592,13 @@ const Profile = () => {
                   My <span className="text-accent">Projects</span>
                 </h2>
               </div>
-              <Button onClick={addProject} variant="outline" className="border-border text-foreground hover:bg-secondary">
-                <Plus className="mr-2 h-4 w-4" />
-                Add Project
-              </Button>
+              <Button 
+  onClick={() => addProject()} // استدعاء بدون معاملات
+  disabled={isProjectsSaving} 
+  variant="outline"
+>
+  <Plus className="mr-2 h-4 w-4" /> Add Project
+</Button>
             </div>
 
             {projects.length === 0 ? (
@@ -621,12 +699,12 @@ const Profile = () => {
                      
 
                         <Button
-                          onClick={() => saveProjects(proj)}
-                          disabled={isProjectsLoading || !proj.title?.trim() || !proj.description?.trim() || !proj.startDate}
-                          className="w-full gradient-accent border-0 text-accent-foreground"
-                        >
-                          {isProjectsLoading ? "Saving..." : "Save Project"}
-                        </Button>
+  onClick={() => saveProjects(proj)}
+  disabled={isProjectsSaving || !proj.title?.trim() || !proj.description?.trim()}
+  className="w-full gradient-accent border-0 text-accent-foreground"
+>
+  {isProjectsSaving ? "Saving..." : "Save Project"}
+</Button>
                       </div>
                     </div>
                   </div>
