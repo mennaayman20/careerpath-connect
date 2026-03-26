@@ -1,676 +1,3 @@
-// import { useState, useEffect, useCallback } from "react";
-// import { useSearchParams, useNavigate } from "react-router-dom";
-// import { motion, AnimatePresence } from "framer-motion";
-// import {
-//   ArrowLeft,
-//   Upload,
-//   FileText,
-//   Sparkles,
-//   CheckCircle2,
-//   AlertCircle,
-//   TrendingUp,
-//   Lightbulb,
-//   Target,
-//   Zap,
-//   RefreshCw,
-//   Send,
-//   CloudUpload,
-//   X,
-// } from "lucide-react";
-// import { Button } from "@/components/ui/button";
-// import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-// import { Progress } from "@/components/ui/progress";
-// import { Badge } from "@/components/ui/badge";
-// import Navbar from "@/components/Navbar";
-// import { Footer } from "react-day-picker";
-// import { resumeService } from "@/features/resume/services/resume.service";
-// import { useResumes } from "@/features/resume/hooks/useResumes";
-// import { ResumeFeedbackResponse } from "@/features/resume/types/resume.types";
-
-
-
-// // الأجزاء المهمة اللي هتتغير في الملف بتاعك
-
-
-
-
-// // Mock analysis result
-// const mockAnalysis = {
-//   summary:
-//     "This resume shows strong backend experience but needs to highlight distributed systems skills more prominently.",
-//   score: { Backend: 90, Cloud: 75, "Distributed Systems": 50 },
-//   jobMatchScore: 82,
-//   topStrengths: ["Expert in Java/Spring Boot", "Proficient in Docker/K8s"],
-//   quickWins: ["Add Kafka keywords", "Highlight DB optimization"],
-//   matchedSkills: ["Java", "Spring Boot", "Microservices"],
-//   missingSkills: ["Kafka", "Scalability", "NoSQL"],
-//   topTip:
-//     "Tailor your project descriptions to emphasize distributed systems scale.",
-//   jobSpecific: true,
-// };
-
-// type PageState = "upload" | "loading" | "result";
-
-// const loadingMessages = [
-//   { text: "Scanning Resume…", icon: FileText, duration: 1800 },
-//   { text: "Comparing Skills with Job Requirements…", icon: Target, duration: 2200 },
-//   { text: "Calculating Match Score…", icon: Sparkles, duration: 1600 },
-// ];
-
-// /* ─── Circular progress ring ─── */
-// const CircularScore = ({ score }: { score: number }) => {
-//   const radius = 70;
-//   const stroke = 10;
-//   const circumference = 2 * Math.PI * radius;
-//   const offset = circumference - (score / 100) * circumference;
-//   const color =
-//     score >= 80
-//       ? "hsl(var(--chart-2))"
-//       : score >= 60
-//         ? "hsl(var(--chart-4))"
-//         : "hsl(var(--destructive))";
-
-//   return (
-
-//     <div className="relative inline-flex items-center justify-center">
-//       {/* <Navbar /> */}
-//       <svg width="180" height="180" className="-rotate-90">
-//         <circle
-//           cx="90"
-//           cy="90"
-//           r={radius}
-//           fill="none"
-//           stroke="hsl(var(--muted))"
-//           strokeWidth={stroke}
-//         />
-//         <motion.circle
-//           cx="90"
-//           cy="90"
-//           r={radius}
-//           fill="none"
-//           stroke={color}
-//           strokeWidth={stroke}
-//           strokeLinecap="round"
-//           strokeDasharray={circumference}
-//           initial={{ strokeDashoffset: circumference }}
-//           animate={{ strokeDashoffset: offset }}
-//           transition={{ duration: 1.4, ease: "easeOut" }}
-//         />
-//       </svg>
-//       <div className="absolute flex flex-col items-center">
-//         <motion.span
-//           className="text-4xl font-bold text-foreground"
-//           initial={{ opacity: 0, scale: 0.5 }}
-//           animate={{ opacity: 1, scale: 1 }}
-//           transition={{ delay: 0.6, duration: 0.5 }}
-//         >
-//           {score}%
-//         </motion.span>
-//         <span className="text-xs text-muted-foreground font-medium">
-//           Match Score
-//         </span>
-//       </div>
-//     </div>
-//   );
-// };
-
-// /* ─── Category bar ─── */
-// const ScoreBar = ({
-//   label,
-//   value,
-//   delay,
-// }: {
-//   label: string;
-//   value: number;
-//   delay: number;
-// }) => (
-//   <motion.div
-//     className="space-y-1"
-//     initial={{ opacity: 0, x: -20 }}
-//     animate={{ opacity: 1, x: 0 }}
-//     transition={{ delay, duration: 0.4 }}
-//   >
-//     <div className="flex justify-between text-sm">
-//       <span className="text-muted-foreground font-medium">{label}</span>
-//       <span className="font-semibold text-foreground">{value}%</span>
-//     </div>
-//     <div className="h-2.5 rounded-full bg-muted overflow-hidden">
-//       <motion.div
-//         className="h-full rounded-full"
-//         style={{
-//           background:
-//             value >= 80
-//               ? "hsl(var(--chart-2))"
-//               : value >= 60
-//                 ? "hsl(var(--chart-4))"
-//                 : "hsl(var(--destructive))",
-//         }}
-//         initial={{ width: 0 }}
-//         animate={{ width: `${value}%` }}
-//         transition={{ delay: delay + 0.2, duration: 0.8, ease: "easeOut" }}
-//       />
-//     </div>
-//   </motion.div>
-// );
-
-// /* ─── Main page ─── */
-// const ResumeAnalysis = () => {
-//  const ResumeAnalysis = () => {
-//   const [searchParams] = useSearchParams();
-//   const navigate = useNavigate();
-//   const jobId = searchParams.get("jobId");
-
-//   const { 
-//     resumes, 
-//     isLoading: isActionLoading, 
-//     uploadResume, 
-//     analyzeResume, 
-//     analysisData,
-//     deleteResume 
-//   } = useResumes();
-
-//   const [state, setState] = useState<"upload" | "loading" | "result">("upload");
-//   const [selectedResumeId, setSelectedResumeId] = useState<number | null>(null);
-//   const [fileName, setFileName] = useState<string | null>(null);
-//   const [dragActive, setDragActive] = useState(false);
-
-//   // اختيار أحدث ملف تلقائياً
-// useEffect(() => {
-//     if (resumes.length > 0 && !selectedResumeId) {
-//       setSelectedResumeId(resumes[0].id);
-//       setFileName(resumes[0].fileName);
-//     }
-//   }, [resumes]);
-
-//   const handleUpload = async (file: File) => {
-//     const newResume = await uploadResume(file);
-//     if (newResume) {
-//       setSelectedResumeId(newResume.id);
-//       setFileName(newResume.fileName);
-//     }
-//   };
-
-
-
-
-
-// // // أول ما الـ resumes تحمل من الباك اند، نختار أحدث واحد تلقائياً
-// //   useEffect(() => {
-// //     if (resumes.length > 0 && !selectedResumeId) {
-// //       setSelectedResumeId(resumes[0].id);
-// //       setFileName(resumes[0].fileName);
-// //     }
-// //   }, [resumes, selectedResumeId]);
-
-
-
-
-
-
-
-//   // دالة بدء التحليل الحقيقية
-// const onStartAnalysis = async () => {
-//     if (!selectedResumeId) return;
-//     setState("loading");
-//     try {
-//       await analyzeResume(selectedResumeId, jobId || undefined);
-//       setState("result");
-//     } catch {
-//       setState("upload");
-//     }
-//   };
-
-
-
-
-//   const handleDrop = useCallback((e: React.DragEvent) => {
-//     e.preventDefault();
-//     setDragActive(false);
-//     const file = e.dataTransfer.files?.[0];
-//     if (file?.type === "application/pdf") {
-//       handleUpload(file);
-//     }
-//   }, []);
-
-//   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-//     const file = e.target.files?.[0];
-//     if (file) {
-//       handleUpload(file);
-//     }
-//   };
-
-
-
-//   return (
-//     <div className="min-h-screen flex flex-col bg-background">
-    
-
-//       <main className="flex-1 pt-24 pb-16">
-//         <div className="container max-w-5xl mx-auto px-4">
-//           {/* Back button */}
-//           <Button
-//             variant="ghost"
-//             className="mb-6 gap-2 text-muted-foreground hover:text-foreground"
-//             onClick={() => navigate(-1)}
-//           >
-//             <ArrowLeft className="w-4 h-4" /> Back to Job
-//           </Button>
-
-//           <AnimatePresence mode="wait">
-//             {/* ───── UPLOAD STATE ───── */}
-//             {state === "upload" && (
-//               <motion.div
-//                 key="upload"
-//                 initial={{ opacity: 0, y: 20 }}
-//                 animate={{ opacity: 1, y: 0 }}
-//                 exit={{ opacity: 0, y: -20 }}
-//                 transition={{ duration: 0.4 }}
-//                 className="space-y-8"
-//               >
-//                 <div className="text-center space-y-2">
-//                   <h1 className="text-3xl font-bold text-foreground">
-//                     AI Resume Analysis
-//                   </h1>
-//                   <p className="text-muted-foreground max-w-lg mx-auto">
-//                     Upload or select your resume to get an AI-powered analysis
-//                     matched against the job requirements.
-//                   </p>
-//                 </div>
-
-//                 {/* Current resume */}
-//                 {fileName && (
-//                   <motion.div
-//                     initial={{ opacity: 0, scale: 0.95 }}
-//                     animate={{ opacity: 1, scale: 1 }}
-//                     className="mx-auto max-w-md"
-//                   >
-//                     <Card className="border-primary/20 bg-primary/5">
-//                       <CardContent className="flex items-center gap-4 py-4 px-5">
-//                         <div className="p-2 rounded-lg bg-primary/10">
-//                           <FileText className="w-6 h-6 text-primary" />
-//                         </div>
-//                         <div className="flex-1 min-w-0">
-//                           <p className="text-sm font-medium text-foreground truncate">
-//                             {fileName}
-//                           </p>
-//                           <p className="text-xs text-muted-foreground">
-//                             Current Resume
-//                           </p>
-//                         </div>
-//                      <Button
-//   variant="ghost"
-//   size="icon"
-//   className="shrink-0"
-//   onClick={async () => {
-//     if (selectedResumeId) {
-//       try {
-//         // نداء ميثود المسح من الـ hook بتاعك
-//         await resumeService.deleteResume(selectedResumeId); // تأكد إن الميثود دي موجودة في الـ service
-        
-//         // بعد المسح الناجح، نصفر الـ state في الصفحة
-//         setFileName(null);
-//         setSelectedResumeId(null);
-//       } catch (err) {
-//         // الـ toast هيطلع لوحده لأن الـ hook بتاعك فيه handle للـ error
-//         console.error("Failed to delete from server");
-//       }
-//     } else {
-//       // لو الملف لسه مرفعش أصلاً (مجرد اسم في الـ UI)
-//       setFileName(null);
-//     }
-//   }}
-// >
-//   <X className="w-4 h-4" />
-// </Button>
-//                       </CardContent>
-//                     </Card>
-//                   </motion.div>
-//                 )}
-
-//                 {/* Drop zone */}
-//                 <label
-//                   className={`mx-auto max-w-md flex flex-col items-center justify-center 
-//                     gap-4 border-2 border-dashed rounded-2xl p-10 cursor-pointer transition-all duration-300 ${
-//                     dragActive
-//                       ? "border-primary bg-primary/10 scale-[1.02]"
-//                       : "border-muted-foreground/25 hover:border-primary/50 hover:bg-muted/50"
-//                   }`}
-//                   onDragOver={(e) => {
-//                     e.preventDefault();
-//                     setDragActive(true);
-//                   }}
-//                   onDragLeave={() => setDragActive(false)}
-//                   onDrop={handleDrop}
-//                 >
-//                   <div className="p-4 rounded-full bg-primary/10">
-//                     <CloudUpload className="w-8 h-8 text-primary" />
-//                   </div>
-//                   <div className="text-center space-y-1">
-//                     <p className="font-medium text-foreground">
-//                       {fileName ? "Change Resume" : "Drag & Drop your Resume"}
-//                     </p>
-//                     <p className="text-sm text-muted-foreground">
-//                       PDF only · Max 10 MB
-//                     </p>
-//                   </div>
-//                   <input
-//                     type="file"
-//                     accept=".pdf"
-//                     className="hidden"
-//                     onChange={handleFileChange}
-//                   />
-//                 </label>
-
-//                 {/* CTA */}
-//                 <div className="flex justify-center">
-//                   <Button
-//                     size="lg"
-//                     disabled={!fileName}
-//                     className="gap-2 px-8 text-base"
-//                     onClick={() => setState("loading")}
-//                   >
-//                     <Sparkles className="w-5 h-5" />
-//                     Generate AI Analysis
-//                   </Button>
-//                 </div>
-//               </motion.div>
-//             )}
-
-//             {/* ───── LOADING STATE ───── */}
-//             {state === "loading" && (
-//               <motion.div
-//                 key="loading"
-//                 initial={{ opacity: 0 }}
-//                 animate={{ opacity: 1 }}
-//                 exit={{ opacity: 0 }}
-//                 className="flex flex-col items-center justify-center py-24 gap-10"
-//               >
-//                 {/* spinner */}
-//                 <motion.div
-//                   animate={{ rotate: 360 }}
-//                   transition={{ repeat: Infinity, duration: 2, ease: "linear" }}
-//                   className="p-5 rounded-full bg-primary/10"
-//                 >
-//                   <RefreshCw className="w-10 h-10 text-primary" />
-//                 </motion.div>
-
-//                 <div className="space-y-6 text-center w-full max-w-sm">
-//                   {loadingMessages.map((msg, i) => {
-//                     const Icon = msg.icon;
-//                     const isActive = i === 0; // الرسالة الأولى نشطة
-//                     const isDone = i < 0; // مفيش رسالة تمت لسه، لو حبيت تضيف حالة "تمت" للرسائل السابقة ممكن تعدل الشرط ده
-//                     return (
-//                       <motion.div
-//                         key={i}
-//                         className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-colors duration-300 ${
-//                           isActive
-//                             ? "bg-primary/10 text-primary"
-//                             : isDone
-//                               ? "text-muted-foreground"
-//                               : "text-muted-foreground/40"
-//                         }`}
-//                         initial={{ opacity: 0, x: -10 }}
-//                         animate={{ opacity: 1, x: 0 }}
-//                         transition={{ delay: i * 0.15 }}
-//                       >
-//                         {isDone ? (
-//                           <CheckCircle2 className="w-5 h-5 text-chart-2 shrink-0" />
-//                         ) : (
-//                           <Icon
-//                             className={`w-5 h-5 shrink-0 ${isActive ? "animate-pulse" : ""}`}
-//                           />
-//                         )}
-//                         <span className="text-sm font-medium">{msg.text}</span>
-//                       </motion.div>
-//                     );
-//                   })}
-//                 </div>
-//               </motion.div>
-//             )}
-
-//             {/* ───── RESULT STATE ───── */}
-//             {state === "result" && (
-//               <motion.div
-//                 key="result"
-//                 initial={{ opacity: 0, y: 30 }}
-//                 animate={{ opacity: 1, y: 0 }}
-//                 transition={{ duration: 0.5 }}
-//                 className="space-y-8"
-//               >
-//                 {/* Hero: Score + Summary */}
-//                 <Card className="overflow-hidden">
-//                   <CardContent className="p-0">
-//                     <div className="grid md:grid-cols-[auto_1fr] items-center">
-//                       {/* Score ring */}
-//                       <div className="flex items-center justify-center p-8 md:p-10 bg-muted/30">
-//                         <CircularScore score={mockAnalysis.jobMatchScore} />
-//                       </div>
-
-//                       {/* Summary */}
-//                       <div className="p-6 md:p-8 space-y-4">
-//                         <div className="flex items-center gap-2">
-//                           <Sparkles className="w-5 h-5 text-primary" />
-//                           <h2 className="text-xl font-bold text-foreground">
-//                             AI Analysis Summary
-//                           </h2>
-//                         </div>
-//                         <p className="text-muted-foreground leading-relaxed">
-//                           {mockAnalysis.summary}
-//                         </p>
-
-//                         {/* Category scores */}
-//                         <div className="space-y-3 pt-2">
-//                           {Object.entries(mockAnalysis.score).map(
-//                             ([label, value], i) => (
-//                               <ScoreBar
-//                                 key={label}
-//                                 label={label}
-//                                 value={value}
-//                                 delay={0.3 + i * 0.15}
-//                               />
-//                             )
-//                           )}
-//                         </div>
-//                       </div>
-//                     </div>
-//                   </CardContent>
-//                 </Card>
-
-//                 {/* Grid: Strengths / Improvements */}
-//                 <div className="grid md:grid-cols-2 gap-6">
-//                   {/* Strengths */}
-//                   <motion.div
-//                     initial={{ opacity: 0, x: -20 }}
-//                     animate={{ opacity: 1, x: 0 }}
-//                     transition={{ delay: 0.3 }}
-//                   >
-//                     <Card className="h-full border-chart-2/20">
-//                       <CardHeader className="pb-3">
-//                         <CardTitle className="flex items-center gap-2 text-lg">
-//                           <div className="p-1.5 rounded-lg bg-chart-2/10">
-//                             <CheckCircle2 className="w-5 h-5 text-chart-2" />
-//                           </div>
-//                           Top Strengths
-//                         </CardTitle>
-//                       </CardHeader>
-//                       <CardContent className="space-y-3">
-//                         {mockAnalysis.topStrengths.map((s, i) => (
-//                           <div
-//                             key={i}
-//                             className="flex items-start gap-3 text-sm"
-//                           >
-//                             <CheckCircle2 className="w-4 h-4 text-chart-2 mt-0.5 shrink-0" />
-//                             <span className="text-foreground">{s}</span>
-//                           </div>
-//                         ))}
-//                       </CardContent>
-//                     </Card>
-//                   </motion.div>
-
-//                   {/* Quick Wins */}
-//                   <motion.div
-//                     initial={{ opacity: 0, x: 20 }}
-//                     animate={{ opacity: 1, x: 0 }}
-//                     transition={{ delay: 0.4 }}
-//                   >
-//                     <Card className="h-full border-chart-4/20">
-//                       <CardHeader className="pb-3">
-//                         <CardTitle className="flex items-center gap-2 text-lg">
-//                           <div className="p-1.5 rounded-lg bg-chart-4/10">
-//                             <TrendingUp className="w-5 h-5 text-chart-4" />
-//                           </div>
-//                           Quick Wins
-//                         </CardTitle>
-//                       </CardHeader>
-//                       <CardContent className="space-y-3">
-//                         {mockAnalysis.quickWins.map((w, i) => (
-//                           <div
-//                             key={i}
-//                             className="flex items-start gap-3 text-sm"
-//                           >
-//                             <AlertCircle className="w-4 h-4 text-chart-4 mt-0.5 shrink-0" />
-//                             <span className="text-foreground">{w}</span>
-//                           </div>
-//                         ))}
-//                       </CardContent>
-//                     </Card>
-//                   </motion.div>
-//                 </div>
-
-//                 {/* Skills comparison */}
-//                 <div className="grid md:grid-cols-2 gap-6">
-//                   {/* Matched */}
-//                   <motion.div
-//                     initial={{ opacity: 0, y: 20 }}
-//                     animate={{ opacity: 1, y: 0 }}
-//                     transition={{ delay: 0.5 }}
-//                   >
-//                     <Card className="h-full">
-//                       <CardHeader className="pb-3">
-//                         <CardTitle className="flex items-center gap-2 text-lg">
-//                           <Target className="w-5 h-5 text-chart-2" />
-//                           Matched Skills
-//                         </CardTitle>
-//                       </CardHeader>
-//                       <CardContent>
-//                         <div className="flex flex-wrap gap-2">
-//                           {mockAnalysis.matchedSkills.map((s) => (
-//                             <Badge
-//                               key={s}
-//                               className="bg-chart-2/10 text-chart-2 border-chart-2/20 hover:bg-chart-2/20"
-//                             >
-//                               <CheckCircle2 className="w-3 h-3 mr-1" />
-//                               {s}
-//                             </Badge>
-//                           ))}
-//                         </div>
-//                       </CardContent>
-//                     </Card>
-//                   </motion.div>
-
-//                   {/* Missing */}
-//                   <motion.div
-//                     initial={{ opacity: 0, y: 20 }}
-//                     animate={{ opacity: 1, y: 0 }}
-//                     transition={{ delay: 0.6 }}
-//                   >
-//                     <Card className="h-full">
-//                       <CardHeader className="pb-3">
-//                         <CardTitle className="flex items-center gap-2 text-lg">
-//                           <Zap className="w-5 h-5 text-chart-4" />
-//                           Missing Skills
-//                         </CardTitle>
-//                       </CardHeader>
-//                       <CardContent>
-//                         <div className="flex flex-wrap gap-2">
-//                           {mockAnalysis.missingSkills.map((s) => (
-//                             <Badge
-//                               key={s}
-//                               variant="outline"
-//                               className="border-chart-4/30 text-chart-4"
-//                             >
-//                               <AlertCircle className="w-3 h-3 mr-1" />
-//                               {s}
-//                             </Badge>
-//                           ))}
-//                         </div>
-//                       </CardContent>
-//                     </Card>
-//                   </motion.div>
-//                 </div>
-
-//                 {/* Top Tip */}
-//                 <motion.div
-//                   initial={{ opacity: 0, y: 20 }}
-//                   animate={{ opacity: 1, y: 0 }}
-//                   transition={{ delay: 0.7 }}
-//                 >
-//                   <Card className="border-primary/20 bg-gradient-to-r from-primary/5 to-transparent">
-//                     <CardContent className="flex items-start gap-4 py-5 px-6">
-//                       <div className="p-2.5 rounded-xl bg-primary/10 shrink-0">
-//                         <Lightbulb className="w-6 h-6 text-primary" />
-//                       </div>
-//                       <div>
-//                         <h3 className="font-semibold text-foreground mb-1">
-//                           Pro Tip
-//                         </h3>
-//                         <p className="text-sm text-muted-foreground leading-relaxed">
-//                           {mockAnalysis.topTip}
-//                         </p>
-//                       </div>
-//                     </CardContent>
-//                   </Card>
-//                 </motion.div>
-
-//                 {/* CTA */}
-//                 <motion.div
-//                   initial={{ opacity: 0 }}
-//                   animate={{ opacity: 1 }}
-//                   transition={{ delay: 0.9 }}
-//                   className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4"
-//                 >
-//                   <Button
-//                     variant="outline"
-//                     className="gap-2"
-//                     onClick={() => setState("upload")}
-//                   >
-//                     <Upload className="w-4 h-4" />
-//                     Analyze Another Resume
-//                   </Button>
-//                   <Button size="lg" className="gap-2 px-8">
-//                     <Send className="w-5 h-5" />
-//                     Apply Now with this Resume
-//                   </Button>
-//                 </motion.div>
-//               </motion.div>
-//             )}
-//           </AnimatePresence>
-//         </div>
-//          {/* <Footer/> */}
-//       </main>
-
-   
-//     </div>
-    
-//   );
-// };
-// }
-// export default ResumeAnalysis;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 import { useState, useEffect, useCallback } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
@@ -686,11 +13,7 @@ import {
   CheckCircle2,
   AlertCircle,
   TrendingUp,
-  Target,
-  RefreshCw,
-  Send,
-  CloudUpload,
-  X,
+  Target,RefreshCw,Send,CloudUpload,X,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -698,6 +21,7 @@ import { useResumes } from "@/features/resume/hooks/useResumes";
 import Jobs from "./Jobs";
 import { ApplicationRequest } from "@/features/application/types/application.types";
 import { toast } from "@/components/ui/sonner";
+import { AnimatedNumber, AnimatedBar, FeedbackAccordion , SkillCard } from "./AnalysisHelpers";
 
 /* ─── Circular progress ring ─── */
 const CircularScore = ({ score }: { score: number }) => {
@@ -750,6 +74,8 @@ const loadingMessages = [
   { text: "Comparing Skills with Job Requirements…", icon: Target },
   { text: "Calculating Match Score…", icon: Sparkles },
 ];
+
+
 
 const ResumeAnalysis = () => {
   const [searchParams] = useSearchParams();
@@ -930,7 +256,8 @@ const ResumeAnalysis = () => {
               </motion.div>
             )}
 
-            {state === "result" && analysisData && (
+            {/* الاصل */}
+            {/* {state === "result" && analysisData && (
               <motion.div key="result" initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} className="space-y-8">
                 <Card className="overflow-hidden">
                   <CardContent className="p-0 grid md:grid-cols-[auto_1fr] items-center">
@@ -992,13 +319,7 @@ const ResumeAnalysis = () => {
                 
                 <div className="flex justify-center gap-4">
                   <Button variant="outline" onClick={() => setState("upload")}>Analyze Another</Button>
-                 {/* <Button 
-    variant="outline" 
-    onClick={() => setState("upload")}
-    disabled={isApplying}
-  >
-    Analyze Another
-  </Button> */}
+
   
 
 
@@ -1026,7 +347,161 @@ const ResumeAnalysis = () => {
 
                 </div>
               </motion.div>
-            )}
+            )} */}
+
+
+
+{state === "result" && analysisData && (
+  <motion.div key="result" initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
+    
+    {/* ── HERO: Score + Bars ── */}
+    <motion.div
+      initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.45 }}
+      className="grid grid-cols-1 md:grid-cols-[2fr_3fr] gap-0.5 rounded-2xl overflow-hidden border border-border shadow-sm"
+    >
+     <div className="bg-red-50/50 dark:bg-red-950/20 p-8 flex flex-col justify-between border-b md:border-b-0 md:border-r border-border min-h-[320px]">
+  {/* الجزء العلوي: الـ Circular Score */}
+  <div className="flex flex-col items-center justify-center flex-1">
+    <div className="relative">
+      <CircularScore score={analysisData.jobMatchScore || 0} />
+      {/* لمسة إضافية: كلمة Match Score تحت الرقم جوه الدايرة أو تحتها مباشرة */}
+      <p className="text-[10px] uppercase tracking-[0.2em] text-red-800/60 dark:text-red-500/60 mt-4 font-bold text-center">
+        Match score
+      </p>
+    </div>
+  </div>
+
+  {/* الجزء السفلي: الـ Strengths */}
+  <div className="mt-8">
+    <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-3 font-semibold text-center md:text-left">
+      Key Strengths
+    </p>
+    <div className="flex flex-wrap gap-2 justify-center md:justify-start">
+      {analysisData.topStrengths?.map((strength, i) => (
+        <motion.span
+          key={i}
+          initial={{ opacity: 0, scale: 0.85 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 0.6 + i * 0.1 }}
+          className="bg-green-100/80 dark:bg-green-900/40 text-green-800 dark:text-green-300 rounded-full px-3 py-1 text-[11px] font-bold border border-green-200/50 dark:border-green-800"
+        >
+          {strength}
+        </motion.span>
+      ))}
+    </div>
+  </div>
+</div>
+
+      <div className="flex flex-col bg-stone-50/50 dark:bg-stone-900/20">
+        {Object.entries(analysisData.score).map(([key, value], i, arr) => {
+          const scoreValue = value as number;
+          // تحسين: دالة موحدة لتحديد اللون بناءً على السكور
+          const getScoreColor = (v: number) => v >= 70 ? "#16a34a" : v >= 40 ? "#ca8a04" : "#dc2626";
+          const color = getScoreColor(scoreValue);
+
+          return (
+            <div key={key} className={`flex items-center gap-4 px-6 py-4 ${i !== arr.length - 1 ? "border-b border-border/50" : ""}`}>
+              <span className="text-[10px] uppercase tracking-widest text-stone-500 dark:text-stone-400 w-24 shrink-0 font-bold">
+                {key.replace("_", " ")}
+              </span>
+              <div className="flex-1 h-1.5 bg-stone-200 dark:bg-stone-800 rounded-full overflow-hidden">
+                <AnimatedBar value={scoreValue} color={color} delay={400 + i * 100} />
+              </div>
+              <span className="text-xs font-bold w-8 text-right font-mono" style={{ color }}>{scoreValue}%</span>
+            </div>
+          );
+        })}
+      </div>
+    </motion.div>
+
+    {/* ── STRATEGIC ADVICE ── */}
+    <motion.div
+      initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.12, duration: 0.4 }}
+      className="bg-blue-50/50 dark:bg-blue-950/30 rounded-xl p-5 flex gap-4 items-start border border-blue-100 dark:border-blue-900"
+    >
+      <div className="w-10 h-10 rounded-xl bg-blue-100 dark:bg-blue-900 flex items-center justify-center shrink-0 shadow-sm">
+        <Target className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+      </div>
+      <div>
+        <p className="text-[11px] uppercase tracking-widest text-blue-600 dark:text-blue-400 font-bold mb-1">Strategic Advice</p>
+        <p className="text-sm text-blue-900 dark:text-blue-200 leading-relaxed font-medium">{analysisData.topTip}</p>
+      </div>
+    </motion.div>
+
+    {/* ── FEEDBACK DETAILS ── */}
+    <motion.div initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.22, duration: 0.4 }}>
+      <p className="text-[13px] uppercase tracking-widest text-muted-foreground font-semibold mb-3 px-1">Analysis Details</p>
+      <div className="rounded-2xl overflow-hidden border border-border shadow-sm">
+        {Object.entries(analysisData.feedback).map(([key, text], i, arr) => {
+          const scoreValue = analysisData.score[key as keyof typeof analysisData.score] as number;
+          const color = scoreValue >= 70 ? "#16a34a" : scoreValue >= 40 ? "#ca8a04" : "#dc2626";
+          
+          return (
+            <FeedbackAccordion
+              key={key}
+              label={key.replace("_", " ")}
+              text={text as string}
+              fix={analysisData.fixes[key as keyof typeof analysisData.fixes]}
+              score={scoreValue}
+              color={color}
+              isLast={i === arr.length - 1}
+            />
+          );
+        })}
+      </div>
+    </motion.div>
+
+    {/* ── SKILLS GRID ── */}
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <SkillCard 
+        title="Matched skills" 
+        skills={analysisData.matchedSkills} 
+        variant="green" 
+        icon={<CheckCircle2 className="w-3.5 h-3.5" />} 
+      />
+      <SkillCard 
+        title="Missing skills" 
+        skills={analysisData.missingSkills} 
+        variant="red" 
+        icon={<X className="w-3.5 h-3.5" />} 
+      />
+    </div>
+
+    {/* ── QUICK WINS ── */}
+    <motion.div
+      initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.42, duration: 0.4 }}
+      className="rounded-2xl overflow-hidden border border-border shadow-sm"
+    >
+      <div className="bg-violet-50 dark:bg-violet-950/30 px-5 py-3 border-b border-border flex items-center gap-2 font-bold uppercase tracking-widest text-[11px] text-violet-600 dark:text-violet-400">
+        <Sparkles className="w-4 h-4" /> Quick wins
+      </div>
+      <div className="bg-background divide-y divide-border">
+        {analysisData.quickWins?.map((win, i) => (
+          <div key={i} className="flex items-start gap-4 px-5 py-4 hover:bg-stone-50/50 dark:hover:bg-stone-900/20 transition-colors">
+            <span className="w-6 h-6 rounded-lg bg-violet-100 dark:bg-violet-900/50 text-violet-700 dark:text-violet-300 text-[11px] font-bold flex items-center justify-center shrink-0">
+              {i + 1}
+            </span>
+            <span className="text-sm text-foreground/80 leading-relaxed font-medium">{win}</span>
+          </div>
+        ))}
+      </div>
+    </motion.div>
+
+    {/* ── FOOTER ACTIONS ── */}
+    <div className="flex flex-col sm:flex-row justify-end gap-3 pt-6 border-t border-border">
+      <Button variant="ghost" size="lg" onClick={() => setState("upload")} disabled={isApplying} className="rounded-xl font-semibold border-4  tracking-widest ">
+        Analyze another
+      </Button>
+      <Button size="lg" className="gap-2 min-w-[200px] rounded-xl font-semibold  tracking-widest shadow-lg shadow-primary/20" onClick={handleApply} disabled={isApplying}>
+        {isApplying ? <><RefreshCw className="w-4 h-4 animate-spin" /> Submitting...</> : <><Send className="w-4 h-4" /> Apply Now</>}
+      </Button>
+    </div>
+  </motion.div>
+)}
+
+
+
+            
           </AnimatePresence>
         </div>
       </main>
