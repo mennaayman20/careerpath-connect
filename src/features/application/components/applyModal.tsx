@@ -167,6 +167,8 @@ import { Label } from "@/components/ui/label";
 import { useJobApplication } from "../../application/hook/useApplication"; // المسار بتاعك
 import { Loader2, FileText } from "lucide-react";
 
+import { useRef } from "react";
+
 interface ApplyModalProps {
   jobId: number;
   jobTitle: string;
@@ -183,7 +185,16 @@ export const ApplyModal = ({ jobId, jobTitle, isOpen, onClose }: ApplyModalProps
     setCoverLetter,
     submitApplication,
     isSubmitting,
+    isUploading,
+    uploadAndSelectResume
   } = useJobApplication(jobId);
+
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) uploadAndSelectResume(file);
+  };
+
 
   const handleApply = async () => {
     await submitApplication();
@@ -205,7 +216,7 @@ export const ApplyModal = ({ jobId, jobTitle, isOpen, onClose }: ApplyModalProps
           
           <div className="grid gap-2">
             <Label htmlFor="resume">Select Resume</Label>
-            <Select
+            {/* <Select
               value={selectedResumeId?.toString()}
               onValueChange={(value) => setSelectedResumeId(Number(value))}
             >
@@ -213,6 +224,59 @@ export const ApplyModal = ({ jobId, jobTitle, isOpen, onClose }: ApplyModalProps
                 <SelectValue placeholder="Select a resume" />
               </SelectTrigger>
               <SelectContent>
+
+
+
+
+
+
+
+
+                {resumes.map((resume) => (
+                  <SelectItem key={resume.id} value={resume.id.toString()}>
+                    <div className="flex items-center gap-2">
+                      <FileText className="h-4 w-4 text-muted-foreground" />
+                      <span>{resume.fileName}</span>
+                    </div>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select> */}
+
+            <Select
+              value={selectedResumeId?.toString()}
+              onValueChange={(value) => {
+                if (value === "upload_new") {
+                  // نفتح نافذة اختيار الملف
+                  const fileInput = document.createElement("input");
+                  fileInput.type = "file";
+                  fileInput.accept = ".pdf";
+                  fileInput.onchange = (e) => {
+                    const target = e.target as HTMLInputElement;
+                    const file = target.files?.[0];
+                    if (file) uploadAndSelectResume(file);
+                  };
+                  fileInput.click();
+                } else {
+                  setSelectedResumeId(Number(value));
+                }
+              }}
+              disabled={isUploading}
+            >
+              <SelectTrigger id="resume" className="w-full">
+                <SelectValue placeholder={isUploading ? "Uploading..." : "Select a resume"} />
+              </SelectTrigger>
+              <SelectContent>
+                {/* زرار الرفع الجديد */}
+                <SelectItem value="upload_new" className="font-medium text-primary cursor-pointer">
+                  <div className="flex items-center gap-2">
+                    <span className="text-lg">+</span>
+                    Upload from device
+                  </div>
+                </SelectItem>
+                
+                <hr className="my-1" />
+
                 {resumes.map((resume) => (
                   <SelectItem key={resume.id} value={resume.id.toString()}>
                     <div className="flex items-center gap-2">
