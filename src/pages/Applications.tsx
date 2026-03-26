@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress"; // عشان الـ Matching Ratio
 // 1. استيراد الـ Hook الجديد والنوع
 import { useMyApplications } from "@/features/submitedApplication/useSubmitted";
-import { Application } from "@/features/submitedApplication/submitedInterface";
+
 
 // 2. تحديث الألوان لتناسب الحالات الحقيقية من الـ Swagger
 const statusColor: Record<string, string> = {

@@ -618,16 +618,7 @@ const Profile = () => {
                           />
                         </div>
 
-                        {/* Tech Tags */}
-                        {proj.technologies && (
-                          <div className="flex flex-wrap gap-2">
-                            {proj.technologies.split(",").map((tech, i) => (
-                              <Badge key={i} variant="secondary" className="text-xs">
-                                {tech.trim()}
-                              </Badge>
-                            ))}
-                          </div>
-                        )}
+                     
 
                         <Button
                           onClick={() => saveProjects(proj)}

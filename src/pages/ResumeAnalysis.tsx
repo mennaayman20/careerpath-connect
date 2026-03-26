@@ -676,6 +676,7 @@ import { useSearchParams, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import { applicationService } from "@/features/application/service/applicationService";
 import { Job } from "@/types/jobs";
 import {
   ArrowLeft,
@@ -695,6 +696,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useResumes } from "@/features/resume/hooks/useResumes";
 import Jobs from "./Jobs";
+import { ApplicationRequest } from "@/features/application/types/application.types";
+import { toast } from "@/components/ui/sonner";
 
 /* ─── Circular progress ring ─── */
 const CircularScore = ({ score }: { score: number }) => {
@@ -752,6 +755,53 @@ const ResumeAnalysis = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const jobId = searchParams.get("jobId");
+  const [isApplying, setIsApplying] = useState(false);
+  const [coverLetter, setCoverLetter] = useState("");
+
+
+  
+
+  const handleApply = async () => {
+
+    
+  if (!jobId || !selectedResumeId) {
+    alert("Missing job or resume information.");
+    return;
+  }
+
+ setIsApplying(true);
+  try {
+    // --- هنا مكان الـ Payload المظبوط ---
+    const payload: ApplicationRequest = {
+      jobId: parseInt(jobId), // تأكد إن الـ jobId رقم
+        resumeId: selectedResumeId,
+        coverLetter: coverLetter || "", // عشان نضمن إن الـ Key يتبعت دايماً
+    };
+
+    console.log("البيانات اللي رايحة للسيرفر:", payload);
+
+    // نبعت الـ payload للـ service
+    await applicationService.applyToJob(payload);
+    
+    toast.success("application submitted successfully!");
+    navigate("/applications");
+  } catch (error) {
+    console.error("خطأ أثناء التقديم:", error);
+    toast.error("Failed to submit application. Please try again.");
+  } finally {
+    setIsApplying(false);
+  }
+};
+
+
+
+
+
+
+
+
+
+
 
   const {
     resumes,
@@ -942,7 +992,38 @@ const ResumeAnalysis = () => {
                 
                 <div className="flex justify-center gap-4">
                   <Button variant="outline" onClick={() => setState("upload")}>Analyze Another</Button>
-                  <Button className="gap-2"><Send className="w-4 h-4"/> Apply Now</Button>
+                 {/* <Button 
+    variant="outline" 
+    onClick={() => setState("upload")}
+    disabled={isApplying}
+  >
+    Analyze Another
+  </Button> */}
+  
+
+
+
+
+
+  <Button 
+    className="gap-2 min-w-[140px]" 
+    onClick={handleApply} // بننادي على الدالة اللي جهزنا فيها الـ Payload
+    disabled={isApplying} // تعطيل الزرار عشان نمنع الـ Double Click
+  >
+    {isApplying ? (
+      <>
+        <RefreshCw className="w-4 h-4 animate-spin" />
+        Applying...
+      </>
+    ) : (
+      <>
+        <Send className="w-4 h-4" />
+        Apply Now
+      </>
+    )}
+  </Button>
+
+
                 </div>
               </motion.div>
             )}
