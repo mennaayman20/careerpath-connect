@@ -123,7 +123,7 @@ const isFormValid = passwordRequirements.every(req => req.met) && form.email.inc
         <FormContainer>
         <div className="w-full max-w-sm">
           <Link to="/" className="flex items-center font-display text-xl font-bold text-primary">
-            <img src={myLogo} className="ml-28 logo logo-light" alt="Light Logo" />
+            {/* <img src={myLogo} className="ml-28 logo logo-light" alt="Light Logo" /> */}
            
           </Link>
 
