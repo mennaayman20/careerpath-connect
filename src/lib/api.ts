@@ -14,6 +14,7 @@ console.log("BASE URL:", import.meta.env.VITE_API_BASE_URL);
 api.interceptors.request.use(
   (config) => {
     // هنجيب التوكن اللي اتسيف وقت الـ Login
+    
     const token = localStorage.getItem("token");
 
     // لو التوكن موجود، بنحطه في الـ Headers عشان الباك اند يوافق يبعت الداتا
@@ -32,6 +33,7 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => response,
   (error) => {
+    console.log("Interceptor Error:", error.response?.status);
     if (error.response && error.response.status === 401) {
       localStorage.removeItem("token");
       window.location.href = "/login";
