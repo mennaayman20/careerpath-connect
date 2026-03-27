@@ -28,7 +28,7 @@ const KeyFeatures = () => {
   const ActiveIcon = icons[active];
 
   return (
-    <section className="py-20 bg-background">
+    <section className="py-10 bg-background">
       <div className="container mx-auto px-6">
 
         {/* Header */}

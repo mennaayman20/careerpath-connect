@@ -1,4 +1,3 @@
-
 import Navbar from "@/components/Navbar";
 import HeroSection from "@/components/ui/heroSection";
 import AboutSection from "@/components/ui/aboutSection";
@@ -6,38 +5,29 @@ import HowItWorks from "@/components/ui/howItWorks";
 import WhyChooseUs from "@/components/ui/whyChooseUs";
 import KeyFeatures from "@/components/ui/keyFeatures";
 import Footer from "@/components/Footer";
-import { Button } from "@/components/ui/button"; // ✅ صح
-import phoneMockup from "@/assets/phone-mockup.png";
+import { Button } from "@/components/ui/button";
+import phoneMockup from "@/assets/phone-mockup-removebg-preview.png";
 import { motion } from "framer-motion";
 
-const fadeUp = {
+const fadeIn = {
   hidden: { opacity: 0, y: 20 },
-   visible: (i: number) => ({
-    opacity: 1, y: 0,
-    transition: { delay: i * 0.1, duration: 0.5, ease: [0.25, 0.46, 0.45, 0.94] as const },
-  }),
- };
-
- const fadeIn = {
-   hidden: { opacity: 0 },
-   visible: { opacity: 1, transition: { duration: 0.6 } },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.6 } },
 };
 
 const SectionBadge = ({ children }: { children: React.ReactNode }) => (
-   <motion.div
-     className="mx-auto mb-10 w-fit rounded-full gradient-accent px-6 py-2.5 text-sm font-semibold text-accent-foreground shadow-md"
-     initial={{ opacity: 0, scale: 0.9 }}
-     whileInView={{ opacity: 1, scale: 1 }}
-     viewport={{ once: true }}
-     transition={{ duration: 0.4 }}
-   >
-     {children}
-   </motion.div>
- );
+  <motion.div
+    className="mx-auto mb-10 w-fit rounded-full bg-primary/10 px-6 py-2.5 text-sm font-semibold text-primary shadow-md"
+    initial={{ opacity: 0, scale: 0.9 }}
+    whileInView={{ opacity: 1, scale: 1 }}
+    viewport={{ once: true }}
+  >
+    {children}
+  </motion.div>
+);
 
 const Index = () => {
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background text-foreground">
       <Navbar />
       <HeroSection />
       <AboutSection />
@@ -45,105 +35,51 @@ const Index = () => {
       <WhyChooseUs />
       <KeyFeatures />
 
-
-     {/* <section className="py-16 md:py-20">
-        <div className="container">
-          <SectionBadge>why download mobile app ?</SectionBadge>
+      <section className="py-24 md:py-32 relative">
+        <div className="container px-4">
+<SectionBadge>
+  <span className="text-[11px] font-medium tracking-widest uppercase text-violet-600 dark:text-violet-400">
+    Mobile Experience
+  </span>
+</SectionBadge>
+          
           <motion.div
-            className="mx-auto max-w-3xl overflow-hidden rounded-2xl bg-secondary/60 p-8 md:p-12"
+            className="mx-auto max-w-4xl rounded-[2.5rem] border border-border bg-secondary/40 backdrop-blur-md p-8 md:p-16 shadow-2xl"
             initial="hidden"
             whileInView="visible"
             viewport={{ once: true }}
             variants={fadeIn}
           >
-            <div className="flex flex-col items-center gap-8 md:flex-row">
-              <div className="flex-1">
-                <p className="text-muted-foreground leading-relaxed">
-                  Download the mobile app to get real-time notifications for jobs that perfectly
-                  match your skills and profile. Be among the first to apply, stay updated instantly,
-                  and never miss an opportunity made for you.
+            <div className="flex flex-col items-center gap-12 md:flex-row">
+              <div className="flex-1 space-y-6 text-center md:text-left">
+                <h2 className="text-3xl md:text-4xl font-bold tracking-tight">
+                  Don't just search, <br />
+                  <span className="text-primary italic">Get Found.</span>
+                </h2>
+                <p className="text-muted-foreground text-lg">
+                  Download the Upply app for real-time notifications.
                 </p>
-                <Button className="mt-6 gradient-primary border-0 text-primary-foreground">
-                  Download App
-                </Button>
+                <div className="flex gap-4 justify-center md:justify-start">
+                 
+                  <Button variant="outline" size="lg" className="bg-[#2D236A] text-white">Download Now</Button>
+                </div>
               </div>
-              <div className="w-40 shrink-0 md:w-48">
-                <img src={phoneMockup} alt="Upply mobile app" className="w-full animate-float" />
+
+              <div className="w-56 md:w-64">
+                <motion.img 
+                  src={phoneMockup}
+                  alt="App mockup" 
+                  className="w-full drop-shadow-2xl"
+                  animate={{ y: [0, -10, 0] }}
+                  transition={{ duration: 4, repeat: Infinity }}
+                />
               </div>
             </div>
           </motion.div>
         </div>
-      </section> */}
-
-
-      <section className="py-24 md:py-32 relative overflow-hidden">
-  {/* إضافة خلفية بلور خفيفة للزينة */}
-  <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-primary/10 blur-[120px] rounded-full -z-10" />
-
-  <div className="container px-4">
-    <SectionBadge>Mobile Experience</SectionBadge>
-    
-    <motion.div
-      className="mx-auto max-w-4xl relative overflow-hidden rounded-[2.5rem] border border-white/10 bg-secondary/40 backdrop-blur-md p-8 md:p-16 shadow-2xl"
-      initial="hidden"
-      whileInView="visible"
-      whileHover={{ y: -5 }}
-      viewport={{ once: true }}
-      variants={fadeIn}
-    >
-      <div className="flex flex-col items-center gap-12 md:flex-row">
-        <div className="flex-1 space-y-6 text-center md:text-left">
-          <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-foreground">
-            Don't just search, <br />
-            <span className="text-primary italic">Get Found.</span>
-          </h2>
-          
-          <p className="text-muted-foreground text-lg leading-relaxed max-w-md">
-            Download the <span className="font-semibold text-foreground">Upply</span> mobile app to get real-time notifications for jobs that perfectly match your skills.
-          </p>
-
-          <div className="flex flex-wrap justify-center md:justify-start gap-4 pt-4">
-            {/* أزرار الـ Store شكلها احترافي أكتر */}
-            <Button className="h-14 px-8 rounded-2xl bg-foreground text-background hover:bg-foreground/90 gap-3 font-bold transition-all hover:scale-105">
-              <svg className="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M17.5 12c0-2.5 1.7-4.6 4.1-5.3-1.1-1.6-2.9-2.7-5-2.9-2.2-.2-4.3 1.3-5.4 1.3-1.1 0-2.9-1.3-4.7-1.3-2.4 0-4.6 1.4-5.8 3.5C-.1 9.7.9 14.8 3.2 18.2c1.1 1.6 2.5 3.4 4.2 3.4 1.7 0 2.3-1 4.3-1s2.6 1 4.3 1c1.7 0 3-1.6 4.1-3.2.7-1.1 1.1-2.2 1.3-2.3-4.2-.2-4.1-5.1-.1-5.1zM15.5 2.1c.9-1.1 1.5-2.6 1.3-4.1-1.3.1-2.9.9-3.8 2-1 1-1.7 2.6-1.5 4 1.5.1 2.9-.8 4-1.9z"/>
-              </svg>
-              App Store
-            </Button>
-            
-            <Button variant="outline" className="h-14 px-8 rounded-2xl border-2 gap-3 font-bold hover:bg-secondary transition-all hover:scale-105">
-              Download Now
-            </Button>
-          </div>
-        </div>
-
-        <div className="relative w-56 shrink-0 md:w-64">
-          {/* الـ Glow اللي ورا الموبايل */}
-          <div className="absolute inset-0 bg-primary/20 blur-3xl rounded-full" />
-          <motion.img 
-            src= {phoneMockup}
-            alt="Upply mobile app" 
-            className="relative z-10 w-full drop-shadow-[0_20px_50px_rgba(0,0,0,0.3)]"
-            animate={{ 
-              y: [0, -15, 0],
-            }}
-            transition={{
-              duration: 4,
-              repeat: Infinity,
-              ease: "easeInOut"
-            }}
-          />
-        </div>
-      </div>
-    </motion.div>
-  </div>
-</section>
-
+      </section>
 
       <Footer />
-
-
-      
     </div>
   );
 };
@@ -355,7 +291,35 @@ export default Index;
 //                 <p className="mt-2 text-sm text-muted-foreground">{f.desc}</p>
 //               </motion.div>
 //             ))}
-//           </div>
+//           </div> 
+// {/* <section className="py-16 md:py-20">
+      //   <div className="container">
+      //     <SectionBadge>why download mobile app ?</SectionBadge>
+      //     <motion.div
+      //       className="mx-auto max-w-3xl overflow-hidden rounded-2xl bg-secondary/60 p-8 md:p-12"
+      //       initial="hidden"
+      //       whileInView="visible"
+      //       viewport={{ once: true }}
+      //       variants={fadeIn}
+      //     >
+      //       <div className="flex flex-col items-center gap-8 md:flex-row">
+      //         <div className="flex-1">
+      //           <p className="text-muted-foreground leading-relaxed">
+      //             Download the mobile app to get real-time notifications for jobs that perfectly
+      //             match your skills and profile. Be among the first to apply, stay updated instantly,
+      //             and never miss an opportunity made for you.
+      //           </p>
+      //           <Button className="mt-6 gradient-primary border-0 text-primary-foreground">
+      //             Download App
+      //           </Button>
+      //         </div>
+      //         <div className="w-40 shrink-0 md:w-48">
+      //           <img src={phoneMockup} alt="Upply mobile app" className="w-full animate-float" />
+      //         </div>
+      //       </div>
+      //     </motion.div>
+      //   </div>
+      // </section> */}
 //         </div>
 //       </section>
 

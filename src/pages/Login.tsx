@@ -6,6 +6,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Briefcase, Eye, EyeOff } from "lucide-react";
 import { loginUser } from "@/services/authService";
+import myLogo from '../assets/Copy_of_Green_Modern_Marketing_Logo__2_-removebg-preview.svg';
+
 import styled from "styled-components";
 const Login = () => {
   const { login } = useAuth();
@@ -50,9 +52,10 @@ const Login = () => {
          <FormContainer>
 
         <div className="w-full max-w-sm">
-          {/* <Link to="/" className="mb-8 flex items-center gap-2 font-display text-xl font-bold text-primary lg:hidden">
-            <Briefcase className="h-6 w-6" /> Upply
-          </Link> */}
+          <Link to="/" className="flex items-center font-display text-xl font-bold text-primary">
+            <img src={myLogo} className="ml-28 logo logo-light" alt="Light Logo" />
+           
+          </Link>
           {/* 2. استبدال الـ h1 العادي بـ PulsingTitle */}
           <PulsingTitle className="font-display text-2xl font-bold text-foreground">
             Sign In
