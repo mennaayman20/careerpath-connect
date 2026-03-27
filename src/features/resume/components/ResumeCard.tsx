@@ -1,6 +1,6 @@
 import { ResumeResponse } from "../types/resume.types";
 import { Button } from "@/components/ui/button";
-import { Eye, Download, Trash2 } from "lucide-react";
+import { Eye, Download, Trash2 , Loader2 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 
 interface ResumeCardProps {
@@ -46,7 +46,7 @@ export const ResumeCard = ({
           <Download className="h-4 w-4" />
         </Button>
 
-        <Button
+        {/* <Button
           variant="outline"
           size="icon"
           onClick={(e) => {
@@ -57,7 +57,23 @@ export const ResumeCard = ({
           title="Delete Resume"
         >
           <Trash2 className="h-4 w-4 text-destructive" />
-        </Button>
+        </Button> */}
+        <Button
+  variant="outline"
+  size="icon"
+  onClick={(e) => {
+    e.preventDefault();
+    onDelete(resume.id);
+  }}
+  disabled={isDeleting} // الـ Prop ده جاي من الـ map اللي فيه الـ id check
+  title="Delete Resume"
+>
+  {isDeleting ? (
+    <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+  ) : (
+    <Trash2 className="h-4 w-4 text-destructive" />
+  )}
+</Button>
       </div>
     </div>
   );

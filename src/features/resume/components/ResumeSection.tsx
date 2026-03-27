@@ -8,19 +8,35 @@ import { useToast } from "@/hooks/use-toast";
 
 export const ResumeSection = () => {
   const { toast } = useToast();
+  // const {
+  //   resumes,
+  //   isLoading,
+  //   uploadResume,
+  //   deleteResume,
+  //   viewResume,
+  //   downloadResume,
+  //   viewerOpen,
+  //   selectedResume,
+  //   closeViewer,
+  // } = useResumes();
+
   const {
-    resumes,
-    isLoading,
-    uploadResume,
-    deleteResume,
-    viewResume,
-    downloadResume,
-    viewerOpen,
-    selectedResume,
-    closeViewer,
-  } = useResumes();
+  resumes,
+  isLoading,
+  uploadResume,
+  isUploading, // دي بقت من الهوك مباشرة
+  deleteResume,
+  isDeleting,
+  viewResume,
+  downloadResume,
+  deleteMutation,
+  viewerOpen,
+  selectedResume,
+  closeViewer,
+} = useResumes();
+
   const [isDragging, setIsDragging] = useState(false);
-  const [isUploading, setIsUploading] = useState(false);
+  
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const validateFile = (file: File): boolean => {
@@ -46,19 +62,19 @@ export const ResumeSection = () => {
     return true;
   };
 
-  const handleUpload = async (file: File) => {
-    if (!validateFile(file)) return;
+ const handleUpload = async (file: File) => {
+  if (!validateFile(file)) return;
 
-    setIsUploading(true);
-    try {
-      await uploadResume(file);
-      if (fileInputRef.current) {
-        fileInputRef.current.value = "";
-      }
-    } finally {
-      setIsUploading(false);
+  try {
+    await uploadResume(file);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
     }
-  };
+  } catch (error) {
+    // يفضل تسيبي الـ catch عشان لو حصل خطأ الـ App ميفصلش
+    console.error("Upload failed:", error);
+  }
+};
 
   const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -164,7 +180,7 @@ export const ResumeSection = () => {
         </form>
 
         {/* Resume List */}
-        <div>
+        {/* <div>
           <h3 className="text-sm font-semibold text-foreground mb-4">Your Resumes</h3>
 
           {isLoading && !resumes.length ? (
@@ -193,7 +209,38 @@ export const ResumeSection = () => {
               ))}
             </div>
           )}
-        </div>
+        </div> */}
+
+        {/* Resume List */}
+<div>
+  <h3 className="text-sm font-semibold text-foreground mb-4">Your Resumes</h3>
+
+  {isLoading && !resumes.length ? (
+    <div className="text-center py-8">
+      <Loader2 className="h-8 w-8 animate-spin text-primary mx-auto mb-2" />
+      <p className="text-sm text-muted-foreground">Loading resumes...</p>
+    </div>
+  ) : resumes.length === 0 ? (
+    <div className="text-center py-8 rounded-lg bg-muted/20 border border-border">
+      <p className="text-sm text-muted-foreground">No resumes found</p>
+    </div>
+  ) : (
+    <div className="space-y-3">
+      {/* 🎯 حطي الـ Component هنا جوه الـ map */}
+      {resumes.map((resume) => (
+        <ResumeCard
+          key={resume.id}
+          resume={resume}
+          onView={viewResume}
+          onDownload={downloadResume}
+          onDelete={deleteResume}
+          // الـ isDeleting هنا هيفضل true طول ما الـ Mutation شغالة
+          isDeleting={isDeleting && deleteMutation.variables === resume.id} 
+        />
+      ))}
+    </div>
+  )}
+</div>
       </section>
 
       {/* PDF Viewer Modal */}

@@ -21,7 +21,8 @@ import { useSocialLinks } from "@/hooks/useSocial";
 import { useSkills } from "@/hooks/useSkills";
 import { useProfileManager } from "@/hooks/usePersonalInfo";
 import { ResumeSection } from "@/features/resume/components/ResumeSection";
-
+import { ProjectCard } from "@/components/ui/ProjectCard";
+import { useProfile } from "@/hooks/useProfile";
 const socialPlatforms = ["LINKEDIN", "GITHUB", "PORTFOLIO", "DRIBBLE", "BEHANCE", "MEDIUM", "DISCORD", "GITLAB", "OTHER"];
 const skillCategories = ["Frontend", "Backend", "DevOps", "Design", "Data Science", "Mobile", "Other"];
 
@@ -30,6 +31,10 @@ const Profile = () => {
   const { personal, setPersonal, loading, handleSave } = useProfileManager();
   const [newSkill, setNewSkill] = useState({ category: "Frontend", skillName: "" });
   const [activeSection, setActiveSection] = useState("personal");
+const { data: profile, isLoading: isProfileLoading } = useProfile();
+
+
+
 // السطر 33 المعدل
 const { 
   experiences, 
@@ -43,21 +48,8 @@ const {
   isLoading, 
   isSaving 
 } = useExperience();
-  // const { experiences, addExperience, updateExperience, removeExperience, validateExperiences, saveExperiences, isInvalid, errors, isLoading } = useExperience();
-  // const { projects, addProject, updateProject, removeProject, saveProjects, isInvalidate, isLoading: isProjectsLoading } = useProject();
 
-  const { 
-  projects, 
-  addProject, 
-  updateProject, 
-  removeProject, 
-  saveProjects, 
-  
-  isProjectsSaving, // استخدمي دي للـ Loading بتاع الزراير
-  isLoading: isProjectsLoading 
-} = useProject();
-
-
+const { projects, addProject, isAdding, isLoading : isProjectsLoading} = useProject();
 
  const { 
   links, 
@@ -88,6 +80,8 @@ const {
   ];
 
   return (
+    // لو لسه بيجيب البيانات لأول مرة، ممكن تعرضي Spinner أو صفحة تحميل بسيطة
+
     <div className="min-h-screen bg-background text-foreground">
       <Navbar />
 
@@ -190,7 +184,15 @@ const {
       </div>
 
       {/* Main Content */}
+      
+
       <main className="container mx-auto w-10/12 px-6 py-12">
+      {isLoading ? (
+    <div className="flex justify-center py-20">
+       <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-accent"></div>
+    </div>
+  ) : (
+    <>
         {/* Personal Info */}
         {activeSection === "personal" && (
           <div className="space-y-8">
@@ -424,8 +426,8 @@ const {
             ) : (
               <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 {skills.map((s) => (
-                  <div key={s.skillId} className="rounded-xl bg-card p-6 shadow-card border border-border/50">
-                    <div className="mb-4 flex items-center justify-between">
+                  <div key={s.skillId} className="rounded-3xl bg-[#ffffff] p-3 shadow-card border ">
+                    <div className=" flex items-center justify-between">
                       <span className="font-display font-semibold text-foreground">{s.skillName}</span>
                       <Button
   variant="ghost"
@@ -437,17 +439,15 @@ const {
   <X className="h-4 w-4" />
 </Button>
                     </div>
-                    <div className="h-2 rounded-full bg-secondary">
-                      <div
-                        className="h-full rounded-full gradient-accent transition-all duration-1000"
-                        style={{ width: `${Math.floor(Math.random() * 40) + 60}%` }}
-                      />
-                    </div>
-                    <div className="mt-2 text-right text-sm font-medium text-accent">
-                      {Math.floor(Math.random() * 40) + 60}%
-                    </div>
+
+
+                    
+
+                
                   </div>
                 ))}
+
+                
               </div>
             )}
           </div>
@@ -581,138 +581,52 @@ const {
 )}
 
         {/* Projects */}
-        {activeSection === "projects" && (
-          <div className="space-y-8">
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-              <div>
-                {/* <Badge variant="secondary" className="mb-4 gradient-accent text-accent-foreground">
-                  Portfolio
-                </Badge> */}
-                <h2 className="font-display text-3xl font-bold text-foreground">
-                  My <span className="text-accent">Projects</span>
-                </h2>
-              </div>
-              <Button 
-  onClick={() => addProject()} // استدعاء بدون معاملات
-  disabled={isProjectsSaving} 
-  variant="outline"
->
-  <Plus className="mr-2 h-4 w-4" /> Add Project
-</Button>
-            </div>
+       {activeSection === "projects" && (
+  <div className="space-y-8">
+    {/* Header Section */}
+    <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div>
+        <h2 className="font-display text-3xl font-bold text-foreground">
+          My <span className="text-accent">Projects</span>
+        </h2>
+      </div>
+      
+      {/* زرار الإضافة يستخدم حالة isAdding الخاصة به فقط */}
+      <Button 
+        onClick={() => addProject()} 
+        disabled={isAdding} 
+        variant="outline"
+      >
+        <Plus className="mr-2 h-4 w-4" /> 
+        {isAdding ? "Adding..." : "Add Project"}
+      </Button>
+    </div>
 
-            {projects.length === 0 ? (
-              <div className="rounded-xl bg-card p-12 text-center shadow-card border border-border/50">
-                <FolderGit2 className="mx-auto h-12 w-12 text-muted-foreground/50" />
-                <h3 className="mt-4 font-display text-lg font-semibold text-foreground">No projects added yet</h3>
-                <p className="mt-2 text-muted-foreground">Showcase your work by adding your projects.</p>
-              </div>
-            ) : (
-              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                {projects.map((proj) => (
-                  <div key={proj.id} className="group rounded-xl bg-card shadow-card border border-border/50 overflow-hidden hover:shadow-elevated transition-shadow">
-                    {/* Project Header */}
-                    <div className="aspect-video bg-gradient-to-br from-secondary to-secondary/50 relative flex items-center justify-center">
-                      <FolderGit2 className="h-12 w-12 text-muted-foreground" />
-                      {proj.projectUrl && (
-                        <a
-                          href={proj.projectUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="absolute bottom-4 right-4 rounded-full bg-accent p-2 text-accent-foreground shadow-lg opacity-0 group-hover:opacity-100 transition-opacity"
-                        >
-                          <ExternalLink className="h-4 w-4" />
-                        </a>
-                      )}
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => removeProject(proj.id)}
-                        className="absolute top-4 right-4 h-8 w-8 p-0 bg-background/80 text-muted-foreground hover:text-destructive opacity-0 group-hover:opacity-100 transition-opacity"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-
-                    {/* Project Content */}
-                    <div className="p-6">
-                      <div className="space-y-4">
-                        <div>
-                          <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Project Title</Label>
-                          <Input
-                            value={proj.title || ""}
-                            onChange={(e) => updateProject(proj.id, "title", e.target.value)}
-                            placeholder="My Awesome Project"
-                            className="mt-1 bg-input border-0 p-0 text-foreground font-display font-semibold text-lg"
-                          />
-                        </div>
-
-                        <div className="grid gap-3 sm:grid-cols-2">
-                          <div>
-                            <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Project URL</Label>
-                            <Input
-                              value={proj.projectUrl || ""}
-                              onChange={(e) => updateProject(proj.id, "projectUrl", e.target.value)}
-                              placeholder="https://..."
-                              className="mt-1 bg-input"
-                            />
-                          </div>
-                          <div>
-                            <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Technologies</Label>
-                            <Input
-                              value={proj.technologies || ""}
-                              onChange={(e) => updateProject(proj.id, "technologies", e.target.value)}
-                              placeholder="React, Node.js..."
-                              className="mt-1 bg-input"
-                            />
-                          </div>
-                          <div>
-                            <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Start Date</Label>
-                            <Input
-                              type="date"
-                              value={proj.startDate || ""}
-                              onChange={(e) => updateProject(proj.id, "startDate", e.target.value)}
-                              className="mt-1 bg-input"
-                            />
-                          </div>
-                          <div>
-                            <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">End Date</Label>
-                            <Input
-                              type="date"
-                              value={proj.endDate || ""}
-                              onChange={(e) => updateProject(proj.id, "endDate", e.target.value)}
-                              className="mt-1 bg-input"
-                            />
-                          </div>
-                        </div>
-
-                        <div>
-                          <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Description</Label>
-                          <Textarea
-                            value={proj.description || ""}
-                            onChange={(e) => updateProject(proj.id, "description", e.target.value)}
-                            placeholder="Brief description of the project..."
-                            className="mt-1 bg-input min-h-[80px] resize-none"
-                          />
-                        </div>
-
-                     
-
-                        <Button
-  onClick={() => saveProjects(proj)}
-  disabled={isProjectsSaving || !proj.title?.trim() || !proj.description?.trim()}
-  className="w-full gradient-accent border-0 text-accent-foreground"
->
-  {isProjectsSaving ? "Saving..." : "Save Project"}
-</Button>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
+    {/* Projects Content */}
+    {isLoading ? (
+      <div className="text-center py-12">Loading Projects...</div>
+    ) : projects.length === 0 ? (
+      <div className="rounded-xl bg-card p-12 text-center shadow-card border border-border/50">
+        <FolderGit2 className="mx-auto h-12 w-12 text-muted-foreground/50" />
+        <h3 className="mt-4 font-display text-lg font-semibold text-foreground">
+          No projects added yet
+        </h3>
+        <p className="mt-2 text-muted-foreground">
+          Showcase your work by adding your projects.
+        </p>
+      </div>
+    ) : (
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        {projects.map((proj) => (
+          /* نادينا الكومبوننت الجديد هنا 
+             كل كارد دلوقتي مسؤول عن الـ Mutations والـ Loading بتاعه
+          */
+          <ProjectCard key={proj.id} project={proj} />
+        ))}
+      </div>
+    )}
+  </div>
+)}
 
         {/* Resume Section */}
         <div className="mt-16 pt-8 border-t border-border/50">
@@ -721,7 +635,15 @@ const {
           </Badge> */}
           <ResumeSection />
         </div>
+
+
+        </>
+  )}
       </main>
+
+
+
+
 
       <Footer />
     </div>

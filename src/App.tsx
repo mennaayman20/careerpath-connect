@@ -23,7 +23,16 @@ import ResumeAnalysis from "./pages/ResumeAnalysis";
 
 
 
-const queryClient = new QueryClient();
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: Infinity,
+      // staleTime: 1000 * 60 * 10, // 10 دقائق لكل المشروع
+      refetchOnWindowFocus: false, // هيمنع إنه يعمل Fetch لما تدوسي على الصفحة بعد ما كنتِ في Tab تانية
+    },
+  },
+});
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
