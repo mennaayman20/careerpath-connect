@@ -202,7 +202,7 @@ const { projects, addProject, isAdding, isLoading : isProjectsLoading} = useProj
                   Personal Information
                 </Badge> */}
                 <h2 className="font-display text-3xl font-bold text-foreground">
-                  Your <span className="text-accent">Profile</span> Details
+                  Your <span className="text-accent text-[#13CA92] ">Profile</span> Details
                 </h2>
               </div>
 
@@ -241,7 +241,9 @@ const { projects, addProject, isAdding, isLoading : isProjectsLoading} = useProj
                 </div>
 
                 <div className="mt-8 flex justify-end">
-                  <Button onClick={handleSave} disabled={loading} className="gradient-accent border-0 text-accent-foreground">
+                  <Button onClick={handleSave} disabled={loading} className=" border-0 
+                  bg-[#4b4f52]
+                  text-accent-foreground">
                     <Save className="mr-2 h-4 w-4" />
                     {loading ? "Saving..." : "Save Changes"}
                   </Button>
@@ -260,7 +262,7 @@ const { projects, addProject, isAdding, isLoading : isProjectsLoading} = useProj
                   Connect
                 </Badge> */}
                 <h2 className="font-display text-3xl font-bold text-foreground">
-                  Social <span className="text-accent">Links</span>
+                  Social <span className="text-[#13CA92]">Links</span>
                 </h2>
               </div>
              <Button 
@@ -291,7 +293,7 @@ const { projects, addProject, isAdding, isLoading : isProjectsLoading} = useProj
                   <div key={link.id} className="rounded-xl bg-card p-6 shadow-card border border-border/50">
                     <div className="mb-4 flex items-center justify-between">
                       <div className="flex items-center gap-3">
-                        <div className="h-2 w-2 rounded-full bg-accent"></div>
+                        <div className="h-3 w-3 rounded-full bg-[#13CA92]"></div>
                         <span className="font-display text-sm font-semibold uppercase tracking-wide text-accent">
                           {link.socialType}
                         </span>
@@ -346,7 +348,7 @@ const { projects, addProject, isAdding, isLoading : isProjectsLoading} = useProj
   }}
   disabled={isLinksSaving || !link.url?.trim()} // تعطيل لو الـ URL فاضي أو فيه حفظ شغال
   size="sm"
-  className="gradient-accent border-0 text-accent-foreground"
+  className="  bg-[#4b4f52] border-0 text-accent-foreground "
 >
   {isLinksSaving ? "Saving..." : "Save Link"}
 </Button>
@@ -366,7 +368,7 @@ const { projects, addProject, isAdding, isLoading : isProjectsLoading} = useProj
                 My Work Skills
               </Badge> */}
               <h2 className="font-display text-3xl font-bold text-foreground">
-                Technical <span className="text-accent">Expertise</span>
+                Technical <span className="text-[#13CA92]">Skills</span>
               </h2>
             </div>
 
@@ -408,7 +410,7 @@ const { projects, addProject, isAdding, isLoading : isProjectsLoading} = useProj
     }
   }}
   disabled={isSkillsSaving || !newSkill.skillName.trim()} // نستخدم الحالة الجديدة
-  className="gradient-accent border-0 text-accent-foreground"
+  className="bg-[#4b4f52] border-0 text-accent-foreground"
 >
   {isSkillsSaving ? "Adding..." : "Add"} 
   {/* اختياري: ممكن تضيفي Spinner هنا */}
@@ -459,7 +461,7 @@ const { projects, addProject, isAdding, isLoading : isProjectsLoading} = useProj
     <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
       <div>
         <h2 className="font-display text-3xl font-bold text-foreground">
-          Work <span className="text-accent">Experience</span>
+          Work <span className="text-[#13CA92]">Experience</span>
         </h2>
       </div>
       <Button onClick={() => addExperience()} disabled={isSaving}> 
@@ -587,7 +589,7 @@ const { projects, addProject, isAdding, isLoading : isProjectsLoading} = useProj
     <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
       <div>
         <h2 className="font-display text-3xl font-bold text-foreground">
-          My <span className="text-accent">Projects</span>
+          My <span className="text-[#13CA92]">Projects</span>
         </h2>
       </div>
       

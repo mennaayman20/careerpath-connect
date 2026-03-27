@@ -42,7 +42,7 @@ export const applicationService = {
    * Submit application and get matchingRatio
    */
   applyToJob: async (payload: ApplicationRequest) => {
-    return api.post<ApplicationResponse>("/applications", payload);
+    return api.post<ApplicationResponse>("/api/applications", payload);
   },
 
 

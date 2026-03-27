@@ -140,7 +140,7 @@ export const ProjectCard = ({ project }: ProjectCardProps) => {
           <Button
             onClick={() => saveMutation.mutate()}
             disabled={saveMutation.isPending || !localData.title?.trim() || !localData.description?.trim()}
-            className="w-full gradient-accent border-0 text-accent-foreground"
+            className="w-full bg-[#4b4f52] border-0 text-accent-foreground"
           >
             {saveMutation.isPending ? "Saving..." : "Save Project"}
           </Button>

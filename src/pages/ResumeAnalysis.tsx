@@ -87,39 +87,74 @@ const ResumeAnalysis = () => {
 
   
 
-  const handleApply = async () => {
+//   const handleApply = async () => {
 
     
+//   if (!jobId || !selectedResumeId) {
+//     alert("Missing job or resume information.");
+//     return;
+//   }
+
+//  setIsApplying(true);
+//   try {
+//     // --- هنا مكان الـ Payload المظبوط ---
+//     const payload: ApplicationRequest = {
+//       jobId: parseInt(jobId), // تأكد إن الـ jobId رقم
+//         resumeId: selectedResumeId,
+//         coverLetter: coverLetter || "", // عشان نضمن إن الـ Key يتبعت دايماً
+//     };
+
+//     console.log("البيانات اللي رايحة للسيرفر:", payload);
+
+//     // نبعت الـ payload للـ service
+//     await applicationService.applyToJob(payload);
+    
+//     toast.success("application submitted successfully!");
+//     navigate("/applications");
+//   } catch (error) {
+//     console.error("خطأ أثناء التقديم:", error);
+//     toast.error("Failed to submit application. Please try again.");
+//   } finally {
+//     setIsApplying(false);
+//   }
+// };
+
+const handleApply = async () => {
   if (!jobId || !selectedResumeId) {
-    alert("Missing job or resume information.");
+    toast.error("Missing job or resume information.");
     return;
   }
 
- setIsApplying(true);
+  setIsApplying(true);
   try {
-    // --- هنا مكان الـ Payload المظبوط ---
     const payload: ApplicationRequest = {
-      jobId: parseInt(jobId), // تأكد إن الـ jobId رقم
-        resumeId: selectedResumeId,
-        coverLetter: coverLetter || "", // عشان نضمن إن الـ Key يتبعت دايماً
+      jobId: Number(jobId),
+      resumeId: Number(selectedResumeId),
+      coverLetter: coverLetter || "I am interested in this position.",
     };
 
-    console.log("البيانات اللي رايحة للسيرفر:", payload);
+    console.log("Sending Payload:", payload);
 
-    // نبعت الـ payload للـ service
     await applicationService.applyToJob(payload);
     
-    toast.success("application submitted successfully!");
+    toast.success("Application submitted successfully!");
     navigate("/applications");
-  } catch (error) {
-    console.error("خطأ أثناء التقديم:", error);
-    toast.error("Failed to submit application. Please try again.");
+  } catch (error: unknown) { // استخدمنا unknown بدل any
+    console.error("Apply Error:", error);
+
+    // التحقق من نوع الخطأ بشكل آمن للـ TypeScript
+    let errorMessage = "Failed to submit application. Please try again.";
+    
+    if (error && typeof error === 'object' && 'response' in error) {
+      const axiosError = error as { response?: { data?: { message?: string } } };
+      errorMessage = axiosError.response?.data?.message || errorMessage;
+    }
+
+    toast.error(errorMessage);
   } finally {
     setIsApplying(false);
   }
 };
-
-
 
 
 
@@ -150,33 +185,43 @@ const ResumeAnalysis = () => {
     }
   }, [resumes, selectedResumeId]);
 
-  const handleUpload = async (file: File) => {
-    const newResume = await uploadResume(file);
-    if (newResume) {
-      setSelectedResumeId(newResume.id);
-      setFileName(newResume.fileName);
-    }
-  };
+  const handleUpload = useCallback(async (file: File) => {
+  const newResume = await uploadResume(file);
+  if (newResume) {
+    setSelectedResumeId(newResume.id);
+    setFileName(newResume.fileName);
+  }
+}, []); // سيبها فاضية لو مش بتعتمد على متغيرات خارجية غير الـ state setters
 
-  const onStartAnalysis = async () => {
-    if (!selectedResumeId) return;
-    setState("loading");
-    try {
-      await analyzeResume(selectedResumeId, jobId || undefined);
-      setState("result");
-    } catch {
-      setState("upload");
-    }
-  };
+ const onStartAnalysis = async () => {
+  if (!selectedResumeId) return;
+  
+  setState("loading");
+  try {
+    // التعديل هنا: نمرر الأوبجكت بالشكل المطلوب
+    await analyzeResume({ 
+      resumeId: selectedResumeId, 
+      jobId: jobId || undefined 
+    });
+    
+    setState("result");
+  } catch (error) {
+    console.error(error);
+    setState("upload");
+  }
+};
 
   const handleDrop = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    setDragActive(false);
-    const file = e.dataTransfer.files?.[0];
-    if (file?.type === "application/pdf") {
-      handleUpload(file);
-    }
-  }, []);
+  e.preventDefault();
+  setDragActive(false);
+  const file = e.dataTransfer.files?.[0];
+  if (file?.type === "application/pdf") {
+    handleUpload(file);
+  }
+}, [handleUpload]); // <--- ضيفها هنا
+
+
+
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
