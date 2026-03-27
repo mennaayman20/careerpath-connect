@@ -2,7 +2,10 @@ import axios from "axios";
 
 
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL,
+  baseURL: "/api/v1", // دي هتخلي Vercel هو اللي يتصرف
+  headers: {
+    'Content-Type': 'application/json',
+  },
 });
 
 console.log("BASE URL:", import.meta.env.VITE_API_BASE_URL);
