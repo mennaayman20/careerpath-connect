@@ -3,31 +3,33 @@ import { ResumeFeedbackResponse, ResumeResponse, ResumeUploadResponse } from "..
 import { ApplicationRequest, ApplicationResponse } from "@/features/application/types/application.types";
 import { api } from "@/lib/api"; 
 class ResumeService {
-  getMyApplications() {
-      throw new Error("Method not implemented.");
-  }
-  private api: AxiosInstance;
+  // getMyApplications() {
+  //     throw new Error("Method not implemented.");
+  // }
+  // private api: AxiosInstance;
 
-  constructor() {
-    this.api = axios.create({
-      baseURL: import.meta.env.VITE_API_BASE_URL || "http://localhost:8081/api",
-      // withCredentials: true,
-    });
+  // constructor() {
+  //   this.api = axios.create({
+  //     baseURL: import.meta.env.VITE_API_BASE_URL || "http://localhost:8081/api",
+  //     // withCredentials: true,
+  //   });
 
-    // Add request interceptor to include Authorization header
-    this.api.interceptors.request.use((config) => {
-      const token = localStorage.getItem('authToken') || localStorage.getItem('token');
-      if (token) {
-        config.headers.Authorization = `Bearer ${token}`;
-      }
-      return config;
-    });
-  }
+  //   // Add request interceptor to include Authorization header
+  //   this.api.interceptors.request.use((config) => {
+  //     const token = localStorage.getItem('authToken') || localStorage.getItem('token');
+  //     if (token) {
+  //       config.headers.Authorization = `Bearer ${token}`;
+  //     }
+  //     return config;
+  //   });
+  // }
 
   /**
    * Upload a PDF resume file
    * POST /user/me/resume
    */
+
+
   async uploadResume(file: File): Promise<ResumeUploadResponse> {
     const formData = new FormData();
     formData.append("file", file);
@@ -50,7 +52,7 @@ class ResumeService {
    * GET /user/me/resume
    */
   async getAllResumes(): Promise<ResumeResponse[]> {
-    const response = await this.api.get<ResumeResponse[]>("/user/me/resume");
+    const response = await api.get<ResumeResponse[]>("/user/me/resume");
     return response.data;
   }
 
@@ -59,7 +61,7 @@ class ResumeService {
    * GET /user/me/resume/last
    */
   async getLatestResume(): Promise<ResumeResponse> {
-    const response = await this.api.get<ResumeResponse>("/user/me/resume/last");
+    const response = await api.get<ResumeResponse>("/user/me/resume/last");
     return response.data;
   }
 
@@ -69,7 +71,7 @@ class ResumeService {
    */
   async viewResumeAsBlob(resumeId: number): Promise<string> {
     try {
-      const response = await this.api.get(`/user/me/resume/view/${resumeId}`, {
+      const response = await api.get(`/user/me/resume/view/${resumeId}`, {
         responseType: 'blob',
         headers: {
           'X-Requested-With': 'XMLHttpRequest', // Prevent IDM interception
@@ -92,7 +94,7 @@ class ResumeService {
    */
   async downloadResume(resumeId: number): Promise<void> {
     try {
-      const response = await this.api.get(
+      const response = await api.get(
         `/user/me/resume/download/${resumeId}`,
         {
           responseType: "blob",
@@ -120,7 +122,7 @@ class ResumeService {
    * DELETE /user/me/resume/{resumeId}
    */
   async deleteResume(resumeId: number): Promise<void> {
-    await this.api.delete(`/user/me/resume/${resumeId}`);
+    await api.delete(`/user/me/resume/${resumeId}`);
   }
 
 
@@ -130,7 +132,7 @@ class ResumeService {
 
 
   async applyToJob(data: ApplicationRequest): Promise<ApplicationResponse> {
-  const response = await this.api.post<ApplicationResponse>("/applications", data);
+  const response = await api.post<ApplicationResponse>("/applications", data);
   return response.data;
 }
 
@@ -144,7 +146,7 @@ async getResumeAnalysis(resumeId: number, jobId?: string): Promise<ResumeFeedbac
     ? `/user/me/resume/feedback/${resumeId}/job/${jobId}`
     : `/user/me/resume/feedback/${resumeId}`;
     
-  const response = await this.api.get<ResumeFeedbackResponse>(url);
+  const response = await api.get<ResumeFeedbackResponse>(url);
   return response.data;
 }
 
