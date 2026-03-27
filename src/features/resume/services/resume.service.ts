@@ -1,7 +1,7 @@
 import axios, { AxiosInstance } from "axios";
 import { ResumeFeedbackResponse, ResumeResponse, ResumeUploadResponse } from "../types/resume.types";
 import { ApplicationRequest, ApplicationResponse } from "@/features/application/types/application.types";
-
+import { api } from "@/lib/api"; 
 class ResumeService {
   getMyApplications() {
       throw new Error("Method not implemented.");
@@ -11,7 +11,7 @@ class ResumeService {
   constructor() {
     this.api = axios.create({
       baseURL: import.meta.env.VITE_API_BASE_URL || "http://localhost:8081/api",
-      withCredentials: true,
+      // withCredentials: true,
     });
 
     // Add request interceptor to include Authorization header
@@ -32,11 +32,15 @@ class ResumeService {
     const formData = new FormData();
     formData.append("file", file);
 
-    const response = await this.api.post<ResumeUploadResponse>(
-      "/user/me/resume",
-      formData
-      // Removed manual Content-Type header; Axios sets it automatically for FormData
-    );
+    const response = await api.post<ResumeUploadResponse>(
+    "/user/me/resume", 
+    formData,
+    {
+      headers: {
+        'Content-Type': 'multipart/form-data', 
+      }
+    }
+  );
 
     return response.data;
   }
