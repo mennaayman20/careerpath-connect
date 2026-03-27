@@ -1,9 +1,11 @@
 import axios from "axios";
 
+
 const api = axios.create({
-  // بما إنك حاطط الـ Base URL في vite config، سيبه هنا فاضي أو حط البداية بس
-  baseURL: '', 
+  baseURL: import.meta.env.VITE_API_BASE_URL,
 });
+
+console.log("BASE URL:", import.meta.env.VITE_API_BASE_URL);
 
 // ديه "نقطة التفتيش" اللي لازم تزيد عشان التوكن يتبعت
 api.interceptors.request.use(

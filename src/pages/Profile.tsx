@@ -202,7 +202,7 @@ const { projects, addProject, isAdding, isLoading : isProjectsLoading} = useProj
                   Personal Information
                 </Badge> */}
                 <h2 className="font-display text-3xl font-bold text-foreground">
-                  Your <span className="text-accent text-[#13CA92] ">Profile</span> Details
+                  Your <span className=" text-[#1ca37b] ">Profile</span> Details
                 </h2>
               </div>
 
@@ -262,7 +262,7 @@ const { projects, addProject, isAdding, isLoading : isProjectsLoading} = useProj
                   Connect
                 </Badge> */}
                 <h2 className="font-display text-3xl font-bold text-foreground">
-                  Social <span className="text-[#13CA92]">Links</span>
+                  Social <span className="text-[#1ca37b]">Links</span>
                 </h2>
               </div>
              <Button 
@@ -368,7 +368,7 @@ const { projects, addProject, isAdding, isLoading : isProjectsLoading} = useProj
                 My Work Skills
               </Badge> */}
               <h2 className="font-display text-3xl font-bold text-foreground">
-                Technical <span className="text-[#13CA92]">Skills</span>
+                Technical <span className="text-[#1ca37b]">Skills</span>
               </h2>
             </div>
 
@@ -461,7 +461,7 @@ const { projects, addProject, isAdding, isLoading : isProjectsLoading} = useProj
     <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
       <div>
         <h2 className="font-display text-3xl font-bold text-foreground">
-          Work <span className="text-[#13CA92]">Experience</span>
+          Work <span className="text-[#1ca37b]">Experience</span>
         </h2>
       </div>
       <Button onClick={() => addExperience()} disabled={isSaving}> 
@@ -589,7 +589,7 @@ const { projects, addProject, isAdding, isLoading : isProjectsLoading} = useProj
     <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
       <div>
         <h2 className="font-display text-3xl font-bold text-foreground">
-          My <span className="text-[#13CA92]">Projects</span>
+          My <span className="text-[#1ca37b]">Projects</span>
         </h2>
       </div>
       

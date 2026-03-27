@@ -1,20 +1,3 @@
-// import { api } from "@/lib/api";
-// import { ApplicationRequest, ApplicationResponse, Resume } from "../types/application.types";
-
-
-// export const applicationService = {
-//   // جلب آخر ملف تم رفعه
-//   getLastResume: () => api.get<Resume>('/user/me/resume/last'),
-  
-//   // جلب كل الملفات المرفوعة
-//   getAllResumes: () => api.get<Resume[]>('/user/me/resume'),
-  
-//   // إرسال طلب التقديم
-//   submitApplication: (data: ApplicationRequest) => api.post<ApplicationResponse>('/applications', data)
-// };
-
-
-// services/applicationService.ts
 
 import { api } from "@/lib/api";
 import type {
@@ -42,7 +25,7 @@ export const applicationService = {
    * Submit application and get matchingRatio
    */
   applyToJob: async (payload: ApplicationRequest) => {
-    return api.post<ApplicationResponse>("/api/applications", payload);
+    return api.post<ApplicationResponse>("/applications", payload);
   },
 
 

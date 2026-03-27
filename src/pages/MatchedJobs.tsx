@@ -45,7 +45,7 @@ const MatchedJobs = () => {
 
   const [isApplyModalOpen, setIsApplyModalOpen] = useState(false);
 // const [applyingJobId, setApplyingJobId] = useState<number | null>(null);
-
+const jobIdFromUrl = searchParams.get("id");
 
 
 //   useEffect(() => {
@@ -152,7 +152,7 @@ const {
                       <p className="text-muted-foreground flex items-center gap-2 mb-4">
                          <Building2 className="h-4 w-4" /> {job.organizationName}
                       </p>
-                      <Button className="w-full variant-outline group-hover:gradient-accent transition-all"
+                      <Button className="w-full variant-outline hover:bg-[#2c9f7d] transition-all"
                         onClick={(e) => {
                           e.stopPropagation();
                           handleJobSelect(job);
@@ -225,6 +225,14 @@ const {
                   >
                     {selectedJob.status === "Closed" ? "Position Closed" : "Apply Now"}
                   </Button>
+
+                  <Button 
+  variant="outline" 
+  className="w-full gap-2 border-primary/20 text-primary hover:bg-primary/5 mt-5"
+  onClick={() => navigate(`/resume-analysis?jobId=${jobIdFromUrl}`)} // نفترض إن عندك jobId هنا
+>
+  <Sparkles size={16} /> Analyze My Resume
+</Button>
                   
                   {/* المودال - بنبعت بيانات الـ selectedJob */}
                   <ApplyModal 

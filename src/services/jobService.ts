@@ -6,7 +6,7 @@ import { Job } from "@/types/jobs";
 export const jobService = {
   // نداء جلب كل الوظائف
   getAllJobs: async (page = 0, size = 10) => {
-    const response = await api.get<PaginatedJobs>("/api/jobs", {
+    const response = await api.get<PaginatedJobs>("/jobs", {
       params: { page, size }
     });
     return response.data;
@@ -14,13 +14,13 @@ export const jobService = {
 
   // نداء جلب وظيفة واحدة بالتفاصيل
   getJobById: async (id: string | number): Promise<JobDetails> => {
-  const response = await api.get<JobDetails>(`/api/jobs/${id}`);
+  const response = await api.get<JobDetails>(`/jobs/${id}`);
   return response.data;
 },
 
 // داخل jobService.ts
 getMatchedJobs: async () => {
-  const response = await api.get<Job[]>('/api/jobs/matched');
+  const response = await api.get<Job[]>('/jobs/matched');
   // ملاحظة: لو الباك-أند بيبعت الـ Matching Score (نسبة التوافق) تأكدي إنها موجودة في الـ Type
   return response.data; 
 },
