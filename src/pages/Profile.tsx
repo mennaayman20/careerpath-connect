@@ -362,98 +362,74 @@ const { projects, addProject, isAdding, isLoading : isProjectsLoading} = useProj
 
         {/* Skills */}
         {activeSection === "skills" && (
-          <div className="space-y-8">
-            <div>
-              {/* <Badge variant="secondary" className="mb-4 gradient-accent text-accent-foreground">
-                My Work Skills
-              </Badge> */}
-              <h2 className="font-display text-3xl font-bold text-foreground">
-                Technical <span className="text-[#1ca37b]">Skills</span>
-              </h2>
-            </div>
+  <div className="space-y-6">
+    <h2 className="font-display text-3xl font-bold text-foreground">
+      Technical <span className="text-[#1ca37b]">Skills</span>
+    </h2>
 
-            {/* Add Skill */}
-            <div className="rounded-xl bg-card p-6 shadow-card border border-border/50">
-              <h3 className="font-display text-lg font-semibold text-foreground mb-4">Add New Skill</h3>
-              <div className="flex flex-col gap-4 sm:flex-row sm:items-end">
-                <div className="flex-1 space-y-2">
-                  <Label>Category</Label>
-                  <Select value={newSkill.category} onValueChange={(v) => setNewSkill({ ...newSkill, category: v })}>
-                    <SelectTrigger className="bg-input">
-                      <SelectValue placeholder="Category" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {skillCategories.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="flex-1 space-y-2">
-                  <Label>Skill Name</Label>
-                  <Input
-                    placeholder="React, Figma, etc."
-                    value={newSkill.skillName}
-                    onChange={(e) => setNewSkill({ ...newSkill, skillName: e.target.value })}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") {
-                        handleAddSkill(newSkill.skillName);
-                        setNewSkill({ ...newSkill, skillName: "" });
-                      }
-                    }}
-                    className="bg-input"
-                  />
-                </div>
-               <Button
-  onClick={() => { 
-    if (newSkill.skillName.trim()) {
-      handleAddSkill(newSkill.skillName); 
-      setNewSkill({ ...newSkill, skillName: "" }); 
-    }
-  }}
-  disabled={isSkillsSaving || !newSkill.skillName.trim()} // نستخدم الحالة الجديدة
-  className="bg-[#4b4f52] border-0 text-accent-foreground"
->
-  {isSkillsSaving ? "Adding..." : "Add"} 
-  {/* اختياري: ممكن تضيفي Spinner هنا */}
-</Button>
-              </div>
-            </div>
+    {/* Add Skill */}
+    <div className="rounded-xl bg-card p-5 border border-border/50">
+      <h3 className="text-[15px] font-medium text-foreground mb-4">Add new skill</h3>
+      <div className="flex gap-2.5 items-end">
+        <div className="flex-1 space-y-1.5">
+          <Label className="text-xs text-muted-foreground font-medium">Skill name</Label>
+          <Input
+            placeholder="React, Figma, etc."
+            value={newSkill.skillName}
+            onChange={(e) => setNewSkill({ ...newSkill, skillName: e.target.value })}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && newSkill.skillName.trim()) {
+                handleAddSkill(newSkill.skillName);
+                setNewSkill({ ...newSkill, skillName: "" });
+              }
+            }}
+            className="h-9 bg-muted/50"
+          />
+        </div>
+        <Button
+          onClick={() => {
+            if (newSkill.skillName.trim()) {
+              handleAddSkill(newSkill.skillName);
+              setNewSkill({ ...newSkill, skillName: "" });
+            }
+          }}
+          disabled={isSkillsSaving || !newSkill.skillName.trim()}
+          className="h-9 px-4 bg-[#4b4f52] border-0 text-white gap-1.5"
+        >
+          <Plus className="w-3 h-3" />
+          Add
+        </Button>
+      </div>
+    </div>
 
-            {/* Skills Grid */}
-            {skills.length === 0 ? (
-              <div className="rounded-xl bg-card p-12 text-center shadow-card border border-border/50">
-                <Code2 className="mx-auto h-12 w-12 text-muted-foreground/50" />
-                <h3 className="mt-4 font-display text-lg font-semibold text-foreground">No skills added yet</h3>
-                <p className="mt-2 text-muted-foreground">Add your first skill above to showcase your expertise.</p>
-              </div>
-            ) : (
-              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                {skills.map((s) => (
-                  <div key={s.skillId} className="rounded-3xl bg-[#ffffff] p-3 shadow-card border ">
-                    <div className=" flex items-center justify-between">
-                      <span className="font-display font-semibold text-foreground">{s.skillName}</span>
-                      <Button
-  variant="ghost"
-  size="sm"
-  onClick={() => handleRemoveSkill(s.skillId)}
-  disabled={isSkillsSaving} // نمنع الحذف أثناء وجود عملية تانية
-  className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive disabled:opacity-50"
->
-  <X className="h-4 w-4" />
-</Button>
-                    </div>
-
-
-                    
-
-                
-                  </div>
-                ))}
-
-                
-              </div>
-            )}
+    {/* Skills */}
+    {skills.length === 0 ? (
+      <div className="rounded-xl bg-card p-12 text-center border border-border/50">
+        <Code2 className="mx-auto h-11 w-11 text-muted-foreground/30" />
+        <h3 className="mt-3 text-[15px] font-medium text-foreground">No skills added yet</h3>
+        <p className="mt-1.5 text-sm text-muted-foreground">Add your first skill above to showcase your expertise.</p>
+      </div>
+    ) : (
+      <div className="flex flex-wrap gap-2.5">
+        {skills.map((s) => (
+          <div
+            key={s.skillId}
+            className="flex items-center gap-2 pl-3.5 pr-2 py-1.5 rounded-full bg-card border border-border/50 hover:border-border transition-colors"
+          >
+            <span className="text-[13px] font-medium text-foreground">{s.skillName}</span>
+            <button
+              onClick={() => handleRemoveSkill(s.skillId)}
+              disabled={isSkillsSaving}
+              className="w-5 h-5 rounded-full bg-muted flex items-center justify-center text-muted-foreground hover:bg-red-100 hover:text-red-600 transition-colors disabled:opacity-50"
+            >
+              <X className="w-3 h-3" />
+            </button>
           </div>
-        )}
+        ))}
+      </div>
+    )}
+  </div>
+)}
 
        {/* Experience */}
 {activeSection === "experience" && (

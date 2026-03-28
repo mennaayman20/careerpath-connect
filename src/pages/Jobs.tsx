@@ -177,15 +177,22 @@ const [applyingJobId, setApplyingJobId] = useState<number | null>(null);
                           <Building2 className="h-3.5 w-3.5" /> {job.organizationName}
                         </p>
                       </div>
-                      <Badge variant={job.status === "Open" ? "default" : "secondary"} className={job.status === "Open" ? "bg-success text-success-foreground" : ""}>
-                        {job.status}
-                      </Badge>
+                    <Badge 
+  className={
+    job.status === "Open" 
+      ? "bg-[#1ca37b] text-white hover:bg-[#1ca37b]/90" // استخدمت اللون الأخضر اللي سألتي عليه قبل كدة
+      : "bg-secondary text-secondary-foreground"
+  }
+>
+  {job.status}
+</Badge>
                     </div>
                     <div className="mt-3 flex flex-wrap gap-2 text-xs text-muted-foreground">
                       <span className="flex items-center gap-1"><MapPin className="h-3 w-3" />{job.location}</span>
                       <span className="flex items-center gap-1"><Briefcase className="h-3 w-3" />{job.type}</span>
                       {/* No hybrid or postedAt in new API. Show createdDate as posted date */}
-                      <span className="flex items-center gap-1"><Clock className="h-3 w-3" />{new Date(job.createdDate).toLocaleDateString()}</span>
+                      <span className="flex items-center gap-1"><Clock className="h-3 w-3" />
+                      {new Date(job.createdDate).toLocaleDateString()}</span>
                     </div>
                   </motion.div>
                 ))
