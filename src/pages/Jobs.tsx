@@ -187,13 +187,16 @@ const handleProtectedAction = (action: () => void) => {
   {job.status}
 </Badge>
                     </div>
-                    <div className="mt-3 flex flex-wrap gap-2 text-xs text-muted-foreground">
-                      <span className="flex items-center gap-1"><MapPin className="h-3 w-3" />{job.location}</span>
-                      <span className="flex items-center gap-1"><Briefcase className="h-3 w-3" />{job.type}</span>
-                      {/* No hybrid or postedAt in new API. Show createdDate as posted date */}
-                      <span className="flex items-center gap-1"><Clock className="h-3 w-3" />
-                      {new Date(job.createdDate).toLocaleDateString()}</span>
-                    </div>
+                   <div className="mt-3 flex flex-wrap gap-2 text-xs text-muted-foreground">
+  <span className="flex items-center gap-1"><MapPin className="h-3 w-3" />{job.location}</span>
+  <span className="flex items-center gap-1"><Briefcase className="h-3 w-3" />{job.type}</span>
+  
+  <span className="flex items-center gap-1">
+    <Clock className="h-3 w-3" />
+    {/* هنا غيرنا selectedJob إلى job */}
+    {getRelativeTime(job.createdDate)} 
+  </span>
+</div>
                   </motion.div>
                 ))
               )}
@@ -227,18 +230,7 @@ const handleProtectedAction = (action: () => void) => {
                 </div>
 
 
-                {/* <div className="mt-4 flex flex-wrap gap-2">
-                  <Badge>{selectedJob.type}</Badge>
-                   <Badge>{selectedJob.status}</Badge>
-                
-                  <Badge>{selectedJob.seniority}</Badge>
-                  <Badge>{selectedJob.model}</Badge>
-
-                 
-                  <Badge>Posted {getRelativeTime(selectedJob.createdDate)}</Badge>
-
-                  
-                </div> */}
+           
 
 
 
