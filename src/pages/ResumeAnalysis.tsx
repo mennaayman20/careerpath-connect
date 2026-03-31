@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback , useRef } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import Navbar from "@/components/Navbar";
@@ -15,14 +15,20 @@ import {
   TrendingUp,
   Target,RefreshCw,Send,CloudUpload,X,
 } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useResumes } from "@/features/resume/hooks/useResumes";
-import Jobs from "./Jobs";
 import { ApplicationRequest } from "@/features/application/types/application.types";
 import { toast } from "@/components/ui/sonner";
-import { AnimatedNumber, AnimatedBar, FeedbackAccordion , SkillCard } from "./AnalysisHelpers";
-
+import { AnimatedNumber, AnimatedBar, FeedbackAccordion , SkillCard } from "./AnalysisHelpers"
+import { Label } from "@/components/ui/label";
 /* ─── Circular progress ring ─── */
 const CircularScore = ({ score }: { score: number }) => {
   const radius = 70;
@@ -83,41 +89,8 @@ const ResumeAnalysis = () => {
   const jobId = searchParams.get("jobId");
   const [isApplying, setIsApplying] = useState(false);
   const [coverLetter, setCoverLetter] = useState("");
+const fileInputRef = useRef<HTMLInputElement>(null);
 
-
-  
-
-//   const handleApply = async () => {
-
-    
-//   if (!jobId || !selectedResumeId) {
-//     alert("Missing job or resume information.");
-//     return;
-//   }
-
-//  setIsApplying(true);
-//   try {
-//     // --- هنا مكان الـ Payload المظبوط ---
-//     const payload: ApplicationRequest = {
-//       jobId: parseInt(jobId), // تأكد إن الـ jobId رقم
-//         resumeId: selectedResumeId,
-//         coverLetter: coverLetter || "", // عشان نضمن إن الـ Key يتبعت دايماً
-//     };
-
-//     console.log("البيانات اللي رايحة للسيرفر:", payload);
-
-//     // نبعت الـ payload للـ service
-//     await applicationService.applyToJob(payload);
-    
-//     toast.success("application submitted successfully!");
-//     navigate("/applications");
-//   } catch (error) {
-//     console.error("خطأ أثناء التقديم:", error);
-//     toast.error("Failed to submit application. Please try again.");
-//   } finally {
-//     setIsApplying(false);
-//   }
-// };
 
 const handleApply = async () => {
   if (!jobId || !selectedResumeId) {
@@ -130,7 +103,7 @@ const handleApply = async () => {
     const payload: ApplicationRequest = {
       jobId: Number(jobId),
       resumeId: Number(selectedResumeId),
-      coverLetter: coverLetter || "I am interested in this position.",
+     
     };
 
     console.log("Sending Payload:", payload);
@@ -178,38 +151,75 @@ const handleApply = async () => {
   const [fileName, setFileName] = useState<string | null>(null);
   const [dragActive, setDragActive] = useState(false);
 
+  // useEffect(() => {
+  //   if (resumes && resumes.length > 0 && !selectedResumeId) {
+  //     setSelectedResumeId(resumes[0].id);
+  //     setFileName(resumes[0].fileName);
+  //   }
+  // }, [resumes, selectedResumeId]);
   useEffect(() => {
-    if (resumes && resumes.length > 0 && !selectedResumeId) {
+    if (resumes?.length > 0 && selectedResumeId === null) {
       setSelectedResumeId(resumes[0].id);
       setFileName(resumes[0].fileName);
     }
   }, [resumes, selectedResumeId]);
 
-  const handleUpload = useCallback(async (file: File) => {
-  const newResume = await uploadResume(file);
-  if (newResume) {
-    setSelectedResumeId(newResume.id);
-    setFileName(newResume.fileName);
-  }
-}, []); // سيبها فاضية لو مش بتعتمد على متغيرات خارجية غير الـ state setters
+//   const handleUpload = useCallback(async (file: File) => {
+//   const newResume = await uploadResume(file);
+//   if (newResume) {
+//     setSelectedResumeId(newResume.id);
+//     setFileName(newResume.fileName);
+//   }
+// }, []); // سيبها فاضية لو مش بتعتمد على متغيرات خارجية غير الـ state setters
 
- const onStartAnalysis = async () => {
-  if (!selectedResumeId) return;
+const handleUpload = useCallback(async (file: File) => {
+    const newResume = await uploadResume(file);
+    if (newResume) {
+      setSelectedResumeId(newResume.id);
+      setFileName(newResume.fileName);
+    }
+  }, [uploadResume]);
+
+
+
+//  const onStartAnalysis = async () => {
+//   if (!selectedResumeId) return;
   
-  setState("loading");
-  try {
-    // التعديل هنا: نمرر الأوبجكت بالشكل المطلوب
-    await analyzeResume({ 
-      resumeId: selectedResumeId, 
-      jobId: jobId || undefined 
-    });
+//   setState("loading");
+//   try {
+//     // التعديل هنا: نمرر الأوبجكت بالشكل المطلوب
+//     await analyzeResume({ 
+//       resumeId: selectedResumeId, 
+//       jobId: jobId || undefined 
+//     });
     
-    setState("result");
-  } catch (error) {
-    console.error(error);
-    setState("upload");
-  }
-};
+//     setState("result");
+//   } catch (error) {
+//     console.error(error);
+//     setState("upload");
+//   }
+// };
+const onStartAnalysis = async () => {
+    if (!selectedResumeId) {
+      toast.error("Please select or upload a resume first");
+      return;
+    }
+    
+    setState("loading");
+    try {
+      await analyzeResume({ 
+        resumeId: selectedResumeId, 
+        jobId: jobId || undefined 
+      });
+      setState("result");
+    } catch (error) {
+      console.error(error);
+      setState("upload");
+      toast.error("Analysis failed. Please try again.");
+    }
+  };
+
+
 
   const handleDrop = useCallback((e: React.DragEvent) => {
   e.preventDefault();
@@ -236,54 +246,74 @@ const handleApply = async () => {
             <ArrowLeft className="w-4 h-4" /> Back to Job
           </Button>
 
-          <AnimatePresence mode="wait">
+<AnimatePresence mode="wait">
             {state === "upload" && (
-              <motion.div key="upload" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} className="space-y-8">
+              <motion.div key="upload" className="space-y-8" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
                 <div className="text-center space-y-2">
-                  <h1 className="text-3xl font-bold text-foreground">AI Resume Analysis for</h1>
-                  <p className="text-muted-foreground max-w-lg mx-auto">Upload or select your resume to get an AI-powered analysis.</p>
+                  <h1 className="text-3xl font-bold">AI Resume Analysis</h1>
+                  <p className="text-muted-foreground">Select a resume to analyze against this position</p>
                 </div>
 
-                {fileName && (
-                  <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="mx-auto max-w-md">
-                    <Card className="border-primary/20 bg-primary/5">
-                      <CardContent className="flex items-center gap-4 py-4 px-5">
-                        <div className="p-2 rounded-lg bg-primary/10"><FileText className="w-6 h-6 text-primary" /></div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium text-foreground truncate">{fileName}</p>
-                          <p className="text-xs text-muted-foreground">Current Resume</p>
+                <div className="mx-auto max-w-md space-y-6">
+                  {/* Hidden File Input */}
+                  <input 
+                    type="file" ref={fileInputRef} className="hidden" accept=".pdf" 
+                    onChange={(e) => e.target.files?.[0] && handleUpload(e.target.files[0])} 
+                  />
+
+                  {/* ✅ إصلاح 2: الـ Select الموحد */}
+                  <div className="grid gap-2">
+                    <Label className="text-xs font-semibold uppercase text-muted-foreground ml-1">Target Resume</Label>
+                    <Select
+                      value={selectedResumeId?.toString() || ""}
+                      onValueChange={(value) => {
+                        if (value === "upload_new") {
+                          fileInputRef.current?.click();
+                        } else {
+                          const res = resumes.find(r => r.id.toString() === value);
+                          if (res) {
+                            setSelectedResumeId(res.id);
+                            setFileName(res.fileName);
+                          }
+                        }
+                      }}
+                    >
+                      <SelectTrigger className="h-14 rounded-xl border-primary/20 bg-primary/5">
+                        <div className="flex items-center gap-3">
+                          <FileText className="h-5 w-5 text-primary" />
+                          <SelectValue placeholder="Select or upload resume" />
                         </div>
-                        {/* <Button variant="ghost" size="icon" 
-                        onClick={() => { if (selectedResumeId) deleteResume(selectedResumeId); setFileName(null); setSelectedResumeId(null); }}>
-                          <X className="w-4 h-4" />
-                        </Button> */}
-                      </CardContent>
-                    </Card>
-                  </motion.div>
-                )}
-
-                <label
-                  className={`mx-auto max-w-md flex flex-col items-center justify-center gap-4 border-2 border-dashed rounded-2xl p-10 cursor-pointer transition-all ${dragActive ? "border-primary bg-primary/10" : "border-muted-foreground/25 hover:border-primary/50"}`}
-                  onDragOver={(e) => { e.preventDefault(); setDragActive(true); }}
-                  onDragLeave={() => setDragActive(false)}
-                  onDrop={handleDrop}
-                >
-                  <CloudUpload className="w-8 h-8 text-primary" />
-                  <div className="text-center">
-                    <p className="font-medium">{fileName ? "Change Resume" : "Drag & Drop Resume"}</p>
-                    <p className="text-sm text-muted-foreground">PDF only · Max 10 MB</p>
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="upload_new" className="font-bold text-primary italic">
+                          + Upload new resume
+                        </SelectItem>
+                        {resumes?.map((resume) => (
+                          <SelectItem key={resume.id} value={resume.id.toString()}>
+                            {resume.fileName}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
-                  <input type="file" accept=".pdf" className="hidden" onChange={(e) => e.target.files?.[0] && handleUpload(e.target.files[0])} />
-                </label>
 
-                <div className="flex justify-center">
-                  <Button size="lg" disabled={!selectedResumeId || isActionLoading} className="gap-2" onClick={onStartAnalysis}>
-                    <Sparkles className="w-5 h-5" />
-                    {isActionLoading ? "Processing..." : "Generate AI Analysis"}
-                  </Button>
+                  {/* Analyze Button */}
+                  <div className="flex justify-center">
+                    <Button 
+                      size="lg" 
+                      className="w-full gap-2" 
+                      disabled={!selectedResumeId || isActionLoading} 
+                      onClick={onStartAnalysis}
+                    >
+                      <Sparkles className="w-5 h-5" />
+                      {isActionLoading ? "Processing..." : "Generate AI Analysis"}
+                    </Button>
+                  </div>
                 </div>
               </motion.div>
             )}
+
+
 
             {state === "loading" && (
               <motion.div key="loading" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col items-center py-24 gap-10">
@@ -300,99 +330,6 @@ const handleApply = async () => {
                 </div>
               </motion.div>
             )}
-
-            {/* الاصل */}
-            {/* {state === "result" && analysisData && (
-              <motion.div key="result" initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} className="space-y-8">
-                <Card className="overflow-hidden">
-                  <CardContent className="p-0 grid md:grid-cols-[auto_1fr] items-center">
-                    <div className="flex items-center justify-center p-10 bg-muted/30">
-                      <CircularScore score={analysisData.jobMatchScore || 0} />
-                    </div>
-                    <div className="p-8 space-y-4">
-                      <h2 className="text-xl font-bold flex items-center gap-2">
-                        <Sparkles className="w-5 h-5 text-primary" /> AI Summary
-                      </h2>
-                      <p className="text-muted-foreground leading-relaxed">{analysisData.feedback.CULTURE_FIT}</p>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                <div className="grid md:grid-cols-2 gap-6">
-                  <Card className="border-chart-2/20">
-                    <CardHeader><CardTitle className="text-lg flex items-center gap-2"><CheckCircle2 className="text-chart-2 w-5 h-5"/> Strengths</CardTitle></CardHeader>
-                    <CardContent className="space-y-2">
-                      {analysisData.topStrengths?.map((s, i) => (
-                        <div key={i} className="flex items-start gap-2 text-sm"><CheckCircle2 className="w-4 h-4 text-chart-2 mt-0.5" />{s}</div>
-                      ))}
-                    </CardContent>
-                  </Card>
-
-
-                 
-
-                  <Card className="border-chart-4/20">
-                    <CardHeader><CardTitle className="text-lg flex items-center gap-2"><TrendingUp className="text-chart-4 w-5 h-5"/> 
-                    Improvements</CardTitle></CardHeader>
-                    <CardContent className="space-y-2">
-                      {analysisData.quickWins?.map((w, i) => (
-                        <div key={i} className="flex items-start gap-2 text-sm"><AlertCircle className="w-4 h-4 text-chart-4 mt-0.5" />{w}</div>
-                      ))}
-                    </CardContent>
-                  </Card>
-
-
-                  <Card className="border-chart-4/20">
-                    <CardHeader><CardTitle className="text-lg flex items-center gap-2"><TrendingUp className="text-chart-4 w-5 h-5"/>Missing Skills</CardTitle></CardHeader>
-                    <CardContent className="space-y-2">
-                      {analysisData.missingSkills?.map((w, i) => (
-                        <div key={i} className="flex items-start gap-2 text-sm"><AlertCircle className="w-4 h-4 text-chart-4 mt-0.5" />{w}</div>
-                      ))}
-                    </CardContent>
-                  </Card>
-
-
-
-
-                  <Card className="border-chart-4/20">
-                    <CardHeader><CardTitle className="text-lg flex items-center gap-2"><TrendingUp className="text-chart-4 w-5 h-5"/>top tip</CardTitle></CardHeader>
-                    <CardContent className="space-y-2">
-                      <div className="flex items-start gap-2 text-sm"><AlertCircle className="w-4 h-4 text-chart-4 mt-0.5" />{analysisData.topTip}</div>
-                    </CardContent>
-                  </Card>
-                </div>
-                
-                <div className="flex justify-center gap-4">
-                  <Button variant="outline" onClick={() => setState("upload")}>Analyze Another</Button>
-
-  
-
-
-
-
-
-  <Button 
-    className="gap-2 min-w-[140px]" 
-    onClick={handleApply} // بننادي على الدالة اللي جهزنا فيها الـ Payload
-    disabled={isApplying} // تعطيل الزرار عشان نمنع الـ Double Click
-  >
-    {isApplying ? (
-      <>
-        <RefreshCw className="w-4 h-4 animate-spin" />
-        Applying...
-      </>
-    ) : (
-      <>
-        <Send className="w-4 h-4" />
-        Apply Now
-      </>
-    )}
-  </Button>
-
-
-                </div>
-              </motion.div>
-            )} */}
 
 
 

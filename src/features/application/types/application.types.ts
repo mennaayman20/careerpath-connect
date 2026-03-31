@@ -44,7 +44,7 @@ export interface Resume {
 export interface ApplicationRequest {
   jobId: number;
   resumeId: number;
-  coverLetter: string;
+  coverLetter?: string;
 }
 
 export interface ApplicationResponse {

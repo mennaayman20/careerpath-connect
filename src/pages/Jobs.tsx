@@ -107,20 +107,20 @@ const [applyingJobId, setApplyingJobId] = useState<number | null>(null);
   return styles[index % styles.length];
 };
 
-// const handleApplyClick = (job: Job) => {
-//   if (!isAuthenticated) {
-//     toast({
-//       title: "Please login to apply",
-//       description: "Create an account or sign in to apply for jobs.",
-//       variant: "destructive",
-//     });
-//     setTimeout(() => navigate("/login"), 1500);
-//     return;
-//   }
-//   setApplyingJobId(job.id);
-//   setIsApplyModalOpen(true);
-
-// };
+const handleProtectedAction = (action: () => void) => {
+  if (!isAuthenticated) {
+    toast({
+      title: "Authentication Required",
+      description: "Please login to access this feature.",
+      variant: "destructive",
+    });
+    // بنبعته للوجين وبنحفظ هو كان فين عشان نرجعه تاني (state)
+    setTimeout(() => navigate("/login", { state: { from: window.location.pathname + window.location.search } }), 1000);
+    return;
+  }
+  // لو مسجل، نفذ الأكشن عادي
+  action();
+};
   return (
     <div className="flex min-h-screen flex-col bg-background">
       <Navbar />
@@ -338,7 +338,7 @@ const [applyingJobId, setApplyingJobId] = useState<number | null>(null);
 {/* زرار الـ Apply Now */}
 <Button 
 
-  onClick={() => setIsApplyModalOpen(true)}
+  onClick={() => handleProtectedAction(() => setIsApplyModalOpen(true))}
   className="mt-8 w-full gradient-primary border-0"
   disabled={selectedJob.status === "Closed"}
 >
@@ -354,11 +354,10 @@ const [applyingJobId, setApplyingJobId] = useState<number | null>(null);
 />
 
 
-
 <Button 
   variant="outline" 
   className="w-full gap-2 border-primary/20 text-primary hover:bg-primary/5 mt-5"
-  onClick={() => navigate(`/resume-analysis?jobId=${jobIdFromUrl}`)} // نفترض إن عندك jobId هنا
+  onClick={() => handleProtectedAction(() => navigate(`/resume-analysis?jobId=${jobIdFromUrl}`))} // نفترض إن عندك jobId هنا
 >
   <Sparkles size={16} /> Analyze My Resume
 </Button>

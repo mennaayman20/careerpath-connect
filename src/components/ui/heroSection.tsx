@@ -2,8 +2,9 @@ import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
 import { ArrowRight, Briefcase } from "lucide-react";
 import { Link } from "react-router-dom";
-
+import { useAuth } from "@/contexts/AuthContext"; // 1. استيراد الهوك
 const HeroSection = () => {
+  const { isAuthenticated } = useAuth();
   return (
     <section className="relative min-h-[90vh] flex items-center overflow-hidden pt-20">
       {/* Background decoration */}
@@ -39,7 +40,7 @@ const HeroSection = () => {
 
             <div className="flex flex-wrap gap-4 mt-8">
               <Button asChild size="lg" className="rounded-full px-8 bg-primary hover:bg-primary/90 shadow-lg shadow-primary/20">
-                <Link to="/login">
+                <Link to={isAuthenticated ? "/jobs" : "/login"}>
                   Begin Journey
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Link>

@@ -34,9 +34,19 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     console.log("Interceptor Error:", error.response?.status);
-    if (error.response && error.response.status === 401) {
+    if (error.response && error.response.status === 401 ) {
       localStorage.removeItem("token");
-      window.location.href = "/login";
+      // window.location.href = "/login";
+
+
+      window.dispatchEvent(new Event("storage")); 
+
+      if (!window.location.pathname.includes("/login")) {
+        window.location.href = "/login";
+      }
+
+
+
     }
     return Promise.reject(error);
   }
