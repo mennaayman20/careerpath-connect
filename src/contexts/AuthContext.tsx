@@ -1,11 +1,18 @@
 
 import { loginUser, registerUser } from "@/services/authService";
 import React, { createContext, useContext, useState, useCallback, useEffect } from "react";
-
+import { jwtDecode } from "jwt-decode"
 interface User {
   name: string;
   email: string;
 }
+
+interface JWTPayload {
+    fullName?: string;
+    sub?: string;
+    exp?: number;
+    iat?: number;
+  }
 
 interface AuthContextType {
   user: User | null;
@@ -23,12 +30,33 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   // 1. الحل الجذري: Initializer function داخل useState
   // دي بتشتغل "مرة واحدة" فقط أول ما الأبلكيشن يفتح وقبل أول ريندر
+
+const getUserFromToken = (token: string | null): User | null => {
+    if (!token) return null;
+    try {
+      // 2. بدلي any بالـ Interface اللي عرفناه
+      const decoded = jwtDecode<JWTPayload>(token);
+      
+      return { 
+        name: decoded.fullName || "User", 
+        email: decoded.sub || "" 
+      };
+    } catch {
+      return null;
+    }
+  };
+
+
+
+
+
+
   const [user, setUser] = useState<User | null>(() => {
     const token = localStorage.getItem("token");
     if (token) {
       // بنحط بيانات أولية عشان الـ Routes متوقعش
       // يفضل لو مخزن بيانات اليوزر كـ JSON في LocalStorage تقرأها هنا
-      return { name: "User", email: "" }; 
+      return getUserFromToken(token);
     }
     return null;
   });
@@ -36,12 +64,29 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [isLoading, setIsLoading] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
 
+
+useEffect(() => {
+    const syncAuth = () => {
+      const token = localStorage.getItem("token");
+      const currentUser = getUserFromToken(token);
+      
+      // تحديث الحالة بناءً على اللي موجود في الـ Storage فعلياً
+      setUser(currentUser); 
+    };
+
+    // بيسمع للـ Interceptor وللـ Tabs التانية
+    window.addEventListener("storage", syncAuth);
+    
+    return () => window.removeEventListener("storage", syncAuth);
+  }, []);
+
+
   const login = useCallback(async (email: string, password: string) => {
     try {
       const data = await loginUser({ email, password }); 
       if (data.token) {
-        // تأكد أن loginUser هي اللي بتعمل localStorage.setItem("token", data.token)
-        setUser({ email: email, name: "User" }); 
+        // فكي التوكن الجديد وسيفيه في الـ state
+        setUser(getUserFromToken(data.token));
         return true;
       }
       return false;
@@ -72,27 +117,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   //   // هنا ممكن مستقبلاً تنادي API تجيب بيانات البروفايل الحقيقية وتحدث الـ user
   // }, [user]);
 
-  useEffect(() => {
-  const syncLogout = () => {
-    const token = localStorage.getItem("token");
-    // لو التوكن اتمسح (من الـ Interceptor مثلاً) واليوزر لسه متسجل في الـ State
-    if (!token && user) {
-      setUser(null); // فضي بيانات اليوزر فوراً
-    }
-  };
 
-  // المراقبة دي بتخلي الـ App يحس بالـ Logout حتى لو اليوزر فاتح كذا Tab
-  window.addEventListener("storage", syncLogout);
-
-  return () => window.removeEventListener("storage", syncLogout);
-}, [user]);
 
   const logout = useCallback(() => {
     localStorage.removeItem("token");
     setUser(null);
+    // لو عايزة الصفحة تعمل Reload كامل عشان تنضف الـ Cache
     window.location.href = "/login";
   }, []);
-
   const toggleDarkMode = useCallback(() => {
     setIsDarkMode((prev) => {
       const next = !prev;
