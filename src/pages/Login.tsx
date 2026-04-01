@@ -8,7 +8,9 @@ import { Briefcase, Eye, EyeOff } from "lucide-react";
 import { loginUser } from "@/services/authService";
 import myLogo from '../assets/Copy_of_Green_Modern_Marketing_Logo__2_-removebg-preview.svg';
 
-import styled from "styled-components";
+import styled, { keyframes } from "styled-components";
+import { AlertCircle } from "lucide-react";
+
 const Login = () => {
   const { login } = useAuth();
   const navigate = useNavigate();
@@ -17,18 +19,56 @@ const Login = () => {
   const [showPw, setShowPw] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+const [error, setError] = useState(""); // لتخزين رسالة الخطأ
+
+ const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError(""); // تصفير الخطأ مع كل محاولة جديدة
+
+    // 1. الفحص المحلي قبل بعت الـ Request
+    if (password.length < 9) {
+      setError("Password must be at least 9 characters.");
+      return;
+    }
+
     setLoading(true);
+
     try {
       const ok = await loginUser({ email, password }); 
+      
+      // لو الـ API رجع نجاح (Success)
       if (ok) {
         login(email, password);
         navigate("/jobs");
+      } else {
+        // دي احتياطي لو الـ API رجع false من غير ما يرمي Error (ثقافة قديمة شوية)
+        setError("Invalid email or password. Please try again.");
       }
+
     } catch (err) {
+
       console.error("Login failed:", err);
+
+      // الفحص الذكي للـ Error اللي جاي من السيرفر (Axios/Fetch Error)
+      if (err.response?.status === 401) {
+        // كود 401 يعني الـ Credentials (إيميل أو باسورد) غلط
+        setError("Invalid email or password. Please try again.");
+      } 
+      else if (err.response?.status === 403) {
+        // كود 403 يعني ملوش صلاحية يدخل (الحساب معطل مثلاً)
+        setError("Account is disabled, please contact support.");
+      } 
+      else if (!err.response) {
+        // لو الـ response مش موجود أصلاً، يبقى غالباً مفيش إنترنت أو السيرفر واقع
+        setError("Network error. Please check your internet connection.");
+      } 
+      else {
+        // أي خطأ تاني غير متوقع (زي 500 مثلاً)
+        setError("Something went wrong. Please try again later.");
+      }
+
     } finally {
+      // لازم نقفل الـ loading في كل الحالات
       setLoading(false);
     }
   };
@@ -63,15 +103,38 @@ const Login = () => {
           <p className="mt-1 text-sm text-muted-foreground">Enter your credentials to continue</p>
 
           <form onSubmit={handleSubmit} className="mt-6 space-y-4">
+            
             <div>
               <Label htmlFor="email">Email</Label>
-              <Input id="email" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com" className="mt-1" />
+              <Input 
+              id="email" 
+              type="email" 
+              required 
+              value={email} 
+              onChange={(e) => {
+                setEmail(e.target.value);
+                if(error) setError(""); // تختفي وأنا بكتب
+              }} 
+              placeholder="you@example.com" 
+              className="mt-1" 
+            />
             </div>
             <div>
               <Label htmlFor="password">Password</Label>
               <div className="relative mt-1">
-                <Input id="password" type={showPw ? "text" : "password"} required value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" />
-                <button type="button" className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground" onClick={() => setShowPw(!showPw)}>
+                <Input 
+                id="password" 
+                type={showPw ? "text" : "password"} 
+                required 
+                value={password} 
+                onChange={(e) => {
+                  setPassword(e.target.value);
+                  if(error) setError(""); // تختفي وأنا بكتب
+                }} 
+                placeholder="••••••••" 
+              />
+                <button type="button" className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground" 
+                onClick={() => setShowPw(!showPw)}>
                   {showPw ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
               </div>
@@ -79,9 +142,19 @@ const Login = () => {
             <div className="text-right">
               <Link to="/forgot-password" className="text-xs text-primary hover:underline">Forgot password?</Link>
             </div>
+
+{error && (
+  <ErrorMessage>
+    <AlertCircle className="h-4 w-4" /> 
+    <span>{error}</span>
+  </ErrorMessage>
+)}
+
+
+
             <Button type="submit" className="w-full gradient-primary border-0" disabled={loading}>
-              {loading ? "Signing in…" : "Sign In"}
-            </Button>
+  {loading ? "Signing in…" : "Sign In"}
+</Button>
           </form>
 
           <p className="mt-6 text-center text-sm text-muted-foreground">
@@ -175,5 +248,28 @@ const FormContainer = styled.div`
   border: 1px solid rgba(0, 0, 0, 0.1); /* حدود خفيفة للفورم */
   background-color: white; /* أو لون خلفية الفورم */
 `;
+const shake = keyframes`
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-5px); }
+  75% { transform: translateX(5px); }
+`;
+const ErrorMessage = styled.div`
+  background-color: #fff1f2;
+  color: #e11d48;
+  padding: 0.75rem 1rem;
+  border-radius: 12px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  margin-bottom: 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border-left: 4px solid #e11d48;
+  
+  /* الاهتزاز بيشتغل مرة واحدة أول ما يظهر */
+  animation: ${shake} 0.5s cubic-bezier(.36,.07,.19,.97) both;
+`;
+
+
 
 export default Login;
