@@ -134,7 +134,11 @@ const MatchedJobs = () => {
             ) : (
               <div className="space-y-6">
                 <div className="mb-8">
-                  <h1 className="text-3xl font-bold font-display">Recommended Jobs</h1>
+                   
+                  <h1 className="text-3xl font-bold font-display flex items-center gap-2">
+    <Sparkles className="h-7 w-7 text-accent" />
+    Recommended Jobs
+  </h1>
                   <p className="text-muted-foreground">Top picks based on your unique skill set</p>
                 </div>
 
