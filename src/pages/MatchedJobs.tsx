@@ -99,7 +99,7 @@ const MatchedJobs = () => {
   return (
     <div className="flex min-h-screen flex-col bg-background">
       <Navbar />
-      <main className="container flex-1 py-8">
+      <main className="container flex-1 py-9  max-w-7xl">
 
         {/* Loading */}
         {isLoading ? (

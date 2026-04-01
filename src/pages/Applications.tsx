@@ -36,10 +36,11 @@ const Applications = () => {
   const { applications, isLoading, error } = useMyApplications();
 
   return (
+
     <div className="flex min-h-screen flex-col bg-background">
       <Navbar />
 
-      <div className="container flex-1 py-10 max-w-3xl">
+      <div className="container flex-1 py-10 max-w-5xl">
 
         {/* Header */}
         <div className="mb-8 flex items-center gap-4">
