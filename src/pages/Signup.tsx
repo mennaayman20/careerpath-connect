@@ -21,22 +21,19 @@ const Signup = () => {
 
   // ضيفي دي جوه الكومبوننت قبل الـ handleSubmit
 const passwordRequirements = [
+  
   { label: "At least 9 characters", met: form.password.length >= 9 },
   { label: " At Least One uppercase letter (A-Z)", met: /[A-Z]/.test(form.password) },
   { label: "Contains a number", met: /\d/.test(form.password) },
   { label: "Contains special character", met: /[@$!%*?&#^_]/.test(form.password) },
   { label: "Passwords match", met: form.password === form.confirm && form.confirm !== "" },
 ];
-
-
-
+const isNameValid = form.name.trim().split(/\s+/).filter(Boolean).length >= 2;
 
   const handleSubmit = async (e: React.FormEvent) => {
-    // e.preventDefault();
-    // setError("");
-    // if (form.password !== form.confirm) { setError("Passwords do not match"); return; }
-    // if (form.password.length < 9) { setError("Password must be at least 9 characters"); return; }
 
+const [firstName, ...rest] = form.name.trim().split(/\s+/); // استخدمي \s+ عشان لو فيه مسافات كتير
+const lastName = rest.join(" ");
     e.preventDefault();
 
   // 🛑 المنع البات: لو الفورم مش Valid اخرج فوراً ومتكملش للـ API
@@ -79,8 +76,13 @@ const passwordRequirements = [
     }
   };
 
+
+
+
+
+
   const update = (k: string, v: string) => setForm((p) => ({ ...p, [k]: v }));
-const isFormValid = passwordRequirements.every(req => req.met) && form.email.includes('@') && form.name.trim() !== "";
+const isFormValid = isNameValid && passwordRequirements.every(req => req.met) && form.email.includes('@');
   return (
 
     
@@ -136,9 +138,24 @@ const isFormValid = passwordRequirements.every(req => req.met) && form.email.inc
 
           <form onSubmit={handleSubmit} className="mt-6 space-y-4">
             <div>
-              <Label htmlFor="name">Full Name</Label>
-              <Input id="name" required value={form.name} onChange={(e) => update("name", e.target.value)} placeholder="John Doe" className="mt-1" />
-            </div>
+  <Label htmlFor="name">Full Name</Label>
+  <Input 
+    id="name" 
+    required 
+    value={form.name} 
+    onChange={(e) => update("name", e.target.value)} 
+    placeholder="John Doe" 
+    className={`mt-1 transition-colors ${form.name.length > 0 && !isNameValid ? "border-orange-400 focus-visible:ring-orange-400" : ""}`} 
+  />
+  
+  {/* رسالة التحذير تحت الانبوت مباشرة */}
+  <div className={`overflow-hidden transition-all duration-300 ${form.name.length > 0 && !isNameValid ? "max-h-10 mt-1" : "max-h-0"}`}>
+    <p className="text-[11px] text-orange-600 dark:text-orange-400 flex items-center gap-1">
+      <Circle className="h-3 w-3 fill-orange-400 opacity-20" />
+      Please enter your full name (First and Last name).
+    </p>
+  </div>
+</div>
             <div>
               <Label htmlFor="email">Email</Label>
               <Input id="email" type="email" required value={form.email} onChange={(e) => update("email", e.target.value)} placeholder="you@example.com" className="mt-1" />
@@ -159,7 +176,7 @@ const isFormValid = passwordRequirements.every(req => req.met) && form.email.inc
 
 <div 
   className={`grid grid-cols-2 gap-2 p-3 rounded-lg bg-muted/30 border border-border transition-all duration-500 overflow-hidden ${
-    form.password.length > 0 ? "max-h-40 opacity-100 mt-4" : "max-h-0 opacity-0 mt-0 border-none"
+    (form.password.length > 0 || form.name.length > 0) ? "max-h-60 opacity-100 mt-4" : "max-h-0 opacity-0 mt-0 border-none"
   }`}
 >
   {passwordRequirements.map((req, index) => (
