@@ -107,6 +107,32 @@ deleteUserSocialLink: async (socialId: number | string): Promise<void> => {
 },
 
 
+//auto-fill
+
+
+// في userProfileService.ts أضيفي الاتنين دول
+
+previewResumeAutoFill: async (resumeId: number) => {
+  const response = await api.get(`/user/me/resume/parse/${resumeId}/preview`);
+  return response.data;
+},
+
+confirmResumeAutoFill: async (
+  resumeId: number,
+  options: {
+    applyPersonal: boolean;
+    applyExperiences: boolean;
+    applyProjects: boolean;
+    applySocialLinks: boolean;
+    selectedSkills: string[];
+  }
+) => {
+  const response = await api.post(
+    `/user/me/resume/parse/${resumeId}/confirm`,
+    options
+  );
+  return response.data;
+},
 
 
 

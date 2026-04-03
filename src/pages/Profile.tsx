@@ -11,7 +11,8 @@ import Footer from "@/components/Footer";
 import {
   Plus, Trash2, User, Link as LinkIcon, FolderGit2, Briefcase, Code2, X,
   Mail, Phone, Twitter, Github, Linkedin, Globe, ExternalLink, Save,
-  ChevronRight, Star, Download, Edit3
+  ChevronRight, Star, Download, Edit3,
+  Sparkles
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { userProfileService } from "@/services/userService";
@@ -23,6 +24,14 @@ import { useProfileManager } from "@/hooks/usePersonalInfo";
 import { ResumeSection } from "@/features/resume/components/ResumeSection";
 import { ProjectCard } from "@/components/ui/ProjectCard";
 import { useProfile } from "@/hooks/useProfile";
+
+
+import { AutoFillSection } from "@/components/ui/AutoFillSection";
+
+
+
+
+
 const socialPlatforms = ["LINKEDIN", "GITHUB", "PORTFOLIO", "DRIBBLE", "BEHANCE", "MEDIUM", "DISCORD", "GITLAB", "OTHER"];
 const skillCategories = ["Frontend", "Backend", "DevOps", "Design", "Data Science", "Mobile", "Other"];
 
@@ -30,7 +39,7 @@ const Profile = () => {
   const { toast } = useToast();
   const { personal, setPersonal, loading, handleSave } = useProfileManager();
   const [newSkill, setNewSkill] = useState({ category: "Frontend", skillName: "" });
-  const [activeSection, setActiveSection] = useState("personal");
+  const [activeSection, setActiveSection] = useState("autofill");
 const { data: profile, isLoading: isProfileLoading } = useProfile();
 
 
@@ -72,12 +81,19 @@ const { projects, addProject, isAdding, isLoading : isProjectsLoading} = useProj
 } = useSkills();
 
   const navItems = [
+    { id: "autofill", label: "Auto-Fill CV", icon: Sparkles },
     { id: "personal", label: "About Me", icon: User },
     { id: "social", label: "Social Links", icon: LinkIcon },
     { id: "skills", label: "Skills", icon: Code2 },
     { id: "experience", label: "Experience", icon: Briefcase },
     { id: "projects", label: "Projects", icon: FolderGit2 },
   ];
+
+
+
+
+const resumeId = profile?.resumeId;
+
 
   return (
     // لو لسه بيجيب البيانات لأول مرة، ممكن تعرضي Spinner أو صفحة تحميل بسيطة
@@ -112,33 +128,6 @@ const { projects, addProject, isAdding, isLoading : isProjectsLoading} = useProj
                   {personal.university ? `Studying at ${personal.university}` : "Building digital experiences"}
                 </p>
               </div>
-
-              {/* Contact Info */}
-              {/* <div className="mb-8 flex flex-wrap justify-center gap-3 lg:justify-start">
-                <div className="flex items-center gap-2 rounded-full bg-secondary px-4 py-2 text-sm">
-                  <Mail className="h-4 w-4 text-accent" />
-                  <span className="text-muted-foreground">example@domain.com</span>
-                </div>
-                <div className="flex items-center gap-2 rounded-full bg-secondary px-4 py-2 text-sm">
-                  <Phone className="h-4 w-4 text-accent" />
-                  <span className="text-muted-foreground">+1 (234) 567-890</span>
-                </div>
-              </div> */}
-
-              {/* Action Buttons */}
-              {/* <div className="flex flex-wrap justify-center gap-4 lg:justify-start">
-                <Button
-                  onClick={() => setActiveSection("personal")}
-                  className="gradient-accent border-0 text-accent-foreground shadow-elevated"
-                >
-                  <Edit3 className="mr-2 h-4 w-4" />
-                  Edit Profile
-                </Button>
-                <Button variant="outline" className="border-border text-foreground hover:bg-secondary">
-                  <Download className="mr-2 h-4 w-4" />
-                  Download Resume
-                </Button>
-              </div> */}
             </div>
 
             {/* Stats */}
@@ -159,6 +148,15 @@ const { projects, addProject, isAdding, isLoading : isProjectsLoading} = useProj
 
           </div>
         </div>
+      
+
+
+      
+      
+      
+      
+      
+      
       </section>
 
       {/* Navigation */}
@@ -193,6 +191,7 @@ const { projects, addProject, isAdding, isLoading : isProjectsLoading} = useProj
     </div>
   ) : (
     <>
+    {activeSection === "autofill" && <AutoFillSection />}
         {/* Personal Info */}
         {activeSection === "personal" && (
           <div className="space-y-8">
