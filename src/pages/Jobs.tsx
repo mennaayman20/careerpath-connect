@@ -127,7 +127,7 @@ const handleProtectedAction = (action: () => void) => {
       <div className="container flex-1 py-8">
         <div className="mb-8">
           <h1 className="font-display text-3xl font-bold text-foreground flex items-center gap-2">
-  <Search className="h-7 w-7 text-accent animate-pulse" />
+  
   Browse Jobs
 </h1>
           <p className="mt-1 text-muted-foreground">Find your next opportunity</p>
