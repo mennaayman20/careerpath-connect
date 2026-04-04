@@ -139,7 +139,7 @@ export const AutoFillSection = () => {
               </Button>
 
               <p className="text-xs text-muted-foreground mt-4">
-                PDF only · Max 10MB
+                PDF only · Max 5 MB
               </p>
             </div>
           )}

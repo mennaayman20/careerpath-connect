@@ -54,7 +54,7 @@ export const ResumeSection = () => {
       toast({
         variant: "destructive",
         title: "File Too Large",
-        description: "Maximum file size is 10MB",
+        description: "Maximum file size is 5 MB",
       });
       return false;
     }
@@ -174,7 +174,7 @@ export const ResumeSection = () => {
             </Button>
 
             <p className="text-xs text-muted-foreground mt-4">
-              Maximum size: 10MB • Format: PDF only
+              Maximum size: 5 MB • Format: PDF only
             </p>
           </div>
         </form>

@@ -34,9 +34,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 const getUserFromToken = (token: string | null): User | null => {
     if (!token) return null;
     try {
-      // 2. بدلي any بالـ Interface اللي عرفناه
       const decoded = jwtDecode<JWTPayload>(token);
       
+      // ✅ زود السطرين دول بس
+      const now = Math.floor(Date.now() / 1000);
+      if (decoded.exp && decoded.exp < now) {
+        localStorage.removeItem("token"); // امسح التوكن المنتهي
+        return null;
+      }
+
       return { 
         name: decoded.fullName || "User", 
         email: decoded.sub || "" 
