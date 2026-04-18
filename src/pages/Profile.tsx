@@ -12,7 +12,8 @@ import {
   Plus, Trash2, User, Link as LinkIcon, FolderGit2, Briefcase, Code2, X,
   Mail, Phone, Twitter, Github, Linkedin, Globe, ExternalLink, Save,
   ChevronRight, Star, Download, Edit3,
-  Sparkles
+  Sparkles,
+  LayoutGrid
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { userProfileService } from "@/services/userService";
@@ -83,10 +84,14 @@ const { projects, addProject, isAdding, isLoading : isProjectsLoading} = useProj
   const navItems = [
     { id: "autofill", label: "Auto-Fill CV", icon: Sparkles },
     { id: "personal", label: "About Me", icon: User },
-    { id: "social", label: "Social Links", icon: LinkIcon },
     { id: "skills", label: "Skills", icon: Code2 },
-    { id: "experience", label: "Experience", icon: Briefcase },
     { id: "projects", label: "Projects", icon: FolderGit2 },
+    { id: "experience", label: "Experience", icon: Briefcase },
+    
+    { id: "social", label: "Social Links", icon: LinkIcon },
+    
+    
+    
   ];
 
 
@@ -101,63 +106,66 @@ const resumeId = profile?.resumeId;
     <div className="min-h-screen bg-background text-foreground">
       <Navbar />
 
-      {/* Hero Section */}
-      <section className="border-b border-border/50 bg-gradient-to-br from-background via-secondary/20 to-background py-12">
-        <div className="container mx-auto px-6 ">
-          <div className="flex flex-col items-center gap-12 lg:flex-row lg:items-start">
-            {/* Avatar */}
-            
-            <div className="flex-shrink-0">
-              <div className="relative">
-                <div className="h-32 w-32 rounded-full bg-secondary flex items-center justify-center ring-2 ring-accent/20 mt-10">
-                  <User className="h-16 w-16 text-muted-foreground" />
-                </div>
-                {/* <div className="absolute -bottom-2 -right-2 rounded-full bg-accent p-2 text-accent-foreground shadow-lg">
-                  <Edit3 className="h-4 w-4" />
-                </div> */}
-              </div>
-            </div>
+<section className="border-b border-border/50 py-10">
+  <div className="container mx-auto px-6">
+    <div className="flex flex-wrap items-center gap-8">
 
-            {/* Info */}
-            <div className="flex-1 text-center mt-16 lg:text-left">
-              <div className="mb-6">
-                <h1 className="font-display text-3xl font-bold text-foreground lg:text-4xl">
-                  {personal.firstName || "Your"} {personal.lastName || "Name"}
-                </h1>
-                <p className="mt-2 text-muted-foreground">
-                  {personal.university ? `Studying at ${personal.university}` : "Building digital experiences"}
-                </p>
-              </div>
-            </div>
-
-            {/* Stats */}
-            <div className="flex gap-6 lg:flex-col lg:gap-4">
-              <div className="rounded-xl bg-card p-4 text-center shadow-card border border-border/50">
-                <div className="font-display text-2xl font-bold text-accent">{projects.length}</div>
-                <div className="text-xs text-muted-foreground">Projects</div>
-              </div>
-              <div className="rounded-xl bg-card p-4 text-center shadow-card border border-border/50">
-                <div className="font-display text-2xl font-bold text-accent">{experiences.length}</div>
-                <div className="text-xs text-muted-foreground">Experience</div>
-              </div>
-              <div className="rounded-xl bg-card p-4 text-center shadow-card border border-border/50">
-                <div className="font-display text-2xl font-bold text-accent">{skills.length}</div>
-                <div className="text-xs text-muted-foreground">Skills</div>
-              </div>
-            </div>
-
-          </div>
+      {/* Avatar */}
+      <div className="relative flex-shrink-0">
+        <div className="h-24 w-24 rounded-full bg-secondary border border-border flex items-center justify-center">
+          <User className="h-11 w-11 text-muted-foreground opacity-50" />
         </div>
       
+      </div>
 
+      {/* Info */}
+      <div className="flex-1 min-w-[180px]">
+        <h1 className="font-display text-3xl font-bold text-foreground">
+         {personal.firstName?.charAt(0).toUpperCase() + personal.firstName?.slice(1) || "Your"}{" "}
+{personal.lastName?.charAt(0).toUpperCase() + personal.lastName?.slice(1) || "Name"}
+        </h1>
+        <p className="mt-1 mb-4 text-sm text-muted-foreground">
+          {personal.university ? `Studying at ${personal.university}` : "Building digital experiences"}
+        </p>
+       
+      </div>
 
-      
-      
-      
-      
-      
-      
-      </section>
+      {/* Stats */}
+    <div className="flex gap-3">
+  <div className="flex-1 bg-violet-50 dark:bg-violet-950/30 border border-violet-100 dark:border-violet-900/50 rounded-xl p-4 flex items-center gap-3">
+    <div className="w-9 h-9 rounded-lg bg-violet-100 dark:bg-violet-900/50 flex items-center justify-center flex-shrink-0">
+      <LayoutGrid className="w-4 h-4 text-violet-600 dark:text-violet-400" />
+    </div>
+    <div className="flex flex-col">
+      <span className="text-xl font-semibold text-violet-900 dark:text-violet-100 leading-tight">{projects.length}</span>
+      <span className="text-xs text-violet-600 dark:text-violet-400 mt-0.5">Projects</span>
+    </div>
+  </div>
+
+  <div className="flex-1 bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-100 dark:border-emerald-900/50 rounded-xl p-4 flex items-center gap-3">
+    <div className="w-9 h-9 rounded-lg bg-emerald-100 dark:bg-emerald-900/50 flex items-center justify-center flex-shrink-0">
+      <Briefcase className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+    </div>
+    <div className="flex flex-col">
+      <span className="text-xl font-semibold text-emerald-900 dark:text-emerald-100 leading-tight">{experiences.length}</span>
+      <span className="text-xs text-emerald-600 dark:text-emerald-400 mt-0.5">Experience</span>
+    </div>
+  </div>
+
+  <div className="flex-1 bg-amber-50 dark:bg-amber-950/30 border border-amber-100 dark:border-amber-900/50 rounded-xl p-4 flex items-center gap-3">
+    <div className="w-9 h-9 rounded-lg bg-amber-100 dark:bg-amber-900/50 flex items-center justify-center flex-shrink-0">
+      <Star className="w-4 h-4 text-amber-600 dark:text-amber-400" />
+    </div>
+    <div className="flex flex-col">
+      <span className="text-xl font-semibold text-amber-900 dark:text-amber-100 leading-tight">{skills.length}</span>
+      <span className="text-xs text-amber-600 dark:text-amber-400 mt-0.5">Skills</span>
+    </div>
+  </div>
+</div>
+
+    </div>
+  </div>
+</section>
 
       {/* Navigation */}
       <div className="sticky top-0 z-40 border-b border-border/50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -252,112 +260,7 @@ const resumeId = profile?.resumeId;
           </div>
         )}
 
-        {/* Social Links */}
-        {activeSection === "social" && (
-          <div className="space-y-8">
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-              <div>
-                {/* <Badge variant="secondary" className="mb-4 gradient-accent text-accent-foreground">
-                  Connect
-                </Badge> */}
-                <h2 className="font-display text-3xl font-bold text-foreground">
-                  Social <span className="text-[#1ca37b]">Links</span>
-                </h2>
-              </div>
-             <Button 
-  onClick={() => addSocialLink()} 
-  disabled={isLinksSaving} // تعطيل الزرار أثناء الإضافة
-  variant="outline" 
-  className="border-border text-foreground hover:bg-secondary"
->
-  {isLinksSaving ? (
-    <span className="flex items-center gap-2">Saving...</span>
-  ) : (
-    <>
-      <Plus className="mr-2 h-4 w-4" /> Add Link
-    </>
-  )}
-</Button>
-            </div>
 
-            {links.length === 0 ? (
-              <div className="rounded-xl bg-card p-12 text-center shadow-card border border-border/50">
-                <LinkIcon className="mx-auto h-12 w-12 text-muted-foreground/50" />
-                <h3 className="mt-4 font-display text-lg font-semibold text-foreground">No social links yet</h3>
-                <p className="mt-2 text-muted-foreground">Add your social profiles to showcase your online presence.</p>
-              </div>
-            ) : (
-              <div className="grid gap-6 md:grid-cols-2">
-                {links.map((link) => (
-                  <div key={link.id} className="rounded-xl bg-card p-6 shadow-card border border-border/50">
-                    <div className="mb-4 flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <div className="h-3 w-3 rounded-full bg-[#13CA92]"></div>
-                        <span className="font-display text-sm font-semibold uppercase tracking-wide text-accent">
-                          {link.socialType}
-                        </span>
-                      </div>
-                      <Button
-  variant="ghost"
-  size="sm"
-  onClick={() => removeSocialLink(link.id)}
-  disabled={isLinksSaving} // تعطيل المسح أثناء أي عملية حفظ
-  className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive disabled:opacity-50"
->
-  <Trash2 className="h-4 w-4" />
-</Button>
-                    </div>
-
-                    <div className="grid gap-4 sm:grid-cols-[1fr_2fr]">
-                      <div className="space-y-2">
-                        <Label>Platform</Label>
-                        <Select value={link.socialType} onValueChange={(value) => updateLink(link.id, "socialType", value)}>
-                          <SelectTrigger className="bg-input">
-                            <SelectValue placeholder="Select Platform" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {["LINKEDIN", "GITHUB", "BEHANCE", "DRIBBLE", "PORTFOLIO", "MEDIUM", "DISCORD", "STACKOVERFLOW", "GITLAB", "TWITTER", "FACEBOOK", "INSTAGRAM", "OTHER"].map(p => (
-                              <SelectItem key={p} value={p}>
-                                {p.charAt(0) + p.slice(1).toLowerCase()}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      <div className="space-y-2">
-                        <Label>Profile URL</Label>
-                        <Input
-  value={link.url || ""}
-  onChange={(e) => updateLink(link.id, "url", e.target.value)}
-  placeholder="https://..."
-  className={`bg-input ${errors[`url-${link.id}`] ? "border-destructive focus-visible:ring-destructive" : ""}`}
-/>
-                        {errors[`url-${link.id}`] && (
-                          <p className="text-sm text-destructive">{errors[`url-${link.id}`]}</p>
-                        )}
-                      </div>
-                    </div>
-
-                    <div className="mt-6 flex justify-end">
-                      <Button
-  onClick={() => {
-    if (validateSocialLinks()) {
-      saveSocialLink(link.id, link.socialType || "OTHER", link.url || "");
-    }
-  }}
-  disabled={isLinksSaving || !link.url?.trim()} // تعطيل لو الـ URL فاضي أو فيه حفظ شغال
-  size="sm"
-  className="  bg-[#4b4f52] border-0 text-accent-foreground "
->
-  {isLinksSaving ? "Saving..." : "Save Link"}
-</Button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
 
         {/* Skills */}
         {activeSection === "skills" && (
@@ -424,6 +327,55 @@ const resumeId = profile?.resumeId;
               <X className="w-3 h-3" />
             </button>
           </div>
+        ))}
+      </div>
+    )}
+  </div>
+)}
+
+
+        {/* Projects */}
+       {activeSection === "projects" && (
+  <div className="space-y-8">
+    {/* Header Section */}
+    <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div>
+        <h2 className="font-display text-3xl font-bold text-foreground">
+          My <span className="text-[#1ca37b]">Projects</span>
+        </h2>
+      </div>
+      
+      {/* زرار الإضافة يستخدم حالة isAdding الخاصة به فقط */}
+      <Button 
+        onClick={() => addProject()} 
+        disabled={isAdding} 
+        variant="outline"
+      >
+        <Plus className="mr-2 h-4 w-4" /> 
+        {isAdding ? "Adding..." : "Add Project"}
+      </Button>
+    </div>
+
+    {/* Projects Content */}
+    {isLoading ? (
+      <div className="text-center py-12">Loading Projects...</div>
+    ) : projects.length === 0 ? (
+      <div className="rounded-xl bg-card p-12 text-center shadow-card border border-border/50">
+        <FolderGit2 className="mx-auto h-12 w-12 text-muted-foreground/50" />
+        <h3 className="mt-4 font-display text-lg font-semibold text-foreground">
+          No projects added yet
+        </h3>
+        <p className="mt-2 text-muted-foreground">
+          Showcase your work by adding your projects.
+        </p>
+      </div>
+    ) : (
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        {projects.map((proj) => (
+          /* نادينا الكومبوننت الجديد هنا 
+             كل كارد دلوقتي مسؤول عن الـ Mutations والـ Loading بتاعه
+          */
+          <ProjectCard key={proj.id} project={proj} />
         ))}
       </div>
     )}
@@ -557,53 +509,118 @@ const resumeId = profile?.resumeId;
   </div>
 )}
 
-        {/* Projects */}
-       {activeSection === "projects" && (
-  <div className="space-y-8">
-    {/* Header Section */}
-    <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-      <div>
-        <h2 className="font-display text-3xl font-bold text-foreground">
-          My <span className="text-[#1ca37b]">Projects</span>
-        </h2>
-      </div>
-      
-      {/* زرار الإضافة يستخدم حالة isAdding الخاصة به فقط */}
-      <Button 
-        onClick={() => addProject()} 
-        disabled={isAdding} 
-        variant="outline"
-      >
-        <Plus className="mr-2 h-4 w-4" /> 
-        {isAdding ? "Adding..." : "Add Project"}
-      </Button>
-    </div>
+        {/* Social Links */}
+        {activeSection === "social" && (
+          <div className="space-y-8">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                {/* <Badge variant="secondary" className="mb-4 gradient-accent text-accent-foreground">
+                  Connect
+                </Badge> */}
+                <h2 className="font-display text-3xl font-bold text-foreground">
+                  Social <span className="text-[#1ca37b]">Links</span>
+                </h2>
+              </div>
+             <Button 
+  onClick={() => addSocialLink()} 
+  disabled={isLinksSaving} // تعطيل الزرار أثناء الإضافة
+  variant="outline" 
+  className="border-border text-foreground hover:bg-secondary"
+>
+  {isLinksSaving ? (
+    <span className="flex items-center gap-2">Saving...</span>
+  ) : (
+    <>
+      <Plus className="mr-2 h-4 w-4" /> Add Link
+    </>
+  )}
+</Button>
+            </div>
 
-    {/* Projects Content */}
-    {isLoading ? (
-      <div className="text-center py-12">Loading Projects...</div>
-    ) : projects.length === 0 ? (
-      <div className="rounded-xl bg-card p-12 text-center shadow-card border border-border/50">
-        <FolderGit2 className="mx-auto h-12 w-12 text-muted-foreground/50" />
-        <h3 className="mt-4 font-display text-lg font-semibold text-foreground">
-          No projects added yet
-        </h3>
-        <p className="mt-2 text-muted-foreground">
-          Showcase your work by adding your projects.
-        </p>
-      </div>
-    ) : (
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        {projects.map((proj) => (
-          /* نادينا الكومبوننت الجديد هنا 
-             كل كارد دلوقتي مسؤول عن الـ Mutations والـ Loading بتاعه
-          */
-          <ProjectCard key={proj.id} project={proj} />
-        ))}
-      </div>
-    )}
-  </div>
-)}
+            {links.length === 0 ? (
+              <div className="rounded-xl bg-card p-12 text-center shadow-card border border-border/50">
+                <LinkIcon className="mx-auto h-12 w-12 text-muted-foreground/50" />
+                <h3 className="mt-4 font-display text-lg font-semibold text-foreground">No social links yet</h3>
+                <p className="mt-2 text-muted-foreground">Add your social profiles to showcase your online presence.</p>
+              </div>
+            ) : (
+              <div className="grid gap-6 md:grid-cols-2">
+                {links.map((link) => (
+                  <div key={link.id} className="rounded-xl bg-card p-6 shadow-card border border-border/50">
+                    <div className="mb-4 flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="h-3 w-3 rounded-full bg-[#13CA92]"></div>
+                        <span className="font-display text-sm font-semibold uppercase tracking-wide text-accent">
+                          {link.socialType}
+                        </span>
+                      </div>
+                      <Button
+  variant="ghost"
+  size="sm"
+  onClick={() => removeSocialLink(link.id)}
+  disabled={isLinksSaving} // تعطيل المسح أثناء أي عملية حفظ
+  className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive disabled:opacity-50"
+>
+  <Trash2 className="h-4 w-4" />
+</Button>
+                    </div>
+
+                    <div className="grid gap-4 sm:grid-cols-[1fr_2fr]">
+                      <div className="space-y-2">
+                        <Label>Platform</Label>
+                        <Select value={link.socialType} onValueChange={(value) => updateLink(link.id, "socialType", value)}>
+                          <SelectTrigger className="bg-input">
+                            <SelectValue placeholder="Select Platform" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {["LINKEDIN", "GITHUB", "BEHANCE", "DRIBBLE", "PORTFOLIO", "MEDIUM", "DISCORD", "STACKOVERFLOW", "GITLAB", "TWITTER", "FACEBOOK", "INSTAGRAM", "OTHER"].map(p => (
+                              <SelectItem key={p} value={p}>
+                                {p.charAt(0) + p.slice(1).toLowerCase()}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Profile URL</Label>
+                        <Input
+  value={link.url || ""}
+  onChange={(e) => updateLink(link.id, "url", e.target.value)}
+  placeholder="https://..."
+  className={`bg-input ${errors[`url-${link.id}`] ? "border-destructive focus-visible:ring-destructive" : ""}`}
+/>
+                        {errors[`url-${link.id}`] && (
+                          <p className="text-sm text-destructive">{errors[`url-${link.id}`]}</p>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="mt-6 flex justify-end">
+                      <Button
+  onClick={() => {
+    if (validateSocialLinks()) {
+      saveSocialLink(link.id, link.socialType || "OTHER", link.url || "");
+    }
+  }}
+  disabled={isLinksSaving || !link.url?.trim()} // تعطيل لو الـ URL فاضي أو فيه حفظ شغال
+  size="sm"
+  className="  bg-[#4b4f52] border-0 text-accent-foreground "
+>
+  {isLinksSaving ? "Saving..." : "Save Link"}
+</Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+
+
+
+
+
 
         {/* Resume Section */}
         <div className="mt-16 pt-8 border-t border-border/50">

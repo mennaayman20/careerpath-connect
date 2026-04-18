@@ -269,3 +269,31 @@
     100% { background-position: 0% center; }
   }
 }
+
+
+@keyframes rotateShadow {
+  0% { 
+    box-shadow: -3px -3px 8px 0px rgba(137, 59, 246, 0.4), 3px 3px 12px 0px rgba(147, 197, 253, 0.4); 
+  }
+  25% { 
+    box-shadow: -3px 3px 8px 0px rgba(59, 130, 246, 0.4), 3px -3px 12px 0px rgba(147, 197, 253, 0.4); 
+  }
+  50% { 
+    box-shadow: 3px 3px 8px 0px rgba(59, 130, 246, 0.4), -3px -3px 12px 0px rgba(147, 197, 253, 0.4); 
+  }
+  75% { 
+    box-shadow: 3px -3px 8px 0px rgba(206, 59, 246, 0.4), -3px 3px 12px 0px rgba(147, 197, 253, 0.4); 
+  }
+  100% { 
+    box-shadow: -3px -3px 8px 0px rgba(59, 130, 246, 0.4), 3px 3px 12px 0px rgba(147, 197, 253, 0.4); 
+  }
+}
+
+.animate-rotate-shadow:hover,
+.animate-rotate-shadow:focus {
+  animation: rotateShadow 2s infinite linear;
+  border-color: rgba(59, 130, 246, 0.5); /* اختياري: يغير لون البرواز شوية مع الإضاءة */
+  
+  transition: border-color 0.3s ease;
+
+}

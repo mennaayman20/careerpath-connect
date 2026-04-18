@@ -6,15 +6,16 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import { Settings as SettingsIcon, Moon, Building2, Mail } from "lucide-react";
+import { Settings as SettingsIcon, Moon, Building2, Mail, ArrowRight } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
+import { useNavigate } from "react-router-dom";
 const Settings = () => {
   const { isDarkMode, toggleDarkMode } = useAuth();
   const { toast } = useToast();
   const [businessEmail, setBusinessEmail] = useState("");
   const [recruiterSent, setRecruiterSent] = useState(false);
-
+const navigate = useNavigate();
   const handleRecruiterSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (businessEmail.trim()) {
@@ -33,7 +34,7 @@ const Settings = () => {
         </div>
 
         {/* Dark Mode */}
-        <section className="mb-6 rounded-xl border border-border bg-card p-6">
+        {/* <section className="mb-6 rounded-xl border border-border bg-card p-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <Moon className="h-5 w-5 text-primary" />
@@ -44,7 +45,7 @@ const Settings = () => {
             </div>
             <Switch checked={isDarkMode} onCheckedChange={toggleDarkMode} />
           </div>
-        </section>
+        </section> */}
 
         {/* Become Recruiter */}
         <section className="rounded-xl border border-border bg-card p-6">
@@ -61,6 +62,20 @@ const Settings = () => {
               <Mail className="mx-auto mb-2 h-8 w-8 text-success" />
               <p className="font-medium text-foreground">Verification link sent!</p>
               <p className="text-sm text-muted-foreground">Check <strong>{businessEmail}</strong> to complete verification.</p>
+
+
+
+
+
+              <Button 
+                onClick={() => navigate("/recruiter-dashboard")}
+                variant="outline"
+                className="gap-2"
+              >
+                Go to Dashboard <ArrowRight className="h-4 w-4" />
+              </Button>
+
+
             </div>
           ) : (
             <form onSubmit={handleRecruiterSubmit} className="flex gap-3">

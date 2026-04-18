@@ -14,6 +14,7 @@ import {
   AlertCircle,
   TrendingUp,
   Target,RefreshCw,Send,CloudUpload,X,
+  Globe,
 } from "lucide-react";
 import {
   Select,
@@ -29,6 +30,7 @@ import { ApplicationRequest } from "@/features/application/types/application.typ
 import { toast } from "@/components/ui/sonner";
 import { AnimatedNumber, AnimatedBar, FeedbackAccordion , SkillCard } from "./AnalysisHelpers"
 import { Label } from "@/components/ui/label";
+import { useJobDetails } from "@/hooks/useJobs";
 /* ─── Circular progress ring ─── */
 const CircularScore = ({ score }: { score: number }) => {
   const radius = 70;
@@ -150,13 +152,9 @@ const handleApply = async () => {
   const [selectedResumeId, setSelectedResumeId] = useState<number | null>(null);
   const [fileName, setFileName] = useState<string | null>(null);
   const [dragActive, setDragActive] = useState(false);
+// ضيفي ده مع الـ Hooks في بداية Component ResumeAnalysis
+const { data: jobDetails } = useJobDetails(jobId);
 
-  // useEffect(() => {
-  //   if (resumes && resumes.length > 0 && !selectedResumeId) {
-  //     setSelectedResumeId(resumes[0].id);
-  //     setFileName(resumes[0].fileName);
-  //   }
-  // }, [resumes, selectedResumeId]);
   useEffect(() => {
     if (resumes?.length > 0 && selectedResumeId === null) {
       setSelectedResumeId(resumes[0].id);
@@ -164,13 +162,6 @@ const handleApply = async () => {
     }
   }, [resumes, selectedResumeId]);
 
-//   const handleUpload = useCallback(async (file: File) => {
-//   const newResume = await uploadResume(file);
-//   if (newResume) {
-//     setSelectedResumeId(newResume.id);
-//     setFileName(newResume.fileName);
-//   }
-// }, []); // سيبها فاضية لو مش بتعتمد على متغيرات خارجية غير الـ state setters
 
 const handleUpload = useCallback(async (file: File) => {
     const newResume = await uploadResume(file);
@@ -182,23 +173,7 @@ const handleUpload = useCallback(async (file: File) => {
 
 
 
-//  const onStartAnalysis = async () => {
-//   if (!selectedResumeId) return;
-  
-//   setState("loading");
-//   try {
-//     // التعديل هنا: نمرر الأوبجكت بالشكل المطلوب
-//     await analyzeResume({ 
-//       resumeId: selectedResumeId, 
-//       jobId: jobId || undefined 
-//     });
-    
-//     setState("result");
-//   } catch (error) {
-//     console.error(error);
-//     setState("upload");
-//   }
-// };
+
 const onStartAnalysis = async () => {
     if (!selectedResumeId) {
       toast.error("Please select or upload a resume first");
@@ -285,7 +260,7 @@ const onStartAnalysis = async () => {
                         </div>
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="upload_new" className="font-bold text-primary italic">
+                        <SelectItem value="upload_new" className="font-bold text-primary">
                           + Upload new resume
                         </SelectItem>
                         {resumes?.map((resume) => (
@@ -470,14 +445,90 @@ const onStartAnalysis = async () => {
     </motion.div>
 
     {/* ── FOOTER ACTIONS ── */}
-    <div className="flex flex-col sm:flex-row justify-end gap-3 pt-6 border-t border-border">
-      <Button variant="ghost" size="lg" onClick={() => setState("upload")} disabled={isApplying} className="rounded-xl font-semibold border-4  tracking-widest ">
-        Analyze another
-      </Button>
-      <Button size="lg" className="gap-2 min-w-[200px] rounded-xl font-semibold  tracking-widest shadow-lg shadow-primary/20" onClick={handleApply} disabled={isApplying}>
-        {isApplying ? <><RefreshCw className="w-4 h-4 animate-spin" /> Submitting...</> : <><Send className="w-4 h-4" /> Apply Now</>}
+  {/* ── FOOTER ACTIONS (النسخة الذكية والغير تقليدية) ── */}
+<div className="pt-8 mt-10 border-t border-border/80 flex flex-col items-center gap-10">
+  
+  {/* لو الوظيفة خارجية (External) */}
+  {jobDetails?.jobSource?.toLowerCase() === "external" ? (
+    <motion.div 
+      initial={{ opacity: 0, y: 20 }} 
+      animate={{ opacity: 1, y: 0 }} 
+      transition={{ delay: 0.5 }}
+      className="w-full max-w-3xl overflow-hidden rounded-3xl border border-blue-100 bg-blue-50/50 dark:bg-blue-950/20 dark:border-blue-900 shadow-lg shadow-blue-500/5"
+    >
+      <div className="flex items-center gap-4 bg-blue-100 dark:bg-blue-900 px-6 py-4 border-b border-blue-200 dark:border-blue-800">
+        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-600 text-white shadow-md shadow-blue-600/30">
+          <Globe className="h-5 w-5" />
+        </div>
+        <div>
+          <h4 className="text-base font-extrabold text-foreground">Apply with this Analysis</h4>
+          <p className="text-[11px] text-muted-foreground uppercase tracking-[0.15em]">Direct Contact / External Application</p>
+        </div>
+      </div>
+      
+      <div className="p-6 md:p-8 flex flex-col md:flex-row md:items-center gap-6 md:gap-8 bg-background/50 backdrop-blur-sm">
+        <div className="flex-1">
+          <p className="text-sm text-muted-foreground leading-relaxed">
+            {/* جملة واضحة ومكملة للـ Flow */}
+            Now that you've seen your AI analysis, use the recruiter's official link below to submit your resume and complete your application directly.
+          </p>
+        </div>
+        
+        <div className="shrink-0 flex items-center justify-center">
+          {jobDetails.applicationLink ? (
+            <a 
+              href={jobDetails.applicationLink} 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="flex items-center gap-2.5 px-6 py-3 rounded-xl font-bold text-[13px] tracking-wide text-white transition-all duration-300
+                bg-blue-600 shadow-md shadow-blue-600/20 hover:bg-blue-700 hover:-translate-y-0.5"
+            >
+              Go to Application way
+              <ArrowLeft className="w-4 h-4 rotate-180" /> {/* سهم للأمام */}
+            </a>
+          ) : (
+            <span className="text-sm font-semibold text-destructive/80">Application link is not available.</span>
+          )}
+        </div>
+      </div>
+    </motion.div>
+  ) : (
+    /* لو داخلية (Internal) - بنعرض الـ Button الأصلي بتاعك */
+    <div className="w-full flex justify-center">
+      <Button 
+        size="lg" 
+        className="gap-2 min-w-[280px] rounded-xl font-semibold tracking-widest shadow-lg shadow-primary/20" 
+        onClick={handleApply} 
+        disabled={isApplying}
+      >
+        {isApplying ? (
+          <><RefreshCw className="w-4 h-4 animate-spin" /> Submitting...</>
+        ) : (
+          <><Send className="w-4 h-4" /> Apply Now</>
+        )}
       </Button>
     </div>
+  )}
+
+  {/* ديما بنسيب زرار الـ "Analyze Another" تحت كـ Option */}
+  <Button 
+  variant="outline" // غيرنا الـ variant لـ outline عشان ياخد برواز
+
+  onClick={() => setState("upload")} 
+  disabled={isApplying} 
+  className="
+    gap-2 px-12 py-2 rounded-xl text-[13px] font-bold tracking-wide
+    border-dashed border-2  border-slate-400
+    
+    hover:bg-primary/5 hover:text-primary hover:border-primary/30 
+    transition-all duration-300 group
+  "
+>
+  {/* أيقونة بتتحرك خفيف مع الـ hover */}
+  <RefreshCw className="w-3.5 h-3.5 group-hover:rotate-180 transition-transform duration-500" />
+  Analyze another resume
+</Button>
+</div>
   </motion.div>
 )}
 

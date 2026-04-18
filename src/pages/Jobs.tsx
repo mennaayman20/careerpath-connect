@@ -67,9 +67,40 @@ const Jobs = () => {
 
 
 
-const { data: jobs = [], isLoading: isJobsLoading } = useJobs();
+//   const { data: allJobs = [], isLoading: isJobsLoading } = useJobs();
+// const { data: searchResults = [], isLoading: isSearchLoading } = useJobSearch(search);
+
+// // لو في search نستخدم searchResults، لو لأ نستخدم allJobs
+// const jobs = search.trim() ? searchResults : allJobs;
+// const isLoading = search.trim() ? isSearchLoading : isJobsLoading;
+
+const { data: allJobs = [], isLoading: isJobsLoading } = useJobs(0, 50); // هاتي كمية كبيرة عشان السيرش يغطيهم
+const isLoading = isJobsLoading;
+
+
+
+
+
+// const { data: jobs = [], isLoading: isJobsLoading } = useJobs();
 const { data: selectedJobDetails, isLoading: isDetailsLoading } = useJobDetails(jobIdFromUrl);
 
+// 2. الـ Logic ده بيشتغل فوري في المتصفح
+const jobs = allJobs.filter((job) => {
+  const q = search.toLowerCase().trim();
+  
+  // لو مفيش سيرش، اعرضي كل الوظائف
+  if (!q) return true;
+
+  // فلتري بناءً على الحقول اللي تحبيها
+  return (
+    job.title?.toLowerCase().includes(q) ||
+    job.organizationName?.toLowerCase().includes(q) ||
+    job.location?.toLowerCase().includes(q) ||
+    job.description?.toLowerCase().includes(q) ||
+    // لو عايزة تفلتري بالمهارات كمان:
+    job.skills?.some(skill => skill.skillName.toLowerCase().includes(q))
+  );
+});
   
   const currentJobBase = jobs.find(j => j.id.toString() === jobIdFromUrl);
   const selectedJob = selectedJobDetails ? { ...currentJobBase, ...selectedJobDetails } : currentJobBase;
@@ -82,18 +113,7 @@ const { data: selectedJobDetails, isLoading: isDetailsLoading } = useJobDetails(
 const [isApplyModalOpen, setIsApplyModalOpen] = useState(false);
 const [applyingJobId, setApplyingJobId] = useState<number | null>(null);
 
-  const filtered = jobs.filter((j) => {
-    const q = search.toLowerCase();
-    return (
-      j.title.toLowerCase().includes(q) ||
-      (j.organizationName ?? "").toLowerCase().includes(q) ||
-      j.type.toLowerCase().includes(q) ||
-      j.seniority.toLowerCase().includes(q) ||
-      j.model.toLowerCase().includes(q) ||
-      j.status.toLowerCase().includes(q) ||
-      j.location.toLowerCase().includes(q)
-    );
-  });
+
 
 
   const getSkillStyle = (index: number) => {
@@ -135,19 +155,20 @@ const handleProtectedAction = (action: () => void) => {
           {/* Search bar */}
 <div className="relative mt-4 max-w-md">
   <Search
-  id="search-input" 
-  className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground transition-colors peer-focus:text-blue-500" />
+    className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground z-20 " 
+  />
 
   <Input
     value={search}
     onChange={(e) => setSearch(e.target.value)}
-    placeholder="Search by title, company, or skill…"
-    className="peer h-11 rounded-full pl-11 pr-20 border-border/60  border-blue-300  
-               focus:border-blue-400 focus:ring-2 focus:ring-blue-100
-               dark:focus:ring-blue-950 transition-all"
+    placeholder="Search by Title , or Company"
+   className={cn(
+      "peer h-11 w-full rounded-[20px]  pl-11 pr-4 transition-all duration-300",
+      "bg-background border-2 border-blue-200 ", 
+      "placeholder:text-muted-foreground/60",
+      "animate-rotate-shadow focus:ring-0" // الكلاس ده دلوقتي بيشغل الأنميشن في الـ Hover والـ Focus
+    )}
   />
-
-  
 </div>
         </div>
 
@@ -161,38 +182,77 @@ const handleProtectedAction = (action: () => void) => {
           
             {/* Job list */}
             <div className={`flex-1 space-y-4 ${selectedJob ? "hidden md:block md:max-w-md" : ""}`}>
-              {filtered.length === 0 ? (
+              {jobs.length === 0 ? (
                 <p className="py-12 text-center text-muted-foreground">No jobs found</p>
               ) : (
-                filtered.map((job, i) => (
+                jobs.map((job, i) => (
                   <motion.div
                     key={job.id}
                     initial={{ opacity: 0, y: 12 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: i * 0.05 }}
-                    className={`cursor-pointer rounded-xl border bg-card p-5 transition-all hover:shadow-card ${selectedJob?.id === job.id ? "border-primary shadow-card" : "border-border"}`}
+                    className={cn(
+  "cursor-pointer rounded-xl border p-5 transition-all duration-300 bg-card",
+  // عند الـ Hover: بنرفع الكارد سنة، ونغير لون البرواز، ونضيف الـ Glow (النور)
+  "hover:-translate-y-1  hover:shadow-[0_0_15px_rgba(59,130,246,0.3)]", 
+  // لو الكارد مختارة أصلاً (Active)
+  selectedJob?.id === job.id ? "border-primary/50 shadow-md" : "border-border"
+)}
                     onClick={() => handleJobSelect(job)}
                   >
                     <div className="flex items-start justify-between">
                       <div>
                         <h3 className="font-display font-semibold text-foreground">{job.title}</h3>
-                        <p className="mt-1 flex items-center gap-1 text-sm text-muted-foreground">
+                        {job.organizationName &&(
+                           <p className="mt-1 flex items-center gap-1 text-sm text-muted-foreground">
+                         
                           <Building2 className="h-3.5 w-3.5" /> {job.organizationName}
                         </p>
+
+                        )}
+                       
+
+
+
+
+                        {/* external jobs */}
+
+                        <div className="mt-2 flex items-center gap-2">
+  {job.jobSource === "external" ? (
+    <span className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-amber-600 bg-amber-100 px-2 py-0.5 rounded-md">
+      <Globe className="h-3 w-3" /> External Source
+    </span>
+  ) : (
+    <span className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-blue-600 bg-blue-100 px-2 py-0.5 rounded-md">
+      <Building2 className="h-3 w-3" /> Internal
+    </span>
+  )}
+</div>
                       </div>
-                    <Badge 
-  className={
-    job.status === "Open" 
-      ? "bg-[#1ca37b] text-white hover:bg-[#1ca37b]/90" // استخدمت اللون الأخضر اللي سألتي عليه قبل كدة
-      : "bg-secondary text-secondary-foreground"
-  }
+<Badge 
+  className={`
+    flex items-center gap-1 px-4 py-1 rounded-full  text-[10px] uppercase transition-all
+    ${job.status?.toLowerCase() === "open" 
+      ? "bg-[#4da78c] text-white shadow-sm shadow-[#1ca37b]/50 border-none" 
+      : "bg-slate-200 text-slate-600 dark:bg-slate-800 dark:text-slate-400"
+    }
+  `}
 >
-  {job.status}
+
+  {job.status || "Unknown"}
 </Badge>
                     </div>
                    <div className="mt-3 flex flex-wrap gap-2 text-xs text-muted-foreground">
-  <span className="flex items-center gap-1"><MapPin className="h-3 w-3" />{job.location}</span>
-  <span className="flex items-center gap-1"><Briefcase className="h-3 w-3" />{job.type}</span>
+  {job.location && (
+      <span className="flex items-center gap-1"><MapPin className="h-3 w-3" />
+  {job.location}</span>
+  )}
+
+
+  {job.type && (
+      <span className="flex items-center gap-1"><Briefcase className="h-3 w-3" />{job.type}</span>
+
+  )}
   
   <span className="flex items-center gap-1">
     <Clock className="h-3 w-3" />
@@ -241,12 +301,16 @@ const handleProtectedAction = (action: () => void) => {
                 <div className="mt-4 flex flex-wrap gap-2 items-center">
 
   {/* type */}
-  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium border
+
+  {selectedJob.type &&(
+      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium border
     bg-blue-50 text-blue-900 border-blue-200
     dark:bg-blue-950/50 dark:text-blue-200 dark:border-blue-800">
     <Briefcase className="w-3 h-3" />
     {selectedJob.type}
   </span>
+  )}
+
 
   {/* status — نقطة خضراء نابضة لو active */}
   <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium border
@@ -270,12 +334,15 @@ const handleProtectedAction = (action: () => void) => {
   </span>
 
   {/* model */}
-  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium border
+  {selectedJob.model &&(
+    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium border
     bg-violet-50 text-violet-900 border-violet-200
     dark:bg-violet-950/50 dark:text-violet-200 dark:border-violet-800">
     <Globe className="w-3 h-3" />
     {selectedJob.model}
   </span>
+  )}
+  
 
   {/* date */}
   <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium border
@@ -294,8 +361,9 @@ const handleProtectedAction = (action: () => void) => {
                 {/* Job Description */}
                 <div className="mt-6">
                   <h4 className="font-semibold text-base text-foreground mb-1">Description</h4>
-                  <p className="text-sm text-muted-foreground whitespace-pre-line">{selectedJob.description}</p>
-                </div>
+<p className="text-sm text-muted-foreground leading-relaxed tracking-wide whitespace-pre-line bg-muted/20 p-4 rounded-xl border border-border/50 font-medium">
+    {selectedJob.description}
+  </p>                </div>
 
                 {/* Required Skills */}
                 {selectedJob.skills?.length > 0 && (
@@ -330,33 +398,68 @@ const handleProtectedAction = (action: () => void) => {
                 
 
 
-{/* زرار الـ Apply Now */}
-<Button 
+{selectedJob.jobSource?.toLowerCase() === "external" ? (
+  <div className="mt-8 overflow-hidden rounded-2xl border-2 border-blue-500/20 bg-blue-50/30 dark:bg-blue-950/20 shadow-sm">
+    <div className="flex items-center gap-3 bg-blue-500/10 px-4 py-3 border-b border-blue-500/10">
+      <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-500 text-white shadow-lg shadow-blue-500/30">
+        <Globe className="h-5 w-5" />
+      </div>
+      <div>
+        <h4 className="text-sm font-bold text-foreground">Apply Externally</h4>
+        {/* <p className="text-[11px] text-muted-foreground uppercase tracking-wider">Official Company Portal</p> */}
+      </div>
+    </div>
+    
+    <div className="p-4">
+      <p className="text-sm text-muted-foreground mb-4 leading-relaxed">
+        To apply, please use the contact method or external link provided by the recruiter below:
+      </p>
+      
+      <a 
+        href={selectedJob.applicationLink} 
+        target="_blank" 
+        rel="noopener noreferrer"
+        className="group relative flex items-center justify-between gap-3 rounded-xl bg-background border border-border p-3 transition-all hover:border-blue-500 hover:shadow-md"
+      >
+        <span className="truncate text-sm font-medium text-blue-600 dark:text-blue-400 underline-offset-4 group-hover:underline">
+          {selectedJob.applicationLink}
+        </span>
+        <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-muted group-hover:bg-blue-100 group-hover:text-blue-600 transition-colors">
+          <Sparkles className="h-3 w-3" />
+        </div>
+      </a>
+    </div>
+  </div>
+) : (
+  /* الزراير الأصلية بتاعتك */
+  <>
+     <Button 
+      onClick={() => handleProtectedAction(() => setIsApplyModalOpen(true))}
+      className="mt-8 w-full gradient-primary border-0"
+      disabled={selectedJob.status === "Closed"}
+    >
+      {selectedJob.status === "Closed" ? "Position Closed" : "Apply Now"}
+    </Button>
 
-  onClick={() => handleProtectedAction(() => setIsApplyModalOpen(true))}
-  className="mt-8 w-full gradient-primary border-0"
-  disabled={selectedJob.status === "Closed"}
+   
+  </>
+)}
+
+<Button 
+  variant="outline" 
+  className="w-full gap-2 border-primary/20 text-primary hover:bg-primary/5 mt-5"
+  onClick={() => handleProtectedAction(() => navigate(`/resume-analysis?jobId=${jobIdFromUrl}`))}
 >
-  {selectedJob.status === "Closed" ? "Position Closed" : "Apply Now"}
+  <Sparkles size={16} /> Analyze My Resume
 </Button>
 
-{/* المودال - بنبعت بيانات الـ selectedJob */}
+{/* 3. المودال الداخلي */}
 <ApplyModal 
   jobId={selectedJob.id} 
   jobTitle={selectedJob.title} 
   isOpen={isApplyModalOpen} 
   onClose={() => setIsApplyModalOpen(false)} 
 />
-
-
-<Button 
-  variant="outline" 
-  className="w-full gap-2 border-primary/20 text-primary hover:bg-primary/5 mt-5"
-  onClick={() => handleProtectedAction(() => navigate(`/resume-analysis?jobId=${jobIdFromUrl}`))} // نفترض إن عندك jobId هنا
->
-  <Sparkles size={16} /> Analyze My Resume
-</Button>
-
 
      
 

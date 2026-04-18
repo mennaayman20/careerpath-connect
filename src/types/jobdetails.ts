@@ -11,6 +11,8 @@ export interface JobDetails {
   seniority: string;
   model: string; // (e.g., Remote, On-site)
   status: string;
+  jobSource:string;
+  applicationLink:string;
   location: string;
   description: string;
   createdDate: string;
