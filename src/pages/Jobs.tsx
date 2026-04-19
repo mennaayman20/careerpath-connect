@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import { Search, MapPin, Clock, Building2, Briefcase, X, Sparkles, Star, Globe, Mail } from "lucide-react";
+import { Search, MapPin, Clock, Building2, Briefcase, X, Sparkles, Star, Globe, Mail, ChevronRight, ChevronLeft } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { motion } from "framer-motion";
 import { useQuery } from "@tanstack/react-query";
@@ -54,6 +54,10 @@ const getRelativeTime = (date: string | Date): string => {
 
 
 
+
+
+
+
 const Jobs = () => {
 
 
@@ -67,17 +71,18 @@ const Jobs = () => {
 
 
 
-//   const { data: allJobs = [], isLoading: isJobsLoading } = useJobs();
-// const { data: searchResults = [], isLoading: isSearchLoading } = useJobSearch(search);
 
-// // لو في search نستخدم searchResults، لو لأ نستخدم allJobs
-// const jobs = search.trim() ? searchResults : allJobs;
-// const isLoading = search.trim() ? isSearchLoading : isJobsLoading;
 
-const { data: allJobs = [], isLoading: isJobsLoading } = useJobs(0, 50); // هاتي كمية كبيرة عشان السيرش يغطيهم
+// const { data: allJobs = [], isLoading: isJobsLoading } = useJobs(0, 50); // هاتي كمية كبيرة عشان السيرش يغطيهم
+// const isLoading = isJobsLoading;
+
+const [currentPage, setCurrentPage] = useState(0);
+const PAGE_SIZE = 10;
+
+const { data: jobsData, isLoading: isJobsLoading } = useJobs(currentPage, PAGE_SIZE);
+const allJobs = jobsData?.content || [];
+const totalPages = jobsData?.totalPages || 1;
 const isLoading = isJobsLoading;
-
-
 
 
 
@@ -177,23 +182,58 @@ const isEmailLink = (link?: string) => {
           <p className="mt-1 text-muted-foreground">Find your next opportunity</p>
         
           {/* Search bar */}
-<div className="relative mt-4 max-w-md">
-  <Search
-    className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground z-20 " 
-  />
+{/* Search bar + Pagination */}
+<div className="mt-4 flex items-center gap-4">
+  {/* Search */}
+  <div className="relative max-w-md flex-1">
+    <Search className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground z-20" />
+    <Input
+      value={search}
+      onChange={(e) => {
+        setSearch(e.target.value);
+        setCurrentPage(0);
+      }}
+      placeholder="Search by Title, or Company"
+      className={cn(
+        "peer h-11 w-full rounded-[20px] pl-11 pr-4 transition-all duration-300",
+        "bg-background border-2 border-blue-200",
+        "placeholder:text-muted-foreground/60",
+        "animate-rotate-shadow focus:ring-0"
+      )}
+    />
+  </div>
 
-  <Input
-    value={search}
-    onChange={(e) => setSearch(e.target.value)}
-    placeholder="Search by Title , or Company"
-   className={cn(
-      "peer h-11 w-full rounded-[20px]  pl-11 pr-4 transition-all duration-300",
-      "bg-background border-2 border-blue-200 ", 
-      "placeholder:text-muted-foreground/60",
-      "animate-rotate-shadow focus:ring-0" // الكلاس ده دلوقتي بيشغل الأنميشن في الـ Hover والـ Focus
-    )}
-  />
+  {/* Pagination
+  {totalPages > 1 && (
+    <div className="flex items-center gap-2">
+      <button
+        onClick={() => setCurrentPage(p => Math.max(0, p - 1))}
+        disabled={currentPage === 0}
+        className="flex items-center justify-center h-9 w-9 rounded-full border border-border bg-card hover:border-primary/50 hover:bg-primary/5 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+      >
+        <ChevronLeft className="h-4 w-4" />
+      </button>
+
+      <span className="text-sm text-muted-foreground whitespace-nowrap">
+        <span className="font-semibold text-foreground">{currentPage + 1}</span>
+        {" / "}
+        <span className="font-semibold text-foreground">{totalPages}</span>
+      </span>
+
+      <button
+        onClick={() => setCurrentPage(p => Math.min(totalPages - 1, p + 1))}
+        disabled={currentPage === totalPages - 1}
+        className="flex items-center justify-center h-9 w-9 rounded-full border border-border bg-card hover:border-primary/50 hover:bg-primary/5 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+      >
+        <ChevronRight className="h-4 w-4" />
+      </button>
+    </div>
+  )} */}
 </div>
+
+
+
+
         </div>
 
         {isJobsLoading ? (
@@ -288,6 +328,8 @@ const isEmailLink = (link?: string) => {
                 ))
               )}
             </div>
+
+
 
             {/* Detail panel */}
           
@@ -524,8 +566,52 @@ const isEmailLink = (link?: string) => {
 
               </motion.div>
             )}
+
+
+            
           </div> 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
         )}
+
+
+        {totalPages > 1 && (
+            <div className="flex items-center justify-center gap-2 py-8">
+              <button
+                onClick={() => setCurrentPage(p => Math.max(0, p - 1))}
+                disabled={currentPage === 0}
+                className="flex items-center justify-center h-9 w-9 rounded-full border border-border bg-card hover:border-primary/50 hover:bg-primary/5 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </button>
+
+              <span className="text-sm text-muted-foreground whitespace-nowrap">
+                <span className="font-semibold text-foreground">{currentPage + 1}</span>
+                {" / "}
+                <span className="font-semibold text-foreground">{totalPages}</span>
+              </span>
+
+              <button
+                onClick={() => setCurrentPage(p => Math.min(totalPages - 1, p + 1))}
+                disabled={currentPage === totalPages - 1}
+                className="flex items-center justify-center h-9 w-9 rounded-full border border-border bg-card hover:border-primary/50 hover:bg-primary/5 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+              >
+                <ChevronRight className="h-4 w-4" />
+              </button>
+            </div>
+          )}
       </div>
  
 

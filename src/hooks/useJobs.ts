@@ -6,7 +6,13 @@ export const useJobs = (page = 0, size = 10) => {
   return useQuery({
     queryKey: ['jobs', page, size],
     queryFn: () => jobService.getAllJobs(page, size),
-    select: (data) => data.content || [], // بيرجع المصفوفة مباشرة
+    select: (data) => ({
+      content: data.content || [],
+      totalPages: data.totalPages || 1,
+      totalElements: data.totalElements || 0,
+
+    }),
+
     staleTime: 1000 * 60 * 5, // الداتا تفضل "طازة" لمدة 5 دقائق، مش هيبعت request تاني لو رحتي ورجعتي في الوقت ده
     gcTime: 1000 * 60 * 10,
   });
@@ -31,3 +37,18 @@ export const useMatchedJobs = () => {
     // لو حابة تضيفي Logic معين للداتا قبل ما ترجع
   });
 };
+
+
+
+
+
+// export const useJobSearch = (keyword: string, page = 0, size = 10) => {
+//   return useQuery({
+//     queryKey: ['jobsSearch', keyword, page, size],
+//     // هنا بتبعتي الـ keyword كـ object عشان الـ service تستقبله صح
+//     queryFn: () => jobService.searchJobs({ keyword }, page, size),
+//     select: (data) => data.content || [],
+//     enabled: keyword.trim().length > 0,
+//     staleTime: 1000 * 60 * 2,
+//   });
+// };

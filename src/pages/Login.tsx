@@ -25,53 +25,53 @@ const [error, setError] = useState(""); // لتخزين رسالة الخطأ
     e.preventDefault();
 
 
-    // setError("");
+    setError("");
   
-    // if (password.length < 9) {
-    //   setError("Password must be at least 9 characters.");
-    //   return;
-    // }
+    if (password.length < 8) {
+      setError("Password must be at least 8 characters.");
+      return;
+    }
 
     setLoading(true);
 
-    // try {
-    //   const ok = await loginUser({ email, password }); 
+    try {
+      const ok = await loginUser({ email, password }); 
       
-    //   // لو الـ API رجع نجاح (Success)
-    //   if (ok) {
-    //     login(email, password);
-    //     navigate("/jobs");
-    //   } else {
-    //     // دي احتياطي لو الـ API رجع false من غير ما يرمي Error (ثقافة قديمة شوية)
-    //     setError("Invalid email or password. Please try again.");
-    //   }
+      // لو الـ API رجع نجاح (Success)
+      if (ok) {
+        login(email, password);
+        navigate("/jobs");
+      } else {
+        // دي احتياطي لو الـ API رجع false من غير ما يرمي Error (ثقافة قديمة شوية)
+        setError("Invalid email or password. Please try again.");
+      }
 
-    // } catch (err) {
+    } catch (err) {
 
-    //   console.error("Login failed:", err);
+      console.error("Login failed:", err);
 
-    //   // الفحص الذكي للـ Error اللي جاي من السيرفر (Axios/Fetch Error)
-    //   if (err.response?.status === 401) {
-    //     // كود 401 يعني الـ Credentials (إيميل أو باسورد) غلط
-    //     setError("Invalid email or password. Please try again.");
-    //   } 
-    //   else if (err.response?.status === 403) {
-    //     // كود 403 يعني ملوش صلاحية يدخل (الحساب معطل مثلاً)
-    //     setError("Account is disabled, please contact support.");
-    //   } 
-    //   else if (!err.response) {
-    //     // لو الـ response مش موجود أصلاً، يبقى غالباً مفيش إنترنت أو السيرفر واقع
-    //     setError("Network error. Please check your internet connection.");
-    //   } 
-    //   else {
-    //     // أي خطأ تاني غير متوقع (زي 500 مثلاً)
-    //     setError("Something went wrong. Please try again later.");
-    //   }
+      // الفحص الذكي للـ Error اللي جاي من السيرفر (Axios/Fetch Error)
+      if (err.response?.status === 401) {
+        // كود 401 يعني الـ Credentials (إيميل أو باسورد) غلط
+        setError("Invalid email or password. Please try again.");
+      } 
+      else if (err.response?.status === 403) {
+        // كود 403 يعني ملوش صلاحية يدخل (الحساب معطل مثلاً)
+        setError("Account is disabled, please contact support.");
+      } 
+      else if (!err.response) {
+        // لو الـ response مش موجود أصلاً، يبقى غالباً مفيش إنترنت أو السيرفر واقع
+        setError("Network error. Please check your internet connection.");
+      } 
+      else {
+        // أي خطأ تاني غير متوقع (زي 500 مثلاً)
+        setError("Something went wrong. Please try again later.");
+      }
 
-    // } finally {
-    //   // لازم نقفل الـ loading في كل الحالات
-    //   setLoading(false);
-    // }
+    } finally {
+      // لازم نقفل الـ loading في كل الحالات
+      setLoading(false);
+    }
 
     try {
     const ok = await loginUser({ email, password }); 
