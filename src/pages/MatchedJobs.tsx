@@ -135,17 +135,19 @@ const { isAuthenticated } = useAuth();
 
 
 const handleApplicationClick = () => {
-  const link = selectedJob?.applicationLink;
-  if (!link) return;
+  handleProtectedAction(() => {
+    const link = selectedJob?.applicationLink;
+    if (!link) return;
 
-  if (isEmailLink(link)) {
-    // لو الإيميل نضيف mailto: بس من غير < >
-    const email = link.replace(/^mailto:/i, "").trim(); // نشيل mailto: لو موجودة
-    window.location.href = `mailto:${email}`;
-  } else {
-    window.open(link, "_blank", "noopener,noreferrer");
-  }
+    if (isEmailLink(link)) {
+      const email = link.replace(/^mailto:/i, "").trim();
+      window.location.href = `mailto:${email}`;
+    } else {
+      window.open(link, "_blank", "noopener,noreferrer");
+    }
+  });
 };
+
 const isEmailLink = (link?: string) => {
   if (!link) return false;
   // لو بيبدأ بـ http أو https = رابط مش إيميل
