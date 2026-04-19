@@ -350,12 +350,15 @@ const isEmailLink = (link?: string) => {
   </span>
 
   {/* seniority */}
-  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium border
+   {selectedJob.seniority && (
+      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium border
     bg-amber-50 text-amber-900 border-amber-200
     dark:bg-amber-950/50 dark:text-amber-200 dark:border-amber-800">
     <Star className="w-3 h-3" />
     {selectedJob.seniority}
   </span>
+   )}
+
 
   {/* model */}
   {selectedJob.model &&(
