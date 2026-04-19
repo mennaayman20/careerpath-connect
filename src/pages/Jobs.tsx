@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import { Search, MapPin, Clock, Building2, Briefcase, X, Sparkles, Star, Globe } from "lucide-react";
+import { Search, MapPin, Clock, Building2, Briefcase, X, Sparkles, Star, Globe, Mail } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { motion } from "framer-motion";
 import { useQuery } from "@tanstack/react-query";
@@ -141,6 +141,29 @@ const handleProtectedAction = (action: () => void) => {
   // لو مسجل، نفذ الأكشن عادي
   action();
 };
+
+
+const handleApplicationClick = () => {
+  const link = selectedJob?.applicationLink;
+  if (!link) return;
+
+  if (isEmailLink(link)) {
+    // لو الإيميل نضيف mailto: بس من غير < >
+    const email = link.replace(/^mailto:/i, "").trim(); // نشيل mailto: لو موجودة
+    window.location.href = `mailto:${email}`;
+  } else {
+    window.open(link, "_blank", "noopener,noreferrer");
+  }
+};
+const isEmailLink = (link?: string) => {
+  if (!link) return false;
+  // لو بيبدأ بـ http أو https = رابط مش إيميل
+  if (link.startsWith("http://") || link.startsWith("https://")) return false;
+  // باقي الحالات = إيميل
+  return true;
+};
+
+
   return (
     <div className="flex min-h-screen flex-col bg-background">
       <Navbar />
@@ -224,7 +247,7 @@ const handleProtectedAction = (action: () => void) => {
     </span>
   ) : (
     <span className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-blue-600 bg-blue-100 px-2 py-0.5 rounded-md">
-      <Building2 className="h-3 w-3" /> Internal
+      <Building2 className="h-3 w-3" /> By UPPLY
     </span>
   )}
 </div>
@@ -415,19 +438,50 @@ const handleProtectedAction = (action: () => void) => {
         To apply, please use the contact method or external link provided by the recruiter below:
       </p>
       
-      <a 
+
+      {/* <a 
         href={selectedJob.applicationLink} 
         target="_blank" 
         rel="noopener noreferrer"
         className="group relative flex items-center justify-between gap-3 rounded-xl bg-background border border-border p-3 transition-all hover:border-blue-500 hover:shadow-md"
       >
+
+
+
         <span className="truncate text-sm font-medium text-blue-600 dark:text-blue-400 underline-offset-4 group-hover:underline">
           {selectedJob.applicationLink}
         </span>
+
+        
         <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-muted group-hover:bg-blue-100 group-hover:text-blue-600 transition-colors">
           <Sparkles className="h-3 w-3" />
         </div>
-      </a>
+      </a> */}
+
+      <div
+  onClick={handleApplicationClick}
+  className="group relative flex items-center justify-between gap-3 rounded-xl bg-background border border-border p-3 transition-all hover:border-blue-500 hover:shadow-md cursor-pointer"
+>
+  <span className="truncate text-sm font-medium text-blue-600 dark:text-blue-400 underline-offset-4 group-hover:underline">
+    {selectedJob.applicationLink}
+  </span>
+  <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-muted group-hover:bg-blue-100 group-hover:text-blue-600 transition-colors">
+    {isEmailLink(selectedJob?.applicationLink) ? (
+      <Mail className="h-3 w-3" />
+    ) : (
+      <Sparkles className="h-3 w-3" />
+    )}
+  </div>
+</div>
+
+
+
+
+
+
+
+
+
     </div>
   </div>
 ) : (
