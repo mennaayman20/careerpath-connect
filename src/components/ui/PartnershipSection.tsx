@@ -7,8 +7,16 @@ interface PartnershipSectionProps {
 
 const PartnershipSection = ({ partnerImage, partnerName = "Partner" }: PartnershipSectionProps) => {
   return (
-    <section className="py-20 bg-[#2D236A]">
+    <section className="relative py-20 bg-[#2D236A] overflow-hidden">
+
+ 
+
       <div className="container mx-auto px-6">
+<div className="pointer-events-none absolute inset-y-0 left-0 w-1/3 bg-[radial-gradient(ellipse_at_left_center,_#7c3aed55_0%,_transparent_65%)]" />
+
+  {/* إضاءة اليمين */}
+  <div className="pointer-events-none absolute inset-y-0 right-0 w-1/3 bg-[radial-gradient(ellipse_at_right_center,_#7c3aed55_0%,_transparent_65%)]" />
+
 
         {/* Header */}
         <div className="text-center mb-14">
