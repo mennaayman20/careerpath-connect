@@ -68,45 +68,70 @@ const Jobs = () => {
   const [search, setSearch] = useState("");
   const [searchParams, setSearchParams] = useSearchParams();
   const jobIdFromUrl = searchParams.get("id");
+  const { data: selectedJobDetails, isLoading: isDetailsLoading } = useJobDetails(jobIdFromUrl);
 
 
-
-
-
-// const { data: allJobs = [], isLoading: isJobsLoading } = useJobs(0, 50); // هاتي كمية كبيرة عشان السيرش يغطيهم
-// const isLoading = isJobsLoading;
-
-const [currentPage, setCurrentPage] = useState(0);
 const PAGE_SIZE = 10;
+const [currentPage, setCurrentPage] = useState(0);
+const [allJobsCache, setAllJobsCache] = useState<Job[]>([]);
+
 
 const { data: jobsData, isLoading: isJobsLoading } = useJobs(currentPage, PAGE_SIZE);
-const allJobs = jobsData?.content || [];
-const totalPages = jobsData?.totalPages || 1;
 const isLoading = isJobsLoading;
 
+// كل ما جاءت page جديدة، أضيفها على الـ cache
+useEffect(() => {
+  if (jobsData?.content) {
+    setAllJobsCache(prev => {
+      const existingIds = new Set(prev.map(j => j.id));
+      const newJobs = jobsData.content.filter(j => !existingIds.has(j.id));
+      return [...prev, ...newJobs];
+    });
+  }
+}, [jobsData]);
 
+const totalPages = jobsData?.totalPages || 1;
 
-// const { data: jobs = [], isLoading: isJobsLoading } = useJobs();
-const { data: selectedJobDetails, isLoading: isDetailsLoading } = useJobDetails(jobIdFromUrl);
-
-// 2. الـ Logic ده بيشتغل فوري في المتصفح
-const jobs = allJobs.filter((job) => {
+// السيرش بيشتغل على الـ cache لو في search، وإلا على الـ page الحالية
+const jobs = (search.trim() ? allJobsCache : (jobsData?.content || [])).filter((job) => {
   const q = search.toLowerCase().trim();
-  
-  // لو مفيش سيرش، اعرضي كل الوظائف
   if (!q) return true;
-
-  // فلتري بناءً على الحقول اللي تحبيها
   return (
     job.title?.toLowerCase().includes(q) ||
     job.organizationName?.toLowerCase().includes(q) ||
     job.location?.toLowerCase().includes(q) ||
     job.description?.toLowerCase().includes(q) ||
-    // لو عايزة تفلتري بالمهارات كمان:
     job.skills?.some(skill => skill.skillName.toLowerCase().includes(q))
   );
 });
+
+
+
+
+
+// // 2. الـ Logic ده بيشتغل فوري في المتصفح
+// const jobs = allJobs.filter((job) => {
+//   const q = search.toLowerCase().trim();
   
+//   // لو مفيش سيرش، اعرضي كل الوظائف
+//   if (!q) return true;
+
+//   // فلتري بناءً على الحقول اللي تحبيها
+//   return (
+//     job.title?.toLowerCase().includes(q) ||
+//     job.organizationName?.toLowerCase().includes(q) ||
+//     job.location?.toLowerCase().includes(q) ||
+//     job.description?.toLowerCase().includes(q) ||
+//     // لو عايزة تفلتري بالمهارات كمان:
+//     job.skills?.some(skill => skill.skillName.toLowerCase().includes(q))
+//   );
+// });
+  
+
+
+
+
+
   const currentJobBase = jobs.find(j => j.id.toString() === jobIdFromUrl);
   const selectedJob = selectedJobDetails ? { ...currentJobBase, ...selectedJobDetails } : currentJobBase;
 
@@ -190,8 +215,8 @@ const isEmailLink = (link?: string) => {
     <Input
       value={search}
       onChange={(e) => {
-        setSearch(e.target.value);
-        setCurrentPage(0);
+        setSearch(e.target.value)
+        
       }}
       placeholder="Search by Title, or Company"
       className={cn(
@@ -203,8 +228,8 @@ const isEmailLink = (link?: string) => {
     />
   </div>
 
-  {/* Pagination
-  {totalPages > 1 && (
+  {/* Pagination */}
+  {/* {totalPages > 1 && (
     <div className="flex items-center gap-2">
       <button
         onClick={() => setCurrentPage(p => Math.max(0, p - 1))}
@@ -587,7 +612,7 @@ const isEmailLink = (link?: string) => {
         )}
 
 
-        {totalPages > 1 && (
+        {totalPages > 1 && !search.trim() && (
             <div className="flex items-center justify-center gap-2 py-8">
               <button
                 onClick={() => setCurrentPage(p => Math.max(0, p - 1))}
