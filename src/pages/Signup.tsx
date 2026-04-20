@@ -22,7 +22,7 @@ const Signup = () => {
   // ضيفي دي جوه الكومبوننت قبل الـ handleSubmit
 const passwordRequirements = [
   
-  { label: "At least 8 characters", met: form.password.length >= 8 },
+  { label: "At least 6 characters", met: form.password.length >= 6 },
   { label: " At Least One uppercase letter (A-Z)", met: /[A-Z]/.test(form.password) },
   { label: "Contains a number", met: /\d/.test(form.password) },
   { label: "Contains special character", met: /[@$!%*?&#^_]/.test(form.password) },

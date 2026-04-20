@@ -14,6 +14,7 @@ import { ApplyModal } from "@/features/application/components/applyModal";
 import { useMatchedJobs } from "@/hooks/useJobs";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
+import { useSkills } from "@/hooks/useSkills";
 
 const getRelativeTime = (date: string | Date): string => {
   const now = new Date();
@@ -86,6 +87,9 @@ const tierOrder: Array<"gold" | "silver" | "bronze"> = ["gold", "silver", "bronz
 const MatchedJobs = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
+
+  const { skills, isLoading: isSkillsLoading } = useSkills();
+
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
   const [searchParams, setSearchParams] = useSearchParams();
   const [expandedTiers, setExpandedTiers] = useState<Record<string, boolean>>({});
@@ -155,6 +159,43 @@ const isEmailLink = (link?: string) => {
   // باقي الحالات = إيميل
   return true;
 };
+
+
+
+
+  if (!isSkillsLoading && skills.length === 0) {
+    return (
+      <div className="flex min-h-screen flex-col bg-background ">
+        <Navbar />
+        <main className="container flex-1 py-9 max-w-7xl">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="mx-auto max-w-lg flex flex-col items-center justify-center py-16 px-6 text-center border-2 border-dashed border-blue-300 rounded-3xl bg-slate-100 mt-10"
+          >
+            <div className="mb-6 rounded-full bg-accent/10 p-5">
+              <Sparkles className="h-12 w-12 text-accent" />
+            </div>
+            <h2 className="text-2xl font-bold text-foreground">Build Your Profile First</h2>
+            <p className="mt-3 text-muted-foreground">
+              Add your skills so our AI can find the best job matches for you.
+            </p>
+            <Button
+              className="mt-8 px-10 h-10 text-lg"
+              onClick={() => navigate("/profile")}
+            >
+              Add My Skills
+            </Button>
+          </motion.div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
+
+
+
+
 
 
 
