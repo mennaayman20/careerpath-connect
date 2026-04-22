@@ -15,7 +15,7 @@ import { motion } from "framer-motion";
 import { useQuery } from "@tanstack/react-query";
 import { ApplyModal } from "@/features/application/components/applyModal";
 import { cn } from "@/lib/utils";
-import { useJobDetails, useJobs } from "@/hooks/useJobs";
+import { useJobDetails, useJobs, useJobSearch } from "@/hooks/useJobs";
 
 
 
@@ -65,48 +65,32 @@ const Jobs = () => {
   const { isAuthenticated } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
-  const [search, setSearch] = useState("");
+ 
   const [searchParams, setSearchParams] = useSearchParams();
   const jobIdFromUrl = searchParams.get("id");
   const { data: selectedJobDetails, isLoading: isDetailsLoading } = useJobDetails(jobIdFromUrl);
 
 
-const PAGE_SIZE = 10;
+   
+ const [search, setSearch] = useState("");
+const [debouncedSearch, setDebouncedSearch] = useState("");
 const [currentPage, setCurrentPage] = useState(0);
-const [allJobsCache, setAllJobsCache] = useState<Job[]>([]);
+const PAGE_SIZE = 10;
 
+useEffect(() => {
+  const timer = setTimeout(() => {
+    setDebouncedSearch(search);
+  }, 400);
+  return () => clearTimeout(timer);
+}, [search]);
 
 const { data: jobsData, isLoading: isJobsLoading } = useJobs(currentPage, PAGE_SIZE);
-const isLoading = isJobsLoading;
+const { data: searchData, isLoading: isSearchLoading } = useJobSearch(debouncedSearch, 0, PAGE_SIZE);
 
-// كل ما جاءت page جديدة، أضيفها على الـ cache
-useEffect(() => {
-  if (jobsData?.content) {
-    setAllJobsCache(prev => {
-      const existingIds = new Set(prev.map(j => j.id));
-      const newJobs = jobsData.content.filter(j => !existingIds.has(j.id));
-      return [...prev, ...newJobs];
-    });
-  }
-}, [jobsData]);
-
-const totalPages = jobsData?.totalPages || 1;
-
-// السيرش بيشتغل على الـ cache لو في search، وإلا على الـ page الحالية
-const jobs = (search.trim() ? allJobsCache : (jobsData?.content || [])).filter((job) => {
-  const q = search.toLowerCase().trim();
-  if (!q) return true;
-  return (
-    job.title?.toLowerCase().includes(q) ||
-    job.organizationName?.toLowerCase().includes(q) ||
-    job.location?.toLowerCase().includes(q) ||
-    job.description?.toLowerCase().includes(q) ||
-    job.skills?.some(skill => skill.skillName.toLowerCase().includes(q))
-  );
-});
-
-
-
+const isSearching = debouncedSearch.trim().length > 0;
+const isLoading = isSearching ? isSearchLoading : isJobsLoading;
+const totalPages = isSearching ? (searchData?.totalPages || 1) : (jobsData?.totalPages || 1);
+const jobs = isSearching ? (searchData?.content || []) : (jobsData?.content || []);
 
 
 // // 2. الـ Logic ده بيشتغل فوري في المتصفح
@@ -215,10 +199,11 @@ const isEmailLink = (link?: string) => {
     <Input
       value={search}
       onChange={(e) => {
-        setSearch(e.target.value)
+        setSearch(e.target.value);
+        setCurrentPage(0);
         
       }}
-      placeholder="Search by Title, or Company"
+      placeholder="Search by Title , Company or loaction"
       className={cn(
         "peer h-11 w-full rounded-[20px] pl-11 pr-4 transition-all duration-300",
         "bg-background border-2 border-blue-200",
@@ -261,7 +246,7 @@ const isEmailLink = (link?: string) => {
 
         </div>
 
-        {isJobsLoading ? (
+        {isLoading ? (
           <div className="flex items-center justify-center py-20">
             <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
           </div>

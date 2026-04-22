@@ -1,6 +1,7 @@
 // src/hooks/useJobs.ts
 import { useQuery } from "@tanstack/react-query";
 import { jobService } from "@/services/jobService";
+import { useEffect, useState } from "react";
 
 export const useJobs = (page = 0, size = 10) => {
   return useQuery({
@@ -42,13 +43,16 @@ export const useMatchedJobs = () => {
 
 
 
-// export const useJobSearch = (keyword: string, page = 0, size = 10) => {
-//   return useQuery({
-//     queryKey: ['jobsSearch', keyword, page, size],
-//     // هنا بتبعتي الـ keyword كـ object عشان الـ service تستقبله صح
-//     queryFn: () => jobService.searchJobs({ keyword }, page, size),
-//     select: (data) => data.content || [],
-//     enabled: keyword.trim().length > 0,
-//     staleTime: 1000 * 60 * 2,
-//   });
-// };
+export const useJobSearch = (keyword: string, page = 0, size = 10) => {
+  return useQuery({
+    queryKey: ['jobsSearch', keyword, page, size],
+    queryFn: () => jobService.searchJobs(keyword, page, size),
+    enabled: keyword.trim().length > 0,
+    staleTime: 0, // ← دايماً يبعت request جديدة لأن الكلمة بتتغير
+    select: (data) => ({
+      content: data.content || [],
+      totalPages: data.totalPages || 1,
+      totalElements: data.totalElements || 0,
+    }),
+  });
+};
