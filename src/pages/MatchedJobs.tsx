@@ -321,12 +321,12 @@ const isEmailLink = (link?: string) => {
                                   
 
                                  
-                                  <span
+                                  {/* <span
                                     className="inline-block text-xs font-semibold px-3 py-1 rounded-md mb-3 mt-1"
                                     style={{ background: cfg.badge.bg, color: cfg.badge.color }}
                                   >
                                     {pct}% match
-                                  </span>
+                                  </span> */}
 
                                   <h3 className="text-base font-semibold text-foreground  leading-snug pr-8">
                                     {job.title}
