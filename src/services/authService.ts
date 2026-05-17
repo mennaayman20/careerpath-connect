@@ -23,3 +23,16 @@ export const activateAccount = async (token:string) => {
   const response = await api.get("/auth/activate", { params: { token } });
 return response.data;
 };
+
+
+
+export const forgotPassword = async (email: string) => {
+  const response = await api.post("/auth/forgot-password", { email });
+  return response.data;
+};
+
+// Reset Password — uses token from email link
+export const resetPassword = async (token: string, newPassword: string) => {
+  const response = await api.post("/auth/reset-password", { token, newPassword });
+  return response.data;
+};

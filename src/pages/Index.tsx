@@ -10,6 +10,7 @@ import phoneMockup from "@/assets/phone-mockup-removebg-preview.png";
 import { motion } from "framer-motion";
 import PartnershipSection from "@/components/ui/PartnershipSection";
 import partnerLogo from "@/assets/convertio.in_a5er nos22.png"; // حطي صورة الشراكة هنا
+
 const fadeIn = {
   hidden: { opacity: 0, y: 20 },
   visible: { opacity: 1, y: 0, transition: { duration: 0.6 } },
@@ -30,7 +31,9 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-background text-foreground">
       <Navbar />
-      <HeroSection />
+   
+ 
+     <HeroSection />
       <AboutSection />
       <HowItWorks />
             <PartnershipSection partnerImage={partnerLogo} partnerName="اسم الشريك" />

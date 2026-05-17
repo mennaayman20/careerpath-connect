@@ -41,9 +41,9 @@ export type JobResponse = Job;
 
 export interface JobRequest {
   title: string;
-  type: string;
-  seniority: string;
-  model: string;
+  type: JobType | "";
+  seniority: JobSeniority | "";
+  model: JobModel | "";
   location: string;
   description: string;
   skillIds: number[];
@@ -71,4 +71,28 @@ export interface ApiResponse<T> {
   success: boolean;
   data?: T;
   error?: string;
+}
+
+
+
+
+export enum JobType {
+  FULL_TIME = "FULL_TIME",
+  PART_TIME = "PART_TIME",
+  INTERNSHIP = "INTERNSHIP"
+}
+
+export enum JobSeniority {
+  INTERN = "INTERN",
+  JUNIOR = "JUNIOR",
+  MID = "MID",
+  SENIOR = "SENIOR",
+  LEAD = "LEAD",
+  MANAGER = "MANAGER"
+}
+
+export enum JobModel {
+  ONSITE = "ONSITE",
+  HYBRID = "HYBRID",
+  REMOTE = "REMOTE"
 }

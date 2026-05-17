@@ -3,8 +3,12 @@ import { loginUser, registerUser } from "@/services/authService";
 import React, { createContext, useContext, useState, useCallback, useEffect } from "react";
 import { jwtDecode } from "jwt-decode"
 interface User {
+  
   name: string;
   email: string;
+
+ 
+  
 }
 
 interface JWTPayload {
@@ -12,9 +16,12 @@ interface JWTPayload {
     sub?: string;
     exp?: number;
     iat?: number;
+
+   
   }
 
 interface AuthContextType {
+  
   user: User | null;
   isAuthenticated: boolean;
   isLoading: boolean; // أضفنا دي للأمان زيادة
@@ -23,6 +30,8 @@ interface AuthContextType {
   logout: () => void;
   isDarkMode: boolean;
   toggleDarkMode: () => void;
+
+  //  updateOrganizationId: (orgId: number) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -35,7 +44,7 @@ const getUserFromToken = (token: string | null): User | null => {
     if (!token) return null;
     try {
       const decoded = jwtDecode<JWTPayload>(token);
-      
+      const savedOrgId = localStorage.getItem("user_org_id"); // اقرأي الـ ID اللي حفظناه
       // ✅ زود السطرين دول بس
       const now = Math.floor(Date.now() / 1000);
       if (decoded.exp && decoded.exp < now) {
@@ -45,7 +54,9 @@ const getUserFromToken = (token: string | null): User | null => {
 
       return { 
         name: decoded.fullName || "User", 
-        email: decoded.sub || "" 
+        email: decoded.sub || "" ,
+
+
       };
     } catch {
       return null;
@@ -54,6 +65,11 @@ const getUserFromToken = (token: string | null): User | null => {
 
 
 
+// const updateOrganizationId = useCallback((orgId: number) => {
+//   setUser(prev => prev ? { ...prev, organizationId: orgId } : null);
+
+//   localStorage.setItem("user_org_id", orgId.toString());
+// }, []);
 
 
 
@@ -149,7 +165,8 @@ useEffect(() => {
         signup, 
         logout, 
         isDarkMode, 
-        toggleDarkMode 
+        toggleDarkMode ,
+        // updateOrganizationId
       }}
     >
       {children}

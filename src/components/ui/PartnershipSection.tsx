@@ -12,6 +12,7 @@ const PartnershipSection = ({ partnerImage, partnerName = "Partner" }: Partnersh
  
 
       <div className="container mx-auto px-6">
+        
 <div className="pointer-events-none absolute inset-y-0 left-0 w-1/3 bg-[radial-gradient(ellipse_at_left_center,_#7c3aed55_0%,_transparent_65%)]" />
 
   {/* إضاءة اليمين */}

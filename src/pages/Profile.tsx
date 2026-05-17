@@ -263,6 +263,7 @@ const resumeId = profile?.resumeId;
 
 
         {/* Skills */}
+        
         {activeSection === "skills" && (
   <div className="space-y-6">
     <h2 className="font-display text-3xl font-bold text-foreground">

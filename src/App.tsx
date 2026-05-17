@@ -24,7 +24,9 @@ import RecruiterDashboard from "./features/Recruiter/RecruiterDashboard";
 // import { OrganizationProfile } from "./features/Recruiter/OrgProfile/Orgprofilepage";
 // import { OrgCreatePage } from "./features/Recruiter/OrgProfile/OrgCreatePage";
 import { RecruiterJobsPage } from "./features/Recruiter/jobPosts/RecruiterJobsPage";
-import VerifyOrganization from "./pages/VerifyOrganization";
+
+import VerifyOrganization from "@/pages/VerifyOrganization";
+
 import { JobsPage } from "@/features/Recruiter/MangeJobs/components/jobs/JobsPage";
 import VerifyOrgPage from "./features/org-connect/VerifyOrgPage";
 import OrganizationProfilePage from "./pages/Orgprofilepage";
@@ -83,7 +85,7 @@ const App = () => (
       {/* صفحة إنشاء المنظمة - متاحة فقط للموظفين اللي لسه معندهمش شركة */}
     {/* <Route path="/organization/create"  element={<OrgCreatePage />} />  */}
      
-{/* <Route path="/organization/:id"     element={<OrgProfilePage />} /> */}
+
 
 
 <Route path="/recruiter/jobs" element={<RecruiterJobsPage />} />
