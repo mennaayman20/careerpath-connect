@@ -182,69 +182,60 @@ const isEmailLink = (link?: string) => {
   return (
     <div className="flex min-h-screen flex-col bg-background">
       <Navbar />
-      <div className="container flex-1 py-8">
-        <div className="mb-8">
-          <h1 className="font-display text-3xl font-bold text-foreground flex items-center gap-2">
+<section className="relative bg-[#2D236A] overflow-hidden py-10 px-8 mb-3 rounded-2xl">
+  {/* Background Gradient */}
+  <div className="absolute inset-0 bg-[radial-gradient(ellipse_50%_120%_at_85%_50%,rgba(28,163,123,.2)_0%,transparent_70%)]" />
   
-  Browse Jobs
-</h1>
-          <p className="mt-1 text-muted-foreground">Find your next opportunity</p>
-        
-          {/* Search bar */}
-{/* Search bar + Pagination */}
-<div className="mt-4 flex items-center gap-4">
-  {/* Search */}
-  <div className="relative max-w-md flex-1">
-    <Search className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground z-20" />
-    <Input
-      value={search}
-      onChange={(e) => {
-        setSearch(e.target.value);
-        setCurrentPage(0);
-        
-      }}
-      placeholder="Search by Title , Company or loaction"
-      className={cn(
-        "peer h-11 w-full rounded-[20px] pl-11 pr-4 transition-all duration-300",
-        "bg-background border-2 border-blue-200",
-        "placeholder:text-muted-foreground/60",
-        "animate-rotate-shadow focus:ring-0"
-      )}
-    />
-  </div>
-
-  {/* Pagination */}
-  {/* {totalPages > 1 && (
-    <div className="flex items-center gap-2">
-      <button
-        onClick={() => setCurrentPage(p => Math.max(0, p - 1))}
-        disabled={currentPage === 0}
-        className="flex items-center justify-center h-9 w-9 rounded-full border border-border bg-card hover:border-primary/50 hover:bg-primary/5 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
-      >
-        <ChevronLeft className="h-4 w-4" />
-      </button>
-
-      <span className="text-sm text-muted-foreground whitespace-nowrap">
-        <span className="font-semibold text-foreground">{currentPage + 1}</span>
-        {" / "}
-        <span className="font-semibold text-foreground">{totalPages}</span>
-      </span>
-
-      <button
-        onClick={() => setCurrentPage(p => Math.min(totalPages - 1, p + 1))}
-        disabled={currentPage === totalPages - 1}
-        className="flex items-center justify-center h-9 w-9 rounded-full border border-border bg-card hover:border-primary/50 hover:bg-primary/5 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
-      >
-        <ChevronRight className="h-4 w-4" />
-      </button>
+  {/* 💡 الـ Container الأساسي اللي بيحكم المسافات والمحاذاة */}
+  <div className="relative z-10 max-w-screen-xl mx-auto px-6 flex flex-col gap-8">
+    
+    {/* الجزء العلوي: النصوص والبادج */}
+    <div>
+      {/* Badge */}
+      <div className="inline-flex items-center gap-2 bg-[#1ca37b]/20 border border-[#1ca37b]/40 text-[#5de8b8] text-[10px] font-bold uppercase rounded-full px-3 py-1 mb-4">
+        <span className="w-1.5 h-1.5 rounded-full bg-[#1ca37b] animate-pulse" /> 
+        Explore Opportunities
+      </div>
+      
+      {/* Main Heading - White and Bold */}
+      <h1 className="font-display text-3xl md:text-2xl font-bold text-white mb-3">
+        Browse <span className="text-[#59daad]">Available Jobs</span>
+      </h1>
+      
+      {/* Subtitle - Brighter white for clarity */}
+      <p className="text-white/80 max-w-lg leading-relaxed">
+        Discover top opportunities and take the next step in your career.
+      </p>
     </div>
-  )} */}
-</div>
+    
+    {/* 💡 السيرش بار: بنفس الاستايل الأصلي بتاعك بالظبط بس بمحاذاة مظبوطة */}
+    <div className="w-full">
+      <div className="relative max-w-md">
+        <Search className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground z-20" />
+        <Input
+          value={search}
+          onChange={(e) => { setSearch(e.target.value); setCurrentPage(0); }}
+          placeholder="Search by Title, Company or location"
+          className={cn(
+            "peer h-11 w-full rounded-[15px] pl-11 pr-4 transition-all duration-300 ",
+            "bg-background border-3 border-blue-200",
+            "placeholder:text-muted-foreground/60",
+            "animate-rotate-shadow focus:ring-0"
+          )}
+        />
+      </div>
+    </div>
+
+  </div>
+</section>
+      <div className="container flex-1 py-8">
+{/* Hero - full width */}
 
 
 
 
-        </div>
+
+
 
         {isLoading ? (
           <div className="flex items-center justify-center py-20">
@@ -259,83 +250,97 @@ const isEmailLink = (link?: string) => {
               {jobs.length === 0 ? (
                 <p className="py-12 text-center text-muted-foreground">No jobs found</p>
               ) : (
-                jobs.map((job, i) => (
-                  <motion.div
-                    key={job.id}
-                    initial={{ opacity: 0, y: 12 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: i * 0.05 }}
-                    className={cn(
-  "cursor-pointer rounded-xl border p-5 transition-all duration-300 bg-card",
-  // عند الـ Hover: بنرفع الكارد سنة، ونغير لون البرواز، ونضيف الـ Glow (النور)
-  "hover:-translate-y-1  hover:shadow-[0_0_15px_rgba(59,130,246,0.3)]", 
-  // لو الكارد مختارة أصلاً (Active)
-  selectedJob?.id === job.id ? "border-primary/50 shadow-md" : "border-border"
-)}
-                    onClick={() => handleJobSelect(job)}
-                  >
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <h3 className="font-display font-semibold text-foreground">{job.title}</h3>
-                        {job.organizationName &&(
-                           <p className="mt-1 flex items-center gap-1 text-sm text-muted-foreground">
-                         
-                          <Building2 className="h-3.5 w-3.5" /> {job.organizationName}
-                        </p>
+              jobs.map((job, i) => (
+  <motion.div
+    key={job.id}
+    initial={{ opacity: 0, y: 12 }}
+    animate={{ opacity: 1, y: 0 }}
+    transition={{ delay: i * 0.05 }}
+    onClick={() => handleJobSelect(job)}
+    className={cn(
+      "relative cursor-pointer overflow-hidden rounded-2xl border p-5 transition-all duration-300",
+      "bg-white  hover:shadow-xl hover:-translate-y-1 group",
+      selectedJob?.id === job.id 
+        ? "border-blue-300 bg-violet-50/30 dark:bg-violet-950/10 ring-1 ring-violet-500/20" 
+        : "border-border hover:border-violet-300"
+    )}
+  >
+    {/* شريط جانبي ملون - موف لـ Upply وأمبر للمصادر الخارجية */}
+    <div className={cn(
+      "absolute left-0 top-0 h-full w-1.5 transition-colors",
+      job.jobSource === "external" ? "bg-amber-400" : "bg-violet-600"
+    )} />
 
-                        )}
-                       
+    <div className="flex items-start justify-between gap-4">
+      <div className="flex-1">
+        {/* الشركة والمصدر */}
+        <div className="flex items-center gap-2 mb-1.5">
+          <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground/80">
+            {job.organizationName || "Confidential"}
+          </span>
+          <span className="h-1 w-1 rounded-full bg-border" />
+          
+          {job.jobSource === "external" ? (
+             <span className="flex items-center gap-1 text-[10px] text-amber-600 font-bold bg-amber-50 px-2 py-0.5 rounded border border-amber-100">
+               <Globe className="h-2.5 w-2.5" /> External
+             </span>
+          ) : (
+             <span className="flex items-center gap-1 text-[10px] text-violet-700 font-bold bg-violet-100 px-2 py-0.5 rounded border border-violet-200">
+               <Sparkles className="h-2.5 w-2.5" /> By UPPLY
+             </span>
+          )}
+        </div>
 
+        {/* عنوان الوظيفة */}
+        <h3 className="font-display text-lg font-bold text-foreground transition-colors line-clamp-1">
+          {job.title}
+        </h3>
 
+        {/* تفاصيل المكان والوقت */}
+        <div className="mt-4 flex flex-wrap gap-y-2 gap-x-4">
+          <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+            <div className="flex h-6 w-6 items-center justify-center rounded-md bg-muted group-hover:bg-violet-100  transition-colors">
+              <MapPin className="h-3.5 w-3.5" />
+            </div>
+            {job.location || "Remote"}
+          </div>
 
+          <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+            <div className="flex h-6 w-6 items-center justify-center rounded-md bg-muted group-hover:bg-violet-100 transition-colors">
+              <Briefcase className="h-3.5 w-3.5" />
+            </div>
+            {job.type}
+          </div>
 
-                        {/* external jobs */}
+          <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+            <div className="flex h-6 w-6 items-center justify-center rounded-md bg-muted group-hover:bg-violet-100 transition-colors">
+              <Clock className="h-3.5 w-3.5" />
+            </div>
+            {getRelativeTime(job.createdDate)}
+          </div>
+        </div>
+      </div>
 
-                        <div className="mt-2 flex items-center gap-2">
-  {job.jobSource === "external" ? (
-    <span className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-amber-600 bg-amber-100 px-2 py-0.5 rounded-md">
-      <Globe className="h-3 w-3" /> External Source
-    </span>
-  ) : (
-    <span className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-blue-600 bg-blue-100 px-2 py-0.5 rounded-md">
-      <Building2 className="h-3 w-3" /> By UPPLY
-    </span>
-  )}
-</div>
-                      </div>
-<Badge 
-  className={`
-    flex items-center gap-1 px-4 py-1 rounded-full  text-[10px] uppercase transition-all
-    ${job.status?.toLowerCase() === "open" 
-      ? "bg-[#4da78c] text-white shadow-sm shadow-[#1ca37b]/50 border-none" 
-      : "bg-slate-200 text-slate-600 dark:bg-slate-800 dark:text-slate-400"
-    }
-  `}
->
-
-  {job.status || "Unknown"}
-</Badge>
-                    </div>
-                   <div className="mt-3 flex flex-wrap gap-2 text-xs text-muted-foreground">
-  {job.location && (
-      <span className="flex items-center gap-1"><MapPin className="h-3 w-3" />
-  {job.location}</span>
-  )}
-
-
-  {job.type && (
-      <span className="flex items-center gap-1"><Briefcase className="h-3 w-3" />{job.type}</span>
-
-  )}
-  
-  <span className="flex items-center gap-1">
-    <Clock className="h-3 w-3" />
-    {/* هنا غيرنا selectedJob إلى job */}
-    {getRelativeTime(job.createdDate)} 
-  </span>
-</div>
-                  </motion.div>
-                ))
+      {/* الحالة والسهم */}
+      <div className="flex flex-col items-end gap-3">
+        <Badge 
+          className={cn(
+            "rounded-lg px-2.5 py-1 text-[10px] font-bold uppercase border-none shadow-sm transition-all",
+            job.status?.toLowerCase() === "open" || job.status?.toLowerCase() === "active"
+              ? "bg-[#1ca37b] text-white group-hover:bg-[#178a68]" 
+              : "bg-slate-200 text-slate-600"
+          )}
+        >
+          {job.status}
+        </Badge>
+        
+        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-50 border border-slate-100 opacity-0 group-hover:opacity-100 group-hover:translate-x-0 -translate-x-2 transition-all duration-300 shadow-sm">
+          <ChevronRight className="h-4 w-4 text-violet-600" />
+        </div>
+      </div>
+    </div>
+  </motion.div>
+))
               )}
             </div>
 

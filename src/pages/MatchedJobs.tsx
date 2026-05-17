@@ -202,7 +202,31 @@ const isEmailLink = (link?: string) => {
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
-      <Navbar />
+      <Navbar />   
+<section className="relative bg-[#2D236A] overflow-hidden py-16 px-8 mb-8 rounded-2xl ">
+  {/* Ambient Background Glow */}
+  <div className="absolute inset-0 bg-[radial-gradient(ellipse_50%_120%_at_85%_50%,rgba(28,163,123,.2)_0%,transparent_70%)]" />
+  
+  <div className="relative z-10 max-w-screen-xl mx-auto px-6 flex flex-wrap items-center justify-between gap-8">
+    <div>
+      {/* Badge */}
+      <div className="inline-flex items-center gap-2 bg-[#1ca37b]/20 border border-[#1ca37b]/40 text-[#5de8b8] text-[10px] font-bold uppercase rounded-full px-3 py-1 mb-4">
+        <span className="w-1.5 h-1.5 rounded-full bg-[#1ca37b] animate-pulse" /> 
+        AI-Powered Selection
+      </div>
+      
+      {/* Title - Pure White */}
+      <h1 className="text-3xl font-bold font-display flex items-center gap-3 text-white">
+        <Sparkles className="h-8 w-8 text-[#5de8b8]" />
+        Recommended Jobs
+      </h1>
+      
+      {/* Subtitle - High contrast white for readability */}
+      <p className="text-base text-white/90 mt-3 max-w-lg leading-relaxed">
+Personalized job matches tailored to your profile      </p>
+    </div>
+  </div>
+</section> 
       <main className="container flex-1 py-9  max-w-7xl">
 
         {/* Loading */}
@@ -237,36 +261,70 @@ const isEmailLink = (link?: string) => {
               </motion.div>
             ) : (
               <div className="space-y-6">
-                <div className="mb-8">
+                {/* <div className="mb-8">
                    
                   <h1 className="text-3xl font-bold font-display flex items-center gap-2">
     <Sparkles className="h-7 w-7 text-accent" />
     Recommended Jobs
   </h1>
                   <p className="text-muted-foreground">Top picks based on your unique skill set</p>
-                </div>
+                </div> */}
+
+
+ 
+
+
+
+
 
                 {!selectedJob ? (
                   <div className="space-y-10">
 
                     {/* Legend */}
-                    <div className="flex flex-wrap gap-4 p-4 rounded-xl bg-muted/40 border border-border text-sm">
-                      {tierOrder.map((tier) => {
-                        const cfg = tierConfig[tier];
-                        return (
-                          <div key={tier} className="flex items-start gap-2">
-                            <div
-                              className="w-2.5 h-2.5 rounded-full mt-1 flex-shrink-0"
-                              style={{ background: cfg.accent }}
-                            />
-                            <div>
-                              <span className="font-medium text-foreground">{cfg.label}</span>
-                              <span className="text-muted-foreground"> — {cfg.hint}</span>
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
+<div className="grid grid-cols-1 md:grid-cols-3 gap-5 p-5 rounded-2xl bg-slate-50 border border-slate-300/70 backdrop-blur-sm">
+  {tierOrder.map((tier, index) => {
+    const cfg = tierConfig[tier as keyof typeof tierConfig];
+    if (!cfg) return null;
+
+    return (
+      <div 
+        key={tier} 
+        className={`  flex items-start gap-3.5 relative ${
+          index !== 0 ? "md:before:absolute md:before:left-0 md:before:top-1 md:before:bottom-1 md:before:w-px md:before:bg-slate-200 md:pl-5" : ""
+        }`}
+      >
+        {/* النقطة الملونة الذكية مع تأثير نبض خفيف للحالة الأعلى */}
+        <div className="relative mt-1 shrink-0">
+          <div
+            className="w-2.5 h-2.5 rounded-full"
+            style={{ background: cfg.accent }}
+          />
+          {tier === 'gold' && (
+            <div 
+              className="absolute inset-0 w-2.5 h-2.5 rounded-full opacity-40 animate-ping"
+              style={{ background: cfg.accent }}
+            />
+          )}
+        </div>
+
+        {/* النصوص وتنسيق الـ Badges */}
+        <div className="flex flex-col gap-1">
+          <div className="flex items-center gap-2">
+            <span 
+              className="text-sm font-bold px-2 py-0.5 rounded-md border text-[15px]"
+              style={{ backgroundColor: cfg.badge.bg, color: cfg.badge.color, borderColor: `${cfg.badge.color}15` }}
+            >
+              {cfg.label}
+            </span>
+          </div>
+          <p className="text-xs text-slate-500 font-medium leading-relaxed">
+            {cfg.hint}
+          </p>
+        </div>
+      </div>
+    );
+  })}
+</div>
 
                     {/* Tier sections */}
                     {tierOrder.map((tier) => {
@@ -328,7 +386,7 @@ const isEmailLink = (link?: string) => {
                                     {pct}% match
                                   </span> */}
 
-                                  <h3 className="text-base font-semibold text-foreground  leading-snug pr-8">
+                                  <h3 className=" text-[17px] text-base font-semibold text-foreground  leading-snug pr-8">
                                     {job.title}
                                   </h3>
 
