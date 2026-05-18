@@ -20,7 +20,6 @@ interface UseChatReturn {
   clearError: () => void;
 }
 
-// دالة مساعدة لتحديث النص المتدفق في الرسالة الأخيرة
 function appendChunk(
   setActiveSession: React.Dispatch<React.SetStateAction<ChatSession | null>>,
   chunk: string
@@ -30,7 +29,6 @@ function appendChunk(
     const msgs = [...prev.messages];
     const lastIdx = msgs.length - 1;
     if (lastIdx < 0) return prev;
-
     const last = { ...msgs[lastIdx] };
     last.content += chunk;
     msgs[lastIdx] = last;
@@ -48,12 +46,18 @@ export function useChat(): UseChatReturn {
 
   const clearError = useCallback(() => setError(null), []);
 
-  // تنظيف الطلبات عند مغادرة الكومبوننت
   useEffect(() => {
-    return () => {
-      if (abortRef.current) abortRef.current.abort();
-    };
+    return () => { abortRef.current?.abort(); };
   }, []);
+
+  // ── Helper: ابعت signal جديد وابort القديم بشكل آمن ──────────────────────
+  const freshSignal = () => {
+    // عمل الـ controller الجديد الأول، THEN abort القديم
+    const controller = new AbortController();
+    abortRef.current?.abort();
+    abortRef.current = controller;
+    return controller.signal;
+  };
 
   // ── Fetch all sessions ──────────────────────────────────────────────────────
   const fetchSessions = useCallback(async () => {
@@ -69,73 +73,59 @@ export function useChat(): UseChatReturn {
     }
   }, []);
 
-  // ── Create new session & send first prompt ──────────────────────────────────
-  const createSession = useCallback(
-    async (jobId: number, firstPrompt: string) => {
-      setIsCreatingSession(true);
-      setError(null);
-      try {
-        const session = await chatService.createSession({ jobId, firstPrompt });
-        setSessions((prev) => [session, ...prev]);
+  // ── Create new session then stream the first response ───────────────────────
+  const createSession = useCallback(async (jobId: number, firstPrompt: string) => {
+    setIsCreatingSession(true);
+    setError(null);
+    try {
+      const session = await chatService.createSession({ jobId, firstPrompt });
+      setSessions((prev) => [session, ...prev]);
 
-        const userMsg: ChatMessage = {
-          role: 'USER',
-          content: firstPrompt,
-          timestamp: new Date().toISOString(),
-        };
-        const placeholderMsg: ChatMessage = {
-          role: 'ASSISTANT',
-          content: '',
-          timestamp: new Date().toISOString(),
-        };
+      const userMsg: ChatMessage = {
+        role: 'USER',
+        content: firstPrompt,
+        timestamp: new Date().toISOString(),
+      };
+      const placeholderMsg: ChatMessage = {
+        role: 'ASSISTANT',
+        content: '',
+        timestamp: new Date().toISOString(),
+      };
 
-        setActiveSession({
-          ...session,
-          messages: [userMsg, placeholderMsg],
-          isStreaming: true,
-        });
+      setActiveSession({ ...session, messages: [userMsg, placeholderMsg], isStreaming: true });
 
-        if (abortRef.current) abortRef.current.abort();
-        abortRef.current = new AbortController();
+      await chatService.consumeStream(
+        session.sessionId,
+        firstPrompt,
+        (chunk) => appendChunk(setActiveSession, chunk),
+        freshSignal()
+      );
+    } catch (e) {
+      if ((e as Error).name !== 'AbortError') setError((e as Error).message);
+    } finally {
+      setActiveSession((prev) => (prev ? { ...prev, isStreaming: false } : prev));
+      setIsCreatingSession(false);
+    }
+  }, []);
 
-        await chatService.consumeStream(
-          session.sessionId,
-          (chunk) => appendChunk(setActiveSession, chunk),
-          abortRef.current.signal
-        );
-
-        setActiveSession((prev) => (prev ? { ...prev, isStreaming: false } : prev));
-      } catch (e) {
-        if ((e as Error).name !== 'AbortError') setError((e as Error).message);
-      } finally {
-        setIsCreatingSession(false);
-      }
-    },
-    []
-  );
-
-  // ── Load existing session ───────────────────────────────────────────────────
-  const selectSession = useCallback(
-    async (sessionId: string) => {
-      setError(null);
-      try {
-        const sessionMeta = sessions.find((s) => s.sessionId === sessionId);
-        if (!sessionMeta) return;
-        const messages = await chatService.getMessages(sessionId);
-        setActiveSession({ ...sessionMeta, messages, isStreaming: false });
-      } catch (e) {
-        setError((e as Error).message);
-      }
-    },
-    [sessions]
-  );
+  // ── Load existing session messages ──────────────────────────────────────────
+  const selectSession = useCallback(async (sessionId: string) => {
+    setError(null);
+    try {
+      const sessionMeta = sessions.find((s) => s.sessionId === sessionId);
+      if (!sessionMeta) return;
+      const messages = await chatService.getMessages(sessionId);
+      setActiveSession({ ...sessionMeta, messages, isStreaming: false });
+    } catch (e) {
+      setError((e as Error).message);
+    }
+  }, [sessions]);
 
   // ── Send follow-up message ──────────────────────────────────────────────────
   const sendMessage = useCallback(async (sessionId: string, prompt: string) => {
     setError(null);
-    
-    if (abortRef.current) abortRef.current.abort();
-    abortRef.current = new AbortController();
+
+    const signal = freshSignal(); // ← controller جديد قبل abort القديم
 
     const userMsg: ChatMessage = {
       role: 'USER',
@@ -155,21 +145,18 @@ export function useChat(): UseChatReturn {
     );
 
     try {
-      // استخدام الخدمة المعدلة لإرسال النص عبر Axios
-      await chatService.sendPrompt(sessionId, prompt, abortRef.current.signal);
-
       await chatService.consumeStream(
         sessionId,
+        prompt,
         (chunk) => appendChunk(setActiveSession, chunk),
-        abortRef.current.signal
+        signal
       );
-
-      setActiveSession((prev) => (prev ? { ...prev, isStreaming: false } : prev));
     } catch (e) {
       if ((e as Error).name !== 'AbortError') {
         setError((e as Error).message);
-        setActiveSession((prev) => (prev ? { ...prev, isStreaming: false } : prev));
       }
+    } finally {
+      setActiveSession((prev) => (prev ? { ...prev, isStreaming: false } : prev));
     }
   }, []);
 

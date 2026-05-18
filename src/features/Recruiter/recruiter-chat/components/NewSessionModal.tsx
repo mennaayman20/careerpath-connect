@@ -19,19 +19,19 @@ export const NewSessionModal: React.FC<Props> = ({
 }) => {
   const [jobId, setJobId] = useState('');
   const [prompt, setPrompt] = useState('');
-  const inputRef = useRef<HTMLInputElement>(null);
+  const firstInputRef = useRef<HTMLInputElement | HTMLTextAreaElement | null>(null);
 
   useEffect(() => {
     if (isOpen) {
       setJobId(defaultJobId ? String(defaultJobId) : '');
       setPrompt('');
-      setTimeout(() => inputRef.current?.focus(), 80);
+      setTimeout(() => (firstInputRef.current as HTMLElement | null)?.focus(), 80);
     }
   }, [isOpen, defaultJobId]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const id = parseInt(jobId, 10);
+    const id = defaultJobId ?? parseInt(jobId, 10);
     if (!id || !prompt.trim()) return;
     onSubmit(id, prompt.trim());
   };
@@ -61,20 +61,53 @@ export const NewSessionModal: React.FC<Props> = ({
         </div>
 
         <form onSubmit={handleSubmit} className="modal__form" noValidate>
-          <div className="form-field">
-            <label className="form-label" htmlFor="jobId">Job ID</label>
-            <input
-              ref={inputRef}
-              id="jobId"
-              type="number"
-              className="form-input"
-              placeholder="e.g. 4821"
-              value={jobId}
-              onChange={(e) => setJobId(e.target.value)}
-              min={1}
-              required
-            />
-          </div>
+
+          {/* لو الـ ID اتبعت تلقائياً — badge فقط */}
+          {defaultJobId ? (
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              padding: '10px 14px',
+              borderRadius: '8px',
+              background: 'var(--rc-brand-light)',
+              border: '1px solid var(--rc-brand-mid)',
+            }}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                <rect x="2" y="7" width="20" height="14" rx="2"
+                  stroke="var(--rc-brand)" strokeWidth="2"/>
+                <path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"
+                  stroke="var(--rc-brand)" strokeWidth="2" strokeLinecap="round"/>
+              </svg>
+              <span style={{ fontSize: '13px', color: 'var(--rc-brand)', fontWeight: 600 }}>
+                Job ID: {defaultJobId}
+              </span>
+              <span style={{
+                marginLeft: 'auto',
+                fontSize: '11px',
+                color: 'var(--rc-text-tertiary)',
+                fontFamily: 'DM Mono, monospace',
+              }}>
+                auto-filled
+              </span>
+            </div>
+          ) : (
+            /* لو مفيش defaultJobId — input عادي */
+            <div className="form-field">
+              <label className="form-label" htmlFor="jobId">Job ID</label>
+              <input
+                ref={(el) => { firstInputRef.current = el; }}
+                id="jobId"
+                type="number"
+                className="form-input"
+                placeholder="e.g. 4821"
+                value={jobId}
+                onChange={(e) => setJobId(e.target.value)}
+                min={1}
+                required
+              />
+            </div>
+          )}
 
           <div className="form-field">
             <label className="form-label" htmlFor="firstPrompt">
@@ -82,6 +115,7 @@ export const NewSessionModal: React.FC<Props> = ({
               <span className="form-label__hint">{prompt.length} / 5000</span>
             </label>
             <textarea
+              ref={(el) => { if (defaultJobId) firstInputRef.current = el; }}
               id="firstPrompt"
               className="form-textarea"
               placeholder="What would you like to know about this candidate or job?"
@@ -99,7 +133,7 @@ export const NewSessionModal: React.FC<Props> = ({
             <button
               type="submit"
               className="btn btn--primary"
-              disabled={!jobId || !prompt.trim() || isLoading}
+              disabled={(!defaultJobId && !jobId) || !prompt.trim() || isLoading}
             >
               {isLoading ? (
                 <>

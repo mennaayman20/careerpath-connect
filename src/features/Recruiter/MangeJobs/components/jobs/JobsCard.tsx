@@ -10,6 +10,9 @@ import { Button }  from "@/components/ui/button";
 import { cn }      from "@/lib/utils";
 import { JobResponse } from "../../types/recruiter.types";
 
+// import { chatService } from "../../../recruiter-chat/services/chatService";
+
+
 export type JobActionType = "resume" | "pause" | "close";
 
 interface JobCardProps {
@@ -116,7 +119,7 @@ export const JobCard: React.FC<JobCardProps> = ({
       <div className="mt-5 pt-4 border-t border-slate-100 dark:border-white/5 grid grid-cols-2 sm:flex sm:items-center sm:justify-center gap-2.5">
         
         {/* زر Ask AI */}
-        <Button
+        {/* <Button
           size="sm"
           variant="outline"
           className="h-10 gap-1.5 text-xs font-semibold rounded-xl border-[#1ca37b]/30 text-[#1ca37b] bg-[#1ca37b]/5 hover:bg-[#1ca37b] hover:text-white hover:border-[#1ca37b] transition-all duration-200"
@@ -124,7 +127,7 @@ export const JobCard: React.FC<JobCardProps> = ({
         >
           <MessageSquare className="h-4 w-4" />
           Ask AI
-        </Button>
+        </Button> */}
 
         {/* زر View Applicants */}
         <Button

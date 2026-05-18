@@ -11,6 +11,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { useParams } from "react-router-dom"
 import { useRecruiterOrg } from "../../../../org-connect/useRecruiterOrg";
+import { AIChatFAB } from "./Aichatfab";
 // ─── SUB-COMPONENTS ──────────────────────────────────────────────────────────
 
 const Stat = ({ num, label }: { num: string; label: string }) => (
@@ -211,6 +212,11 @@ const organizationId = 1;
           onClose={() => setSelectedJob(null)}
         />
       )}
+
+      <AIChatFAB jobs={jobs ?? []} />
     </div>
-  );
+ 
+
+
+);
 };
