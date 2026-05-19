@@ -9,12 +9,13 @@ export default function VerifyOrganization() {
   const navigate = useNavigate();
   const { state, verifyEmail } = useConnectOrg();
 
-  useEffect(() => {
-    const token = searchParams.get("token");
-    if (token) {
-      verifyEmail(token);
-    }
-  }, []);
+ useEffect(() => {
+  if (state.step === "connected" && state.connectedOrg) {
+    // ✅ احفظ الـ id الحقيقي من الـ API مش hardcoded
+    localStorage.setItem("organizationId", String(state.connectedOrg.id));
+    setTimeout(() => navigate("/recruiter-dashboard"), 2000);
+  }
+}, [state.step, state.connectedOrg]);
 
   // ── بعد نجاح الـ verify ──────────────────────────────────────────
   useEffect(() => {
@@ -73,10 +74,10 @@ export default function VerifyOrganization() {
               <p className="text-xs text-slate-300 mt-1">The link may have expired.</p>
             </div>
             <button
-              onClick={() => navigate("/recruiter-dashboard")}
+              onClick={() => navigate("/settings")}
               className="bg-[#2D236A] text-white text-sm font-semibold px-6 py-2.5 rounded-lg"
             >
-              Back to Dashboard
+              Back to settings
             </button>
           </>
         )}

@@ -34,12 +34,36 @@ interface UpdateOrganizationPayload {
 
 // ─── Service ──────────────────────────────────────────────────────────────────
 
+
+
+
+
+
+
 const organizationService = {
   /**
    * POST /organizations/connect
    * Initiates the connection flow — sends a verification email.
    * Pass `organization` only when the org doesn't exist yet.
    */
+
+
+
+  // أضف الدالة دي في organizationService
+getMyOrganization: async (): Promise<OrganizationResponse | null> => {
+  try {
+    const { data } = await api.get<OrganizationResponse>("/user/me/organization");
+    return data;
+  } catch {
+    return null; // 404 = مش متكونكتد
+  }
+},
+
+
+
+
+
+
   connectToOrganization: async (
     payload: ConnectToOrganizationRequest
   ): Promise<ConnectToOrganizationResponse> => {

@@ -7,6 +7,7 @@ import { useNavigate } from "react-router-dom";
 import { ConnectOrgModal } from "../../features/org-connect/ConnectOrgModal";
 import { useRecruiterOrg } from "../../features/org-connect/useRecruiterOrg";
 import type { OrganizationResponse } from "../../features/org-connect/organization.interfaces";
+import { useJobs } from "./jobPosts/Usejobs.hook";
 // import { OrganizationProfile } from "../Recruiter/OrgProfile/Orgprofilepage";
 // ─── CONSTANTS ───────────────────────────────────────────────────────────────
 
@@ -105,6 +106,7 @@ export default function RecruiterDashboard() {
   
   const navigate = useNavigate();
   const { org, hasOrg, orgId, loading, onOrgConnected } = useRecruiterOrg();
+  const { jobs } = useJobs(orgId ?? 0);
 
   const [activeSection, setActiveSection] = useState<string | null>(null);
   const [showModal, setShowModal] = useState(false);
@@ -177,15 +179,13 @@ export default function RecruiterDashboard() {
                 Build your org, post jobs, and manage all listings in one place.
               </p>
             </div>
-            <div className="flex shrink-0">
-              <Stat num="0" label="Active Jobs" />
-              {/* عرض أول كلمة من اسم الـ org لو موجودة */}
-              <Stat
-                num={loading ? "—" : hasOrg ? org!.name.split(" ")[0] : "—"}
-                label="Organization"
-              />
-              <Stat num="0" label="Applications" />
-            </div>
+<div className="flex shrink-0 justify-center">
+  <Stat
+    num={loading ? "—" : hasOrg ? org!.name.split(" ")[0] : "—"}
+    label="Organization"
+  />
+  <Stat num={loading ? "—" : String(jobs.length)} label="Total Jobs" />
+</div>
           </div>
         </section>
 

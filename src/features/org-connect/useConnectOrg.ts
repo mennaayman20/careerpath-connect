@@ -48,6 +48,15 @@ function reducer(state: ConnectOrgState, action: Action): ConnectOrgState {
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
+
+
+
+
+
+
+
+
+
 function getDomain(email: string): string {
   return email.split("@")[1]?.toLowerCase() ?? "";
 }
@@ -75,38 +84,87 @@ function validateOrgDetails(details: Partial<OrganizationDetails>): string | nul
 export function useConnectOrg() {
   const [state, dispatch] = useReducer(reducer, INITIAL_CONNECT_STATE);
 
+
+  const checkCurrentOrg = useCallback(async () => {
+  dispatch({ type: "SET_LOADING", payload: true });
+  try {
+    const org = await organizationService.getMyOrganization();
+    if (org) {
+      dispatch({ type: "SET_CONNECTED_ORG", payload: org });
+      dispatch({ type: "SET_STEP", payload: "connected" });
+      // احفظ الـ id
+      localStorage.setItem("organizationId", String(org.id));
+    } else {
+      dispatch({ type: "SET_STEP", payload: "email_input" });
+    }
+  } finally {
+    dispatch({ type: "SET_LOADING", payload: false });
+  }
+}, []);
+
+
   const startFlow = useCallback(() => {
     dispatch({ type: "SET_STEP", payload: "email_input" });
   }, []);
 
   // ✅ Step 1 — validate locally فقط، zero API calls
-  const submitEmail = useCallback(async (email: string) => {
-    const trimmed = email.trim().toLowerCase();
+const submitEmail = useCallback(async (email: string) => {
+  const trimmed = email.trim().toLowerCase();
 
-    if (!trimmed.includes("@") || !trimmed.includes(".")) {
-      dispatch({ type: "SET_ERROR", payload: "Please enter a valid email address." });
-      return;
-    }
+  if (!trimmed.includes("@") || !trimmed.includes(".")) {
+    dispatch({ type: "SET_ERROR", payload: "Please enter a valid email address." });
+    return;
+  }
 
-    if (isPublicDomain(trimmed)) {
-      dispatch({
-        type: "SET_ERROR",
-        payload: "Please use a corporate email. Gmail, Outlook, etc. are not accepted.",
-      });
-      return;
-    }
+  if (isPublicDomain(trimmed)) {
+    dispatch({
+      type: "SET_ERROR",
+      payload: "Please use a corporate email. Gmail, Outlook, etc. are not accepted.",
+    });
+    return;
+  }
 
-    // ✅ حفظ الـ email والانتقال للخطوة التانية — مفيش API هنا
-    dispatch({ type: "SET_EMAIL", payload: trimmed });
-    dispatch({ type: "SET_ERROR", payload: null });
+  dispatch({ type: "SET_LOADING", payload: true });
+  dispatch({ type: "SET_ERROR", payload: null });
+  dispatch({ type: "SET_EMAIL", payload: trimmed });
+
+  try {
+    // بعت الـ email بس — لو الـ org موجودة هيرجع success فوراً
+    const response = await organizationService.connectToOrganization({
+      businessEmail: trimmed,
+    });
+
+    dispatch({ type: "SET_CONNECTED_ORG", payload: response.organization });
+
+    // org موجودة → بعت verify link مباشرة، مش محتاج org_details
+    dispatch({ type: "SET_STEP", payload: "email_sent" });
+
+  } catch (err: unknown) {
+    const axiosErr = err as { response?: { data?: { message?: string }; status?: number } };
+    const message = axiosErr?.response?.data?.message;
+
+    // org مش موجودة → محتاج يدخل التفاصيل
+    // الـ backend هيرجع error (مثلاً 400 أو 404) لو مفيش org بالدومين ده
     dispatch({ type: "SET_STEP", payload: "org_details" });
-  }, []);
+    dispatch({ type: "SET_ERROR", payload: null });
+  } finally {
+    dispatch({ type: "SET_LOADING", payload: false });
+  }
+}, []);
 
   // ✅ Step 2 — الـ request الوحيد في الفلو كله
 // جوه useConnectOrg Hook
 const submitOrgDetails = useCallback(
   async (details: Partial<OrganizationDetails>) => {
-    // ... التقييد والـ Loading
+    const validationError = validateOrgDetails(details);
+    if (validationError) {
+      dispatch({ type: "SET_ERROR", payload: validationError });
+      return;
+    }
+
+    dispatch({ type: "SET_LOADING", payload: true }); // ← ده ناقص في كودك!
+    dispatch({ type: "SET_ERROR", payload: null });
+
     try {
       const response = await organizationService.connectToOrganization({
         businessEmail: state.businessEmail,
@@ -119,11 +177,8 @@ const submitOrgDetails = useCallback(
       const axiosErr = err as { response?: { data?: { message?: string } } };
       const message = axiosErr?.response?.data?.message;
 
-      // ✅ الحل هنا: لو الرسالة بتقول إنه مربوط فعلاً، انقله لصفحة النجاح فوراً
       if (message === "You are already connected to this organization.") {
-        // ممكن تندهي API تجيب بيانات الـ Org لو محتاجاها، 
-        // أو ببساطة تحوليه للداشبورد لأن حسابه جاهز
-        dispatch({ type: "SET_STEP", payload: "connected" }); 
+        dispatch({ type: "SET_STEP", payload: "connected" });
         return;
       }
 
@@ -134,7 +189,6 @@ const submitOrgDetails = useCallback(
   },
   [state.businessEmail]
 );
-
   const goBack = useCallback(() => {
     if (state.step === "org_details") {
       dispatch({ type: "SET_STEP", payload: "email_input" });
@@ -171,6 +225,7 @@ catch (err: unknown) {
   return {
     state,
     startFlow,
+    checkCurrentOrg,
     submitEmail,
     submitOrgDetails,
     verifyEmail,

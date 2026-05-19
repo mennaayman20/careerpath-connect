@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -17,13 +17,14 @@ import {
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useConnectOrg } from "@/features/org-connect/useConnectOrg";
-import { ConnectOrgModal } from "@/features/org-connect/ConnectOrgModal";
+
 // أو لو مش هتستخدم المودال، تعمل الـ UI inline زي تحت
 
 const Settings = () => {
   const navigate = useNavigate();
   const {
     state,
+    checkCurrentOrg,
     submitEmail,
     submitOrgDetails,
     goBack,
@@ -31,6 +32,18 @@ const Settings = () => {
   } = useConnectOrg();
 
   const { step, businessEmail, loading, error } = state;
+
+   useEffect(() => {
+    checkCurrentOrg();
+  }, [])
+
+   if (loading && step === "idle") {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   // ── Step renderers ──────────────────────────────────────────────────────────
 

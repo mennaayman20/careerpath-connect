@@ -1,6 +1,10 @@
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Briefcase, Plus, X, Pencil, MapPin, Layers, Building2, Calendar, ChevronDown, ChevronUp } from "lucide-react";
+import {
+  Briefcase, Plus, X, Pencil, MapPin, Layers, Building2,
+  Calendar, ChevronDown, ChevronUp, Loader2,
+  ArrowLeft,
+} from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { useJobs } from "./Usejobs.hook";
@@ -8,9 +12,8 @@ import { JobPostForm } from "./Jobpostform";
 import { JobResponse } from "../../../types/jobs";
 import { jobsService } from "./Jobs.service";
 import { toast } from "sonner";
-
-// ─── Hard-coded org id ────────────────────────────────────────────────────────
-const ORG_ID = 1;
+import { useRecruiterOrg } from "@/features/org-connect/useRecruiterOrg";
+import { Navigate, useNavigate } from "react-router-dom";
 
 // ─── Status config ────────────────────────────────────────────────────────────
 const STATUS_CONFIG = {
@@ -42,7 +45,7 @@ const MetaPill = ({ icon: Icon, text }: { icon: React.ElementType; text: string 
   </span>
 );
 
-// ─── Job card (create + edit only) ───────────────────────────────────────────
+// ─── Job card ─────────────────────────────────────────────────────────────────
 const JobCard = ({
   job,
   onEdit,
@@ -86,20 +89,20 @@ const JobCard = ({
                   <span className={`w-1.5 h-1.5 rounded-full ${status.dot}`} />
                   {status.label}
                 </span>
-                
+
                 {isEditing && (
                   <span className="inline-flex items-center gap-1 text-[10px] font-extrabold uppercase tracking-wider px-3 py-1 rounded-full border border-violet-200 bg-violet-50 text-violet-600 animate-pulse">
                     Editing Mode
                   </span>
                 )}
               </div>
-              
-              <h3 className="font-syne text-lg font-bold text-slate-900 leading-snug tracking-tight truncate" title={job.title}>
+
+              <h3 className="font-syne text-xl font-bold text-slate-900 leading-snug tracking-tight truncate" title={job.title}>
                 {job.title}
               </h3>
-              
+
               {job.organizationName && (
-                <p className="text-xs text-slate-400 font-semibold mt-1 flex items-center gap-1">
+                <p className="text-sm text-slate-400 font-semibold mt-1 flex items-center gap-1">
                   <Building2 size={12} className="text-violet-500" />
                   {job.organizationName}
                 </p>
@@ -169,13 +172,9 @@ const JobCard = ({
 
         {/* Footer */}
         <div className="flex items-center pt-4 mt-2 border-t border-slate-100">
-          <span className="text-[11px] text-slate-400 font-semibold flex items-center gap-1.5">
-            <Calendar size={12} className="text-violet-400" />
-            {new Date(job.createdDate).toLocaleDateString("en-GB", {
-              day: "numeric",
-              month: "short",
-              year: "numeric",
-            })}
+          <span className="text-[15px] text-slate-400 font-semibold flex items-center gap-1.5">
+            <Calendar size={12} className="text-violet-800" />
+            {getRelativeTime(job.createdDate)}
           </span>
         </div>
       </div>
@@ -183,8 +182,29 @@ const JobCard = ({
   );
 };
 
+
+const getRelativeTime = (date: string | Date): string => {
+  const now = new Date();
+  const pastDate = new Date(date);
+  const seconds = Math.floor((now.getTime() - pastDate.getTime()) / 1000);
+  
+  if (seconds < 60) return "just now";
+  const minutes = Math.floor(seconds / 60);
+  if (minutes < 60) return `${minutes}m ago`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours}h ago`;
+  const days = Math.floor(hours / 24);
+  if (days < 7) return `${days}d ago`;
+  const weeks = Math.floor(days / 7);
+  if (weeks < 4) return `${weeks}w ago`;
+  return pastDate.toLocaleDateString();
+}
+
+
 // ─── Main page ────────────────────────────────────────────────────────────────
 export const RecruiterJobsPage = () => {
+  const { orgId, loading: orgLoading } = useRecruiterOrg();
+  const navigate = useNavigate();
   const {
     jobs,
     loading,
@@ -194,14 +214,23 @@ export const RecruiterJobsPage = () => {
     setEditingJob,
     createJob,
     updateJob,
-  } = useJobs(ORG_ID);
+  } = useJobs(orgId ?? 0);
 
+  // ✅ كل الـ hooks قبل أي early return
   const [showForm, setShowForm] = useState(false);
 
-  // When editing starts → open form panel automatically
   React.useEffect(() => {
     if (editingJob) setShowForm(true);
   }, [editingJob]);
+
+  // ✅ early return بعد كل الـ hooks
+  if (orgLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#f6f5ff]">
+        <Loader2 className="h-8 w-8 animate-spin text-[#2D236A]" />
+      </div>
+    );
+  }
 
   const cancelEdit = () => {
     setEditingJob(null);
@@ -210,10 +239,9 @@ export const RecruiterJobsPage = () => {
 
   const handleEditClick = async (jobId: number) => {
     const response = await jobsService.getJobById(jobId);
-
     if (response.success && response.data) {
-      setEditingJob(response.data); 
-      setShowForm(true); 
+      setEditingJob(response.data);
+      setShowForm(true);
     } else {
       toast.error(response.error || "Could not load job details");
     }
@@ -238,43 +266,65 @@ export const RecruiterJobsPage = () => {
         transition={{ duration: 0.5, ease: "easeOut" }}
       >
         {/* ── Hero ── */}
-        <section className="relative bg-[#2D236A] overflow-hidden py-16">
-          <div className="absolute inset-0 bg-[radial-gradient(ellipse_50%_120%_at_85%_50%,rgba(28,163,123,.2)_0%,transparent_70%)]" />
-          <div className="relative z-10 max-w-screen-xl mx-auto px-6 flex flex-wrap items-center justify-between gap-6">
-            <div>
-              <div className="inline-flex items-center gap-2 bg-[#1ca37b]/15 border border-[#1ca37b]/35 text-[#5de8b8] text-[10px] font-bold uppercase rounded-full px-3 py-1 mb-4">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#1ca37b] animate-pulse" />
-                Job Listings
-              </div>
-              <h1 className="font-syne text-3xl md:text-3xl font-extrabold text-white mb-2">
-                Manage Your <span className="text-[#59daad]">Listings</span>
-              </h1>
-              <p className="text-sm text-white/50 max-w-md">
-                Post new roles and edit existing listings anytime.
-              </p>
-            </div>
+<section className="relative bg-[#2D236A] overflow-hidden py-16">
+  {/* Radial Gradient Background Blur */}
+  <div className="absolute inset-0 bg-[radial-gradient(ellipse_50%_120%_at_85%_50%,rgba(28,163,123,.2)_0%,transparent_70%)]" />
+  
+  <div className="relative z-10 max-w-screen-xl mx-auto px-6 flex flex-wrap items-center justify-between gap-6">
+    
+    {/* Left Content Column */}
+    <div className="flex flex-col items-start">
+      
+      {/* 1. Back to Dashboard Button (Top) */}
+      <button
+        onClick={() => navigate("/recruiter-dashboard")}
+        className="inline-flex items-center gap-1.5 text-xs font-semibold text-white/60 hover:text-white transition-colors mb-4 md:mb-6 group"
+      >
+        <ArrowLeft size={14} className="group-hover:-translate-x-0.5 transition-transform" />
+        Back to Dashboard
+      </button>
 
-            {/* Toggle form button */}
-            <button
-              onClick={handleToggleForm}
-              className={`inline-flex items-center gap-2 font-bold text-sm px-5 py-2.5 rounded-2xl transition-all duration-200
-                ${showForm
-                  ? "bg-white/10 text-white border border-white/20 hover:bg-white/20"
-                  : "bg-[#1ca37b] text-white shadow-lg hover:bg-[#18906b] hover:shadow-xl"
-                }`}
-            >
-              {showForm ? (
-                <>
-                  <X size={16} /> Close Form
-                </>
-              ) : (
-                <>
-                  <Plus size={16} /> Post a Job
-                </>
-              )}
-            </button>
-          </div>
-        </section>
+      {/* 2. Tag Label */}
+      <div className="inline-flex items-center gap-2 bg-[#1ca37b]/15 border border-[#1ca37b]/35 text-[#5de8b8] text-[10px] font-bold uppercase rounded-full px-3 py-1 mb-4">
+        <span className="w-1.5 h-1.5 rounded-full bg-[#1ca37b] animate-pulse" />
+        Job Listings
+      </div>
+
+      {/* 3. Title */}
+      <h1 className="font-syne text-3xl md:text-3xl font-extrabold text-white mb-2">
+        Manage Your <span className="text-[#59daad]">Listings</span>
+      </h1>
+
+      {/* 4. Description */}
+      <p className="text-sm text-white/50 max-w-md">
+        Post new roles and edit existing listings anytime.
+      </p>
+    </div>
+
+    {/* Right Content Column: Toggle form button */}
+<button
+  onClick={handleToggleForm}
+  className={`inline-flex items-center gap-2 font-bold text-sm px-5 py-2.5 rounded-xl border transition-all duration-300 ease-out hover:scale-[1.03] active:scale-[0.98] group
+    ${showForm
+      ? "bg-white/10 text-white border-white/20 hover:bg-white/20 hover:shadow-[0_10px_20px_rgba(255,255,255,0.05)]"
+      : "bg-[#1ca37b] text-white border-transparent shadow-lg hover:bg-[#18906b] hover:shadow-[0_10px_20px_rgba(28,163,123,0.3)]"
+    }`}
+>
+  {showForm ? (
+    <>
+      <X size={16} className="group-hover:rotate-90 group-hover:scale-110 transition-transform duration-300" />
+      <span>Close Form</span>
+    </>
+  ) : (
+    <>
+      <Plus size={16} className="group-hover:rotate-180 group-hover:scale-110 transition-transform duration-500" />
+      <span>Post a Job</span>
+    </>
+  )}
+</button>
+
+  </div>
+</section>
 
         {/* ── Main ── */}
         <main className="max-w-screen-xl mx-auto px-6 py-8 space-y-6">
@@ -344,14 +394,18 @@ export const RecruiterJobsPage = () => {
                   Post your first job to start attracting talent.
                 </p>
                 <button
-                  onClick={() => {
-                    setEditingJob(null);
-                    setShowForm(true);
-                  }}
-                  className="inline-flex items-center gap-2 bg-[#2D236A] text-white text-sm font-bold px-5 py-2.5 rounded-2xl hover:bg-[#1e1850] transition-all"
-                >
-                  <Plus size={15} /> Post a Job
-                </button>
+  onClick={() => {
+    setEditingJob(null);
+    setShowForm(true);
+  }}
+  className="inline-flex items-center gap-2 bg-[#2D236A] text-white text-sm font-bold px-5 py-2.5 rounded-xl border border-white/10 shadow-md transition-all duration-300 ease-out hover:bg-[#241b54] hover:border-white/20 hover:scale-[1.03] hover:shadow-[0_10px_20px_rgba(45,35,106,0.3)] active:scale-[0.98] group"
+>
+  <Plus 
+    size={16} 
+    className="group-hover:rotate-180 group-hover:scale-110 transition-transform duration-500 ease-in-out" 
+  />
+  <span>Post a Job</span>
+</button>
               </div>
             ) : (
               /* Job cards grid */
