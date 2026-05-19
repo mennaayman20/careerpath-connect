@@ -50,14 +50,7 @@ const organizationService = {
 
 
   // أضف الدالة دي في organizationService
-getMyOrganization: async (): Promise<OrganizationResponse | null> => {
-  try {
-    const { data } = await api.get<OrganizationResponse>("/user/me/organization");
-    return data;
-  } catch {
-    return null; // 404 = مش متكونكتد
-  }
-},
+
 
 
 
@@ -95,6 +88,16 @@ getMyOrganization: async (): Promise<OrganizationResponse | null> => {
     const { data } = await api.get<OrganizationResponse>(`/organizations/${id}`);
     return data;
   },
+
+
+getMyOrganization: async (): Promise<OrganizationResponse | null> => {
+  try {
+    const { data } = await api.get<OrganizationResponse>("/user/me/organization");
+    return data;
+  } catch {
+    return null; // 404 = مش متكونكتد
+  }
+},
 
   /**
    * PATCH /organizations/{id}

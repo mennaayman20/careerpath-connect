@@ -8,6 +8,16 @@ export default function VerifyOrganization() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { state, verifyEmail } = useConnectOrg();
+// ← ده الناقص
+useEffect(() => {
+  const token = searchParams.get("token");
+  if (!token) {
+    navigate("/settings", { replace: true });
+    return;
+  }
+  verifyEmail(token);
+}, []);
+
 
  useEffect(() => {
   if (state.step === "connected" && state.connectedOrg) {
