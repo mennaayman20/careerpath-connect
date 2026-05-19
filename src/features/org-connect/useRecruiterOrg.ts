@@ -21,7 +21,7 @@ export function useRecruiterOrg() {
 
   return {
     org,
-    hasOrg: org !== null,
+   hasOrg: org !== null && org.verified === true,
     orgId: org?.id ?? null,         // ← بييجي من الـ API مباشرة
     loading,
     onOrgConnected,

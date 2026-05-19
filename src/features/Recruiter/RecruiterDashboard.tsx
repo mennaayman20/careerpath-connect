@@ -3,7 +3,7 @@ import Footer from "@/components/Footer";
 import Navbar from "@/components/Navbar";
 import { motion } from "framer-motion";
 import { ArrowUpRight } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { Navigate, useNavigate } from "react-router-dom";
 import { ConnectOrgModal } from "../../features/org-connect/ConnectOrgModal";
 import { useRecruiterOrg } from "../../features/org-connect/useRecruiterOrg";
 import type { OrganizationResponse } from "../../features/org-connect/organization.interfaces";
@@ -100,6 +100,7 @@ function DashCard({
   );
 }
 
+
 // ─── MAIN COMPONENT ───────────────────────────────────────────────────────────
 
 export default function RecruiterDashboard() {
@@ -112,6 +113,18 @@ export default function RecruiterDashboard() {
   const [showModal, setShowModal] = useState(false);
   // نحفظ الـ destination اللي المستخدم كان رايح ليها قبل ما الـ modal يفتح
   const [pendingDest, setPendingDest] = useState<string | null>(null);
+
+  if (loading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-[#f6f5ff]">
+        <span className="w-10 h-10 border-2 border-[#2D236A]/20 border-t-[#2D236A] rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  if (!hasOrg || !orgId) {
+    return <Navigate to="/settings" replace />;
+  }
 
   // ── فتح الـ modal ─────────────────────────────────────────────────────────
   const openModal = (section: string, dest: string) => {
