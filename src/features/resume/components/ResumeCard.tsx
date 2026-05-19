@@ -22,9 +22,9 @@ export const ResumeCard = ({
     <div className="rounded-lg border border-border bg-card p-4 flex items-center justify-between hover:shadow-md transition-shadow">
       <div className="flex-1">
         <h3 className="font-semibold text-foreground truncate">{resume.fileName}</h3>
-        <p className="text-xs text-muted-foreground">
+        {/* <p className="text-xs text-muted-foreground">
           Uploaded {formatDistanceToNow(new Date(resume.createdAt), { addSuffix: true })}
-        </p>
+        </p> */}
       </div>
 
       <div className="flex gap-2 ml-4">
