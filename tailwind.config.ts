@@ -1,4 +1,6 @@
 import type { Config } from "tailwindcss";
+import tailwindcssAnimate from "tailwindcss-animate";
+import tailwindTypography from "@tailwindcss/typography";
 
 export default {
   darkMode: ["class"],
@@ -16,6 +18,17 @@ export default {
       fontFamily: {
         sans: ["Plus Jakarta Sans", "sans-serif"],
         display: ["Space Grotesk", "sans-serif"],
+      },
+      // 👇 هذا الجزء الجديد المخصص لتهيئة الـ Typography ليناسب هويتك البصرية
+      typography: {
+        DEFAULT: {
+          css: {
+            fontFamily: "Plus Jakarta Sans, sans-serif",
+            'h1, h2, h3, h4, h5, h6': {
+              fontFamily: "Space Grotesk, sans-serif",
+            },
+          },
+        },
       },
       colors: {
         border: "hsl(var(--border))",
@@ -106,5 +119,8 @@ export default {
       },
     },
   },
-  plugins: [require("tailwindcss-animate")],
+  plugins: [
+    tailwindcssAnimate,
+    tailwindTypography,
+  ],
 } satisfies Config;

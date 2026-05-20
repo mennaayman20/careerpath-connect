@@ -7,6 +7,8 @@ import { JobResponse } from "../../types/recruiter.types";
 
 interface AIChatFABProps {
   jobs: JobResponse[];
+  directJobId?: number; 
+   tooltip?: string; // ← جديد
 }
 
 const keyframes = `
@@ -63,11 +65,11 @@ const bars = [
   { h: 10, delay: ".45s" },
 ];
 
-export const AIChatFAB: React.FC<AIChatFABProps> = ({ jobs }) => {
+export const AIChatFAB: React.FC<AIChatFABProps> = ({  jobs, directJobId }) => {
   const navigate = useNavigate();
   const [step, setStep] = useState<"idle" | "pick">("idle");
   const panelRef = useRef<HTMLDivElement>(null);
-
+const [hovered, setHovered] = useState(false); 
   // إغلاق القائمة لو ضغط براها
   useEffect(() => {
     if (step !== "pick") return;
@@ -79,8 +81,16 @@ export const AIChatFAB: React.FC<AIChatFABProps> = ({ jobs }) => {
     return () => document.removeEventListener("mousedown", handler);
   }, [step]);
 
-  const handleFABClick = () => setStep((s) => (s === "idle" ? "pick" : "idle"));
-
+   const handleFABClick = () => {
+    if (directJobId) {
+      // روح للـ chat على طول
+      navigate(`/recruiter/jobs/${directJobId}/chat`, {
+        state: { jobId: directJobId, autoStart: true },
+      });
+      return;
+    }
+    setStep((s) => (s === "idle" ? "pick" : "idle"));
+  };
   const handlePickJob = (job: JobResponse) => {
     navigate(`/recruiter/jobs/${job.id}/chat`, {
       state: { jobId: job.id, autoStart: true },
@@ -90,6 +100,48 @@ export const AIChatFAB: React.FC<AIChatFABProps> = ({ jobs }) => {
   const activeJobs = jobs.filter(
     (j) => j.jobSource !== "external" && j.status?.toUpperCase() !== "CLOSED"
   );
+
+  const TypewriterShimmer: React.FC<{ text: string }> = ({ text }) => {
+  const [displayed, setDisplayed] = useState("");
+  const [done, setDone] = useState(false);
+
+  useEffect(() => {
+    setDisplayed("");
+    setDone(false);
+    let i = 0;
+    const interval = setInterval(() => {
+      i++;
+      setDisplayed(text.slice(0, i));
+      if (i >= text.length) {
+        clearInterval(interval);
+        setDone(true);
+      }
+    }, 30); // سرعة الكتابة
+    return () => clearInterval(interval);
+  }, [text]);
+
+return (
+  <span style={{
+    fontSize: "12px",
+    fontWeight: 600,
+    color: done ? "#ffffff" : "#7fffd4",
+    transition: "color 0.4s ease",
+  }}>
+    {displayed}
+    {!done && (
+      <span style={{
+        display: "inline-block",
+        width: "2px",
+        height: "12px",
+        background: "#7fffd4",
+        marginLeft: "2px",
+        verticalAlign: "middle",
+        animation: "fab-dot-blink 0.7s ease-in-out infinite",
+      }} />
+    )}
+  </span>
+);
+};
 
   return (
     <div
@@ -278,8 +330,47 @@ export const AIChatFAB: React.FC<AIChatFABProps> = ({ jobs }) => {
         )}
       </AnimatePresence>
 
+
       {/* ── FAB Button ── */}
-      <div style={{ position: "relative", width: "64px", height: "64px" }}>
+      <div style={{ position: "relative", width: "64px", height: "64px" }}
+       onMouseEnter={() => setHovered(true)}
+  onMouseLeave={() => setHovered(false)} >
+
+    {hovered && step === "idle" && (
+  <motion.div
+    initial={{ opacity: 0, x: 8 }}
+    animate={{ opacity: 1, x: 0 }}
+    exit={{ opacity: 0, x: 8 }}
+    transition={{ duration: 0.18 }}
+    style={{
+      position: "absolute",
+      right: "74px",
+      top: "50%",
+      transform: "translateY(-50%)",
+      background: "linear-gradient(135deg, #1a1540, #2D236A)",
+      padding: "8px 14px",
+      borderRadius: "12px",
+      whiteSpace: "nowrap",
+      boxShadow: "0 4px 20px rgba(26,21,64,0.25)",
+      border: "1px solid rgba(93,224,184,0.2)",
+      pointerEvents: "none",
+    }}
+  >
+    <TypewriterShimmer text="Ask AI about candidates & insights" />
+    {/* Arrow */}
+    <div style={{
+      position: "absolute",
+      right: "-5px",
+      top: "50%",
+      transform: "translateY(-50%)",
+      width: 0, height: 0,
+      borderTop: "5px solid transparent",
+      borderBottom: "5px solid transparent",
+      borderLeft: "5px solid #2D236A",
+      
+    }} />
+  </motion.div>
+)}
 
         {/* Pulse rings */}
         {step === "idle" && (
@@ -324,6 +415,9 @@ export const AIChatFAB: React.FC<AIChatFABProps> = ({ jobs }) => {
           <circle cx="40" cy="76" r="2"   fill="rgba(93,224,184,.5)"  />
           <circle cx="4"  cy="40" r="2.5" fill="rgba(93,224,184,.75)" />
         </svg>
+
+
+        
 
         {/* Main FAB */}
         <motion.button

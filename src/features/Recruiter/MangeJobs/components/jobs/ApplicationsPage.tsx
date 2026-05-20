@@ -18,6 +18,7 @@ import Footer from "@/components/Footer";
 
 
 import AiButton from '@/components/ui/AiButton';
+import { AIChatFAB } from "./Aichatfab";
 
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -352,6 +353,11 @@ export const ApplicationsPage: React.FC<Props> = ({ job: jobProp }) => {
   </div>
 </div>
 
+<AIChatFAB 
+  jobs={[]} 
+  directJobId={resolvedId}
+  tooltip="Ask AI about candidates & insights" // ← مخصص للصفحة دي
+/>
 
     <Footer />
   </div>
@@ -608,6 +614,9 @@ const ApplicationCard: React.FC<{
           View →
         </button>
       </div>
+   
+   
+
     </div>
   );
 };

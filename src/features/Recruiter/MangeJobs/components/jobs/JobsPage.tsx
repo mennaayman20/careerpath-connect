@@ -206,7 +206,8 @@ export const JobsPage: React.FC = () => {
         />
       )}
 
-      <AIChatFAB jobs={jobs ?? []} />
+      {/* <AIChatFAB jobs={jobs ?? []} /> */}
+      
     </div>
   );
 };
