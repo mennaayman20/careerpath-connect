@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback , useRef } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import Navbar from "@/components/Navbar";
@@ -13,8 +13,13 @@ import {
   CheckCircle2,
   AlertCircle,
   TrendingUp,
-  Target,RefreshCw,Send,CloudUpload,X,
+  Target,
+  RefreshCw,
+  Send,
+  CloudUpload,
+  X,
   Globe,
+  ChevronDown, // تم إضافة السهم هنا للتحريك
 } from "lucide-react";
 import {
   Select,
@@ -28,9 +33,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useResumes } from "@/features/resume/hooks/useResumes";
 import { ApplicationRequest } from "@/features/application/types/application.types";
 import { toast } from "@/components/ui/sonner";
-import { AnimatedNumber, AnimatedBar, FeedbackAccordion , SkillCard } from "./AnalysisHelpers"
+import { AnimatedNumber, AnimatedBar, FeedbackAccordion, SkillCard } from "./AnalysisHelpers";
 import { Label } from "@/components/ui/label";
 import { useJobDetails } from "@/hooks/useJobs";
+
 /* ─── Circular progress ring ─── */
 const CircularScore = ({ score }: { score: number }) => {
   const radius = 70;
@@ -83,61 +89,58 @@ const loadingMessages = [
   { text: "Calculating Match Score…", icon: Sparkles },
 ];
 
-
-
 const ResumeAnalysis = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const jobId = searchParams.get("jobId");
   const [isApplying, setIsApplying] = useState(false);
   const [coverLetter, setCoverLetter] = useState("");
-const fileInputRef = useRef<HTMLInputElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // لحفظ حالة الـ Accordions المفتوحة بشكل مستقل لكل قسم بناءً على الـ key
+  const [openSections, setOpenSections] = useState<Record<string, boolean>>({});
 
-const handleApply = async () => {
-  if (!jobId || !selectedResumeId) {
-    toast.error("Missing job or resume information.");
-    return;
-  }
+  const toggleSection = (key: string) => {
+    setOpenSections((prev) => ({
+      ...prev,
+      [key]: !prev[key],
+    }));
+  };
 
-  setIsApplying(true);
-  try {
-    const payload: ApplicationRequest = {
-      jobId: Number(jobId),
-      resumeId: Number(selectedResumeId),
-     
-    };
-
-    console.log("Sending Payload:", payload);
-
-    await applicationService.applyToJob(payload);
-    
-    toast.success("Application submitted successfully!");
-    navigate("/applications");
-  } catch (error: unknown) { // استخدمنا unknown بدل any
-    console.error("Apply Error:", error);
-
-    // التحقق من نوع الخطأ بشكل آمن للـ TypeScript
-    let errorMessage = "Failed to submit application. Please try again.";
-    
-    if (error && typeof error === 'object' && 'response' in error) {
-      const axiosError = error as { response?: { data?: { message?: string } } };
-      errorMessage = axiosError.response?.data?.message || errorMessage;
+  const handleApply = async () => {
+    if (!jobId || !selectedResumeId) {
+      toast.error("Missing job or resume information.");
+      return;
     }
 
-    toast.error(errorMessage);
-  } finally {
-    setIsApplying(false);
-  }
-};
+    setIsApplying(true);
+    try {
+      const payload: ApplicationRequest = {
+        jobId: Number(jobId),
+        resumeId: Number(selectedResumeId),
+      };
 
+      console.log("Sending Payload:", payload);
 
+      await applicationService.applyToJob(payload);
+      
+      toast.success("Application submitted successfully!");
+      navigate("/applications");
+    } catch (error: unknown) {
+      console.error("Apply Error:", error);
 
+      let errorMessage = "Failed to submit application. Please try again.";
+      
+      if (error && typeof error === 'object' && 'response' in error) {
+        const axiosError = error as { response?: { data?: { message?: string } } };
+        errorMessage = axiosError.response?.data?.message || errorMessage;
+      }
 
-
-
-
-
+      toast.error(errorMessage);
+    } finally {
+      setIsApplying(false);
+    }
+  };
 
   const {
     resumes,
@@ -152,8 +155,7 @@ const handleApply = async () => {
   const [selectedResumeId, setSelectedResumeId] = useState<number | null>(null);
   const [fileName, setFileName] = useState<string | null>(null);
   const [dragActive, setDragActive] = useState(false);
-// ضيفي ده مع الـ Hooks في بداية Component ResumeAnalysis
-const { data: jobDetails } = useJobDetails(jobId);
+  const { data: jobDetails } = useJobDetails(jobId);
 
   useEffect(() => {
     if (resumes?.length > 0 && selectedResumeId === null) {
@@ -162,8 +164,7 @@ const { data: jobDetails } = useJobDetails(jobId);
     }
   }, [resumes, selectedResumeId]);
 
-
-const handleUpload = useCallback(async (file: File) => {
+  const handleUpload = useCallback(async (file: File) => {
     const newResume = await uploadResume(file);
     if (newResume) {
       setSelectedResumeId(newResume.id);
@@ -171,10 +172,7 @@ const handleUpload = useCallback(async (file: File) => {
     }
   }, [uploadResume]);
 
-
-
-
-const onStartAnalysis = async () => {
+  const onStartAnalysis = async () => {
     if (!selectedResumeId) {
       toast.error("Please select or upload a resume first");
       return;
@@ -194,34 +192,29 @@ const onStartAnalysis = async () => {
     }
   };
 
-
-
   const handleDrop = useCallback((e: React.DragEvent) => {
-  e.preventDefault();
-  setDragActive(false);
-  const file = e.dataTransfer.files?.[0];
-  if (file?.type === "application/pdf") {
-    handleUpload(file);
-  }
-}, [handleUpload]); // <--- ضيفها هنا
-
-
-
+    e.preventDefault();
+    setDragActive(false);
+    const file = e.dataTransfer.files?.[0];
+    if (file?.type === "application/pdf") {
+      handleUpload(file);
+    }
+  }, [handleUpload]);
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <Navbar />
       <main className="flex-1 pt-24 pb-16">
         <div className="container max-w-5xl mx-auto px-4">
-          <Button
-            variant="ghost"
-            className="mb-6 gap-2 text-muted-foreground hover:text-foreground"
-            onClick={() => navigate(-1)}
-          >
-            <ArrowLeft className="w-4 h-4" /> Back to Job
-          </Button>
-
-<AnimatePresence mode="wait">
+<Button
+  variant="ghost"
+  className="mb-6 gap-2 text-muted-foreground border border-muted-foreground/10 dark:border-muted-foreground/20 !hover:text-white !hover:bg-white/10 dark:!hover:bg-white/5 !hover:border-white rounded-xl transition-all duration-300 group px-4"
+  onClick={() => navigate(-1)}
+>
+  <ArrowLeft className="w-4 h-4 transition-transform duration-300 ease-out group-hover:-translate-x-1.5" /> 
+  <span>Back to Job</span>
+</Button>
+ <AnimatePresence mode="wait">
             {state === "upload" && (
               <motion.div key="upload" className="space-y-8" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
                 <div className="text-center space-y-2">
@@ -230,13 +223,11 @@ const onStartAnalysis = async () => {
                 </div>
 
                 <div className="mx-auto max-w-md space-y-6">
-                  {/* Hidden File Input */}
                   <input 
                     type="file" ref={fileInputRef} className="hidden" accept=".pdf" 
                     onChange={(e) => e.target.files?.[0] && handleUpload(e.target.files[0])} 
                   />
 
-                  {/* ✅ إصلاح 2: الـ Select الموحد */}
                   <div className="grid gap-2">
                     <Label className="text-xs font-semibold uppercase text-muted-foreground ml-1">Target Resume</Label>
                     <Select
@@ -272,7 +263,6 @@ const onStartAnalysis = async () => {
                     </Select>
                   </div>
 
-                  {/* Analyze Button */}
                   <div className="flex justify-center">
                     <Button 
                       size="lg" 
@@ -287,8 +277,6 @@ const onStartAnalysis = async () => {
                 </div>
               </motion.div>
             )}
-
-
 
             {state === "loading" && (
               <motion.div key="loading" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col items-center py-24 gap-10">
@@ -306,235 +294,320 @@ const onStartAnalysis = async () => {
               </motion.div>
             )}
 
+            {state === "result" && analysisData && (
+              <motion.div key="result" initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
+                
+                {/* ── HERO: Score + Bars ── */}
+                <motion.div
+                  initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.45 }}
+                  className="grid grid-cols-1 md:grid-cols-[2fr_3fr] gap-0.5 rounded-2xl overflow-hidden border border-border shadow-sm"
+                >
+                  <div className="bg-red-50/50 dark:bg-red-950/20 p-8 flex flex-col justify-between border-b md:border-b-0 md:border-r border-border min-h-[320px]">
+                    <div className="flex flex-col items-center justify-center flex-1">
+                      <div className="relative">
+                        <CircularScore score={analysisData.jobMatchScore || 0} />
+                        <p className="text-[10px] uppercase tracking-[0.2em] text-red-800/60 dark:text-red-500/60 mt-4 font-bold text-center">
+                          Match score
+                        </p>
+                      </div>
+                    </div>
 
+                    <div className="mt-8">
+                      <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-3 font-semibold text-center md:text-left">
+                        Key Strengths
+                      </p>
+                      <div className="flex flex-wrap gap-2 justify-center md:justify-start">
+                        {analysisData.topStrengths?.map((strength, i) => (
+                          <motion.span
+                            key={i}
+                            initial={{ opacity: 0, scale: 0.85 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            transition={{ delay: 0.6 + i * 0.1 }}
+                            className="bg-green-100/80 dark:bg-green-900/40 text-green-800 dark:text-green-300 rounded-full px-3 py-1 text-[11px] font-bold border border-green-200/50 dark:border-green-800"
+                          >
+                            {strength}
+                          </motion.span>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
 
-{state === "result" && analysisData && (
-  <motion.div key="result" initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
-    
-    {/* ── HERO: Score + Bars ── */}
-    <motion.div
-      initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.45 }}
-      className="grid grid-cols-1 md:grid-cols-[2fr_3fr] gap-0.5 rounded-2xl overflow-hidden border border-border shadow-sm"
-    >
-     <div className="bg-red-50/50 dark:bg-red-950/20 p-8 flex flex-col justify-between border-b md:border-b-0 md:border-r border-border min-h-[320px]">
-  {/* الجزء العلوي: الـ Circular Score */}
-  <div className="flex flex-col items-center justify-center flex-1">
-    <div className="relative">
-      <CircularScore score={analysisData.jobMatchScore || 0} />
-      {/* لمسة إضافية: كلمة Match Score تحت الرقم جوه الدايرة أو تحتها مباشرة */}
-      <p className="text-[10px] uppercase tracking-[0.2em] text-red-800/60 dark:text-red-500/60 mt-4 font-bold text-center">
-        Match score
-      </p>
-    </div>
-  </div>
+                  <div className="flex flex-col bg-stone-50/50 dark:bg-stone-900/20">
+                    {Object.entries(analysisData.score).map(([key, value], i, arr) => {
+                      const scoreValue = value as number;
+                      const getScoreColor = (v: number) => v >= 70 ? "#16a34a" : v >= 40 ? "#ca8a04" : "#dc2626";
+                      const color = getScoreColor(scoreValue);
 
-  {/* الجزء السفلي: الـ Strengths */}
-  <div className="mt-8">
-    <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-3 font-semibold text-center md:text-left">
-      Key Strengths
-    </p>
-    <div className="flex flex-wrap gap-2 justify-center md:justify-start">
-      {analysisData.topStrengths?.map((strength, i) => (
-        <motion.span
-          key={i}
-          initial={{ opacity: 0, scale: 0.85 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: 0.6 + i * 0.1 }}
-          className="bg-green-100/80 dark:bg-green-900/40 text-green-800 dark:text-green-300 rounded-full px-3 py-1 text-[11px] font-bold border border-green-200/50 dark:border-green-800"
-        >
-          {strength}
-        </motion.span>
-      ))}
-    </div>
-  </div>
-</div>
+                      return (
+                        <div key={key} className={`flex items-center gap-4 px-6 py-4 ${i !== arr.length - 1 ? "border-b border-border/50" : ""}`}>
+                          <span className="text-[10px] uppercase tracking-widest text-stone-500 dark:text-stone-400 w-24 shrink-0 font-bold">
+                            {key.replace("_", " ")}
+                          </span>
+                          <div className="flex-1 h-1.5 bg-stone-200 dark:bg-stone-800 rounded-full overflow-hidden">
+                            <AnimatedBar value={scoreValue} color={color} delay={400 + i * 100} />
+                          </div>
+                          <span className="text-xs font-bold w-8 text-right font-mono" style={{ color }}>{scoreValue}%</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </motion.div>
 
-      <div className="flex flex-col bg-stone-50/50 dark:bg-stone-900/20">
-        {Object.entries(analysisData.score).map(([key, value], i, arr) => {
-          const scoreValue = value as number;
-          // تحسين: دالة موحدة لتحديد اللون بناءً على السكور
-          const getScoreColor = (v: number) => v >= 70 ? "#16a34a" : v >= 40 ? "#ca8a04" : "#dc2626";
-          const color = getScoreColor(scoreValue);
+                {/* ── STRATEGIC ADVICE ── */}
+                <motion.div
+                  initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.12, duration: 0.4 }}
+                  className="bg-blue-50/50 dark:bg-blue-950/30 rounded-xl p-5 flex gap-4 items-start border border-blue-100 dark:border-blue-900"
+                >
+                  <div className="w-10 h-10 rounded-xl bg-blue-100 dark:bg-blue-900 flex items-center justify-center shrink-0 shadow-sm">
+                    <Target className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                  </div>
+                  <div>
+                    <p className="text-[11px] uppercase tracking-widest text-blue-600 dark:text-blue-400 font-bold mb-1">Strategic Advice</p>
+                    <p className="text-sm text-blue-900 dark:text-blue-200 leading-relaxed font-medium">{analysisData.topTip}</p>
+                  </div>
+                </motion.div>
 
-          return (
-            <div key={key} className={`flex items-center gap-4 px-6 py-4 ${i !== arr.length - 1 ? "border-b border-border/50" : ""}`}>
-              <span className="text-[10px] uppercase tracking-widest text-stone-500 dark:text-stone-400 w-24 shrink-0 font-bold">
-                {key.replace("_", " ")}
-              </span>
-              <div className="flex-1 h-1.5 bg-stone-200 dark:bg-stone-800 rounded-full overflow-hidden">
-                <AnimatedBar value={scoreValue} color={color} delay={400 + i * 100} />
-              </div>
-              <span className="text-xs font-bold w-8 text-right font-mono" style={{ color }}>{scoreValue}%</span>
-            </div>
-          );
-        })}
-      </div>
-    </motion.div>
+                {/* ── FEEDBACK DETAILS (تم ترقيته بالكامل لحركة الـ Accordion الجذابة والمثيرة للتفاعل) ── */}
+                <motion.div 
+                  initial={{ opacity: 0, y: 14 }} 
+                  animate={{ opacity: 1, y: 0 }} 
+                  transition={{ delay: 0.22, duration: 0.4 }}
+                  className="space-y-4"
+                >
+                  <div className="flex items-center justify-between px-1">
+                    <p className="text-[12px] uppercase tracking-widest text-muted-foreground font-bold">
+                      Detailed Analysis Breakdown
+                    </p>
+                    <span className="text-xs text-muted-foreground/80 font-medium">
+                      {Object.keys(analysisData.feedback).length} Areas Reviewed
+                    </span>
+                  </div>
 
-    {/* ── STRATEGIC ADVICE ── */}
-    <motion.div
-      initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.12, duration: 0.4 }}
-      className="bg-blue-50/50 dark:bg-blue-950/30 rounded-xl p-5 flex gap-4 items-start border border-blue-100 dark:border-blue-900"
-    >
-      <div className="w-10 h-10 rounded-xl bg-blue-100 dark:bg-blue-900 flex items-center justify-center shrink-0 shadow-sm">
-        <Target className="w-5 h-5 text-blue-600 dark:text-blue-400" />
-      </div>
-      <div>
-        <p className="text-[11px] uppercase tracking-widest text-blue-600 dark:text-blue-400 font-bold mb-1">Strategic Advice</p>
-        <p className="text-sm text-blue-900 dark:text-blue-200 leading-relaxed font-medium">{analysisData.topTip}</p>
-      </div>
-    </motion.div>
+                  <div className="grid gap-4">
+                    {Object.entries(analysisData.feedback).map(([key, text], i) => {
+                      const scoreValue = analysisData.score[key as keyof typeof analysisData.score] as number;
+                      
+                      const getScoreStatus = (v: number) => {
+                        if (v >= 75) return { label: "Excellent Match", color: "text-green-600 dark:text-green-400", bg: "bg-green-500/10", border: "border-green-500/20" };
+                        if (v >= 50) return { label: "Needs Polish", color: "text-amber-600 dark:text-amber-400", bg: "bg-amber-500/10", border: "border-amber-500/20" };
+                        return { label: "Critical Gap", color: "text-destructive", bg: "bg-destructive/10", border: "border-destructive/20" };
+                      };
 
-    {/* ── FEEDBACK DETAILS ── */}
-    <motion.div initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.22, duration: 0.4 }}>
-      <p className="text-[13px] uppercase tracking-widest text-muted-foreground font-semibold mb-3 px-1">Analysis Details</p>
-      <div className="rounded-2xl overflow-hidden border border-border shadow-sm">
-        {Object.entries(analysisData.feedback).map(([key, text], i, arr) => {
-          const scoreValue = analysisData.score[key as keyof typeof analysisData.score] as number;
-          const color = scoreValue >= 70 ? "#16a34a" : scoreValue >= 40 ? "#ca8a04" : "#dc2626";
-          
-          return (
-            <FeedbackAccordion
-              key={key}
-              label={key.replace("_", " ")}
-              text={text as string}
-              fix={analysisData.fixes[key as keyof typeof analysisData.fixes]}
-              score={scoreValue}
-              color={color}
-              isLast={i === arr.length - 1}
-            />
-          );
-        })}
-      </div>
-    </motion.div>
+                      const status = getScoreStatus(scoreValue);
+                      const fixText = analysisData.fixes[key as keyof typeof analysisData.fixes];
+                      const isOpen = !!openSections[key];
 
-    {/* ── SKILLS GRID ── */}
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-      <SkillCard 
-        title="Matched skills" 
-        skills={analysisData.matchedSkills} 
-        variant="green" 
-        icon={<CheckCircle2 className="w-3.5 h-3.5" />} 
-      />
-      <SkillCard 
-        title="Missing skills" 
-        skills={analysisData.missingSkills} 
-        variant="red" 
-        icon={<X className="w-3.5 h-3.5" />} 
-      />
-    </div>
+                      return (
+                        <div 
+                          key={key} 
+                          className="bg-card border border-border rounded-2xl shadow-sm hover:border-border/80 transition-all duration-200 overflow-hidden"
+                        >
+                          {/* الهيدر بالكامل زر تفاعلي يحفز الفتح */}
+                          <button
+                            type="button"
+                            onClick={() => toggleSection(key)}
+                            className="w-full flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-5 md:p-6 text-left hover:bg-muted/20 transition-colors duration-150"
+                          >
+                            <div className="flex items-center gap-3">
+                              {/* نبض وميضي ملفت للانتباه عند الإغلاق */}
+                              <span className="relative flex h-2 w-2">
+                                {!isOpen && (
+                                  <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${status.bg.replace('/10', '')}`} />
+                                )}
+                                <span className={`relative inline-flex rounded-full h-2 w-2 ${status.bg.replace('/10', '')}`} />
+                              </span>
+                              <h3 className="text-base font-bold capitalize text-foreground tracking-wide">
+                                {key.replace("_", " ")}
+                              </h3>
+                            </div>
+                            
+                            <div className="flex items-center gap-3 self-start sm:self-auto">
+                              <span className={`text-[11px] font-bold px-2.5 py-1 rounded-full border ${status.bg} ${status.color} ${status.border}`}>
+                                {status.label}
+                              </span>
+                              <span className="text-sm font-black font-mono bg-muted px-2.5 py-1 rounded-lg">
+                                {scoreValue}%
+                              </span>
 
-    {/* ── QUICK WINS ── */}
-    <motion.div
-      initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.42, duration: 0.4 }}
-      className="rounded-2xl overflow-hidden border border-border shadow-sm"
-    >
-      <div className="bg-violet-50 dark:bg-violet-950/30 px-5 py-3 border-b border-border flex items-center gap-2 font-bold uppercase tracking-widest text-[11px] text-violet-600 dark:text-violet-400">
-        <Sparkles className="w-4 h-4" /> Quick wins
-      </div>
-      <div className="bg-background divide-y divide-border">
-        {analysisData.quickWins?.map((win, i) => (
-          <div key={i} className="flex items-start gap-4 px-5 py-4 hover:bg-stone-50/50 dark:hover:bg-stone-900/20 transition-colors">
-            <span className="w-6 h-6 rounded-lg bg-violet-100 dark:bg-violet-900/50 text-violet-700 dark:text-violet-300 text-[11px] font-bold flex items-center justify-center shrink-0">
-              {i + 1}
-            </span>
-            <span className="text-sm text-foreground/80 leading-relaxed font-medium">{win}</span>
-          </div>
-        ))}
-      </div>
-    </motion.div>
+                              {/* حركة السهم المطاطية الجذابة (Bounce) عند الإغلاق و(Rotate) عند الفتح */}
+                              <motion.div
+                                animate={{ 
+                                  rotate: isOpen ? 180 : 0,
+                                  y: isOpen ? 0 : [0, -3, 0]
+                                }}
+                                transition={{ 
+                                  rotate: { type: "spring", stiffness: 200, damping: 15 },
+                                  y: { repeat: isOpen ? 0 : Infinity, repeatType: "reverse", duration: 1.5, ease: "easeInOut" }
+                                }}
+                                className="text-muted-foreground/60 p-1 rounded-full hover:bg-muted"
+                              >
+                                <ChevronDown className="w-4 h-4" />
+                              </motion.div>
+                            </div>
+                          </button>
 
-    {/* ── FOOTER ACTIONS ── */}
-  {/* ── FOOTER ACTIONS (النسخة الذكية والغير تقليدية) ── */}
-<div className="pt-8 mt-10 border-t border-border/80 flex flex-col items-center gap-10">
-  
-  {/* لو الوظيفة خارجية (External) */}
-  {jobDetails?.jobSource?.toLowerCase() === "external" ? (
-    <motion.div 
-      initial={{ opacity: 0, y: 20 }} 
-      animate={{ opacity: 1, y: 0 }} 
-      transition={{ delay: 0.5 }}
-      className="w-full max-w-3xl overflow-hidden rounded-3xl border border-blue-100 bg-blue-50/50 dark:bg-blue-950/20 dark:border-blue-900 shadow-lg shadow-blue-500/5"
-    >
-      <div className="flex items-center gap-4 bg-blue-100 dark:bg-blue-900 px-6 py-4 border-b border-blue-200 dark:border-blue-800">
-        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-600 text-white shadow-md shadow-blue-600/30">
-          <Globe className="h-5 w-5" />
-        </div>
-        <div>
-          <h4 className="text-base font-extrabold text-foreground">Apply with this Analysis</h4>
-          <p className="text-[11px] text-muted-foreground uppercase tracking-[0.15em]">Direct Contact / External Application</p>
-        </div>
-      </div>
-      
-      <div className="p-6 md:p-8 flex flex-col md:flex-row md:items-center gap-6 md:gap-8 bg-background/50 backdrop-blur-sm">
-        <div className="flex-1">
-          <p className="text-sm text-muted-foreground leading-relaxed">
-            {/* جملة واضحة ومكملة للـ Flow */}
-            Now that you've seen your AI analysis, use the recruiter's official link below to submit your resume and complete your application directly.
-          </p>
-        </div>
-        
-        <div className="shrink-0 flex items-center justify-center">
-          {jobDetails.applicationLink ? (
-            <a 
-              href={jobDetails.applicationLink} 
-              target="_blank" 
-              rel="noopener noreferrer"
-              className="flex items-center gap-2.5 px-6 py-3 rounded-xl font-bold text-[13px] tracking-wide text-white transition-all duration-300
-                bg-blue-600 shadow-md shadow-blue-600/20 hover:bg-blue-700 hover:-translate-y-0.5"
-            >
-              Go to Application way
-              <ArrowLeft className="w-4 h-4 rotate-180" /> {/* سهم للأمام */}
-            </a>
-          ) : (
-            <span className="text-sm font-semibold text-destructive/80">Application link is not available.</span>
-          )}
-        </div>
-      </div>
-    </motion.div>
-  ) : (
-    /* لو داخلية (Internal) - بنعرض الـ Button الأصلي بتاعك */
-    <div className="w-full flex justify-center">
-      <Button 
-        size="lg" 
-        className="gap-2 min-w-[280px] rounded-xl font-semibold tracking-widest shadow-lg shadow-primary/20" 
-        onClick={handleApply} 
-        disabled={isApplying}
-      >
-        {isApplying ? (
-          <><RefreshCw className="w-4 h-4 animate-spin" /> Submitting...</>
-        ) : (
-          <><Send className="w-4 h-4" /> Apply Now</>
-        )}
-      </Button>
-    </div>
-  )}
+                          {/* محتوى التحليل يظهر بحركة ناعمة وجذابة عند الفتح */}
+                          <AnimatePresence initial={false}>
+                            {isOpen && (
+                              <motion.div
+                                initial={{ height: 0, opacity: 0 }}
+                                animate={{ height: "auto", opacity: 1 }}
+                                exit={{ height: 0, opacity: 0 }}
+                                transition={{ type: "spring", duration: 0.4, bounce: 0 }}
+                              >
+                                <div className="px-5 md:px-6 pb-5 md:pb-6 border-t border-border/40 pt-4">
+                                  <div className="grid grid-cols-1 lg:grid-cols-[1fr_auto_1fr] gap-5">
+                                    
+                                    {/* Left: Observations */}
+                                    <div className="space-y-1.5">
+                                      <span className="text-[10px] uppercase tracking-widest text-muted-foreground font-bold block">
+                                        AI Observations
+                                      </span>
+                                      <p className="text-sm text-foreground/80 leading-relaxed font-medium">
+                                        {text as string}
+                                      </p>
+                                    </div>
 
-  {/* ديما بنسيب زرار الـ "Analyze Another" تحت كـ Option */}
-  <Button 
-  variant="outline" // غيرنا الـ variant لـ outline عشان ياخد برواز
+                                    {/* Divider for desktop screens */}
+                                    <div className="hidden lg:block w-px bg-border/60 self-stretch my-1" />
 
-  onClick={() => setState("upload")} 
-  disabled={isApplying} 
-  className="
-    gap-2 px-12 py-2 rounded-xl text-[13px] font-bold tracking-wide
-    border-dashed border-2  border-slate-400
-    
-    hover:bg-primary/5 hover:text-primary hover:border-primary/30 
-    transition-all duration-300 group
-  "
->
-  {/* أيقونة بتتحرك خفيف مع الـ hover */}
-  <RefreshCw className="w-3.5 h-3.5 group-hover:rotate-180 transition-transform duration-500" />
-  Analyze another resume
-</Button>
-</div>
-  </motion.div>
-)}
+                                    {/* Right: Action Items / Fixes */}
+                                    {fixText && (
+                                      <div className="space-y-1.5 bg-muted/30 dark:bg-muted/10 p-3.5 rounded-xl border border-border/40">
+                                        <span className="text-[10px] uppercase tracking-widest text-primary dark:text-primary-foreground font-bold flex items-center gap-1.5">
+                                          <Sparkles className="w-3 h-3" /> Actionable Fix
+                                        </span>
+                                        <p className="text-sm text-muted-foreground leading-relaxed font-medium">
+                                          {fixText}
+                                        </p>
+                                      </div>
+                                    )}
 
+                                  </div>
+                                </div>
+                              </motion.div>
+                            )}
+                          </AnimatePresence>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </motion.div>
 
+                {/* ── SKILLS GRID ── */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <SkillCard 
+                    title="Matched skills" 
+                    skills={analysisData.matchedSkills} 
+                    variant="green" 
+                    icon={<CheckCircle2 className="w-3.5 h-3.5" />} 
+                  />
+                  <SkillCard 
+                    title="Missing skills" 
+                    skills={analysisData.missingSkills} 
+                    variant="red" 
+                    icon={<X className="w-3.5 h-3.5" />} 
+                  />
+                </div>
 
-            
+                {/* ── QUICK WINS ── */}
+                <motion.div
+                  initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.42, duration: 0.4 }}
+                  className="rounded-2xl overflow-hidden border border-border shadow-sm"
+                >
+                  <div className="bg-violet-50 dark:bg-violet-950/30 px-5 py-3 border-b border-border flex items-center gap-2 font-bold uppercase tracking-widest text-[11px] text-violet-600 dark:text-violet-400">
+                    <Sparkles className="w-4 h-4" /> Quick wins
+                  </div>
+                  <div className="bg-background divide-y divide-border">
+                    {analysisData.quickWins?.map((win, i) => (
+                      <div key={i} className="flex items-start gap-4 px-5 py-4 hover:bg-stone-50/50 dark:hover:bg-stone-900/20 transition-colors">
+                        <span className="w-6 h-6 rounded-lg bg-violet-100 dark:bg-violet-900/50 text-violet-700 dark:text-violet-300 text-[11px] font-bold flex items-center justify-center shrink-0">
+                          {i + 1}
+                        </span>
+                        <span className="text-sm text-foreground/80 leading-relaxed font-medium">{win}</span>
+                      </div>
+                    ))}
+                  </div>
+                </motion.div>
+
+                {/* ── FOOTER ACTIONS ── */}
+                <div className="pt-8 mt-10 border-t border-border/80 flex flex-col items-center gap-10">
+                  {jobDetails?.jobSource?.toLowerCase() === "external" ? (
+                    <motion.div 
+                      initial={{ opacity: 0, y: 20 }} 
+                      animate={{ opacity: 1, y: 0 }} 
+                      transition={{ delay: 0.5 }}
+                      className="w-full max-w-3xl overflow-hidden rounded-3xl border border-blue-100 bg-blue-50/50 dark:bg-blue-950/20 dark:border-blue-900 shadow-lg shadow-blue-500/5"
+                    >
+                      <div className="flex items-center gap-4 bg-blue-100 dark:bg-blue-900 px-6 py-4 border-b border-blue-200 dark:border-blue-800">
+                        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-600 text-white shadow-md shadow-blue-600/30">
+                          <Globe className="h-5 w-5" />
+                        </div>
+                        <div>
+                          <h4 className="text-base font-extrabold text-foreground">Apply with this Analysis</h4>
+                          <p className="text-[11px] text-muted-foreground uppercase tracking-[0.15em]">Direct Contact / External Application</p>
+                        </div>
+                      </div>
+                      
+                      <div className="p-6 md:p-8 flex flex-col md:flex-row md:items-center gap-6 md:gap-8 bg-background/50 backdrop-blur-sm">
+                        <div className="flex-1">
+                          <p className="text-sm text-muted-foreground leading-relaxed">
+                            Now that you've seen your AI analysis, use the recruiter's official link below to submit your resume and complete your application directly.
+                          </p>
+                        </div>
+                        
+                        <div className="shrink-0 flex items-center justify-center">
+                          {jobDetails.applicationLink ? (
+                            <a 
+                              href={jobDetails.applicationLink} 
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                              className="flex items-center gap-2.5 px-6 py-3 rounded-xl font-bold text-[13px] tracking-wide text-white transition-all duration-300
+                                bg-blue-600 shadow-md shadow-blue-600/20 hover:bg-blue-700 hover:-translate-y-0.5"
+                            >
+                              Go to Application way
+                              <ArrowLeft className="w-4 h-4 rotate-180" />
+                            </a>
+                          ) : (
+                            <span className="text-sm font-semibold text-destructive/80">Application link is not available.</span>
+                          )}
+                        </div>
+                      </div>
+                    </motion.div>
+                  ) : (
+                    <div className="w-full flex justify-center">
+                      <Button 
+                        size="lg" 
+                        className="gap-2 min-w-[280px] rounded-xl font-semibold tracking-widest shadow-lg shadow-primary/20" 
+                        onClick={handleApply} 
+                        disabled={isApplying}
+                      >
+                        {isApplying ? (
+                          <><RefreshCw className="w-4 h-4 animate-spin" /> Submitting...</>
+                        ) : (
+                          <><Send className="w-4 h-4" /> Apply Now</>
+                        )}
+                      </Button>
+                    </div>
+                  )}
+
+                  <Button 
+                    variant="outline" 
+                    onClick={() => setState("upload")} 
+                    disabled={isApplying} 
+                    className="
+                      gap-2 px-12 py-2 rounded-xl text-[13px] font-bold tracking-wide
+                      border-dashed border-2 border-slate-400
+                      hover:bg-primary/5 hover:text-primary hover:border-primary/30 
+                      transition-all duration-300 group
+                    "
+                  >
+                    <RefreshCw className="w-3.5 h-3.5 group-hover:rotate-180 transition-transform duration-500" />
+                    Analyze another resume
+                  </Button>
+                </div>
+              </motion.div>
+            )}
           </AnimatePresence>
         </div>
       </main>

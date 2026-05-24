@@ -560,12 +560,22 @@ const isEmailLink = (link?: string) => {
   </>
 )}
 
-<Button 
-  variant="outline" 
-  className="w-full gap-2 border-primary/20 text-primary hover:bg-primary/5 mt-5"
+<Button
+  variant="ghost"
+  className="w-full h-11 gap-2 mt-5 rounded-xl font-semibold relative overflow-hidden
+             border-2 border-primary/40 text-primary bg-transparent
+             transition-all duration-300 group
+             hover:border-transparent hover:text-white hover:bg-transparent
+             hover:[background:var(--gradient-primary,linear-gradient(135deg,hsl(var(--primary)),hsl(var(--primary)/0.7)))]
+             hover:shadow-[0_4px_20px_hsl(var(--primary)/0.35)] hover:-translate-y-0.5"
   onClick={() => handleProtectedAction(() => navigate(`/resume-analysis?jobId=${jobIdFromUrl}`))}
 >
-  <Sparkles size={16} /> Analyze My Resume
+  <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white/15 to-transparent
+                   -translate-x-full group-hover:translate-x-full transition-transform duration-700 ease-in-out" />
+  <Sparkles size={16} className="transition-all duration-500 group-hover:rotate-180 group-hover:scale-110 relative z-10" />
+  <span className="relative z-10 transition-transform duration-300 group-hover:-translate-y-px">
+    Analyze Resume First
+  </span>
 </Button>
 
 {/* 3. المودال الداخلي */}

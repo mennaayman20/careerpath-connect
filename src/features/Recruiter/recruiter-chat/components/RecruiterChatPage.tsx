@@ -65,7 +65,9 @@ useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [activeSession?.messages]);
 
-  const handleNewChat = () => setIsModalOpen(true);
+ const handleNewChat = () => {
+  setIsModalOpen(true);
+};
 
   const handleModalSubmit = async (jobId: number, firstPrompt: string) => {
     setIsModalOpen(false);
@@ -181,12 +183,13 @@ useEffect(() => {
 
       {/* ── Modal — بس للـ "New Chat" العادي ── */}
       <NewSessionModal
-        isOpen={isModalOpen}
-        isLoading={isCreatingSession}
-        defaultJobId={defaultJobId}
-        onClose={() => setIsModalOpen(false)}
-        onSubmit={handleModalSubmit}
-      />
+  isOpen={isModalOpen}
+  isLoading={isCreatingSession}
+  defaultJobId={activeSession?.jobId ?? defaultJobId}
+  sessions={sessions}              // ← جديد
+  onClose={() => setIsModalOpen(false)}
+  onSubmit={handleModalSubmit}
+/>
     </div>
   );
 };

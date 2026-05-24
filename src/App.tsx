@@ -71,28 +71,17 @@ const App = () => (
             <Route path="/applications" element={<ProtectedRoute><Applications /></ProtectedRoute>} />
             <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
 
-<Route path="/recruiter-dashboard" element={<RecruiterDashboard />} />
+<Route path="/recruiter-dashboard" element={  <ProtectedRoute><RecruiterDashboard /></ProtectedRoute>   } />
 
-<Route path="/recruiter/OrganizationProfile" element={<OrganizationProfilePage />} />
+<Route path="/recruiter/OrganizationProfile" element={ <ProtectedRoute><OrganizationProfilePage /></ProtectedRoute> } />
 
-<Route path="/organizations/connect/verify" element={<VerifyOrganization />} />
+<Route path="/organizations/connect/verify" element={ <ProtectedRoute> <VerifyOrganization /></ProtectedRoute>   } />
 
-{/* <Route path="/organizations/connect/verify" element={<VerifyOrgPage />} /> */}
+<Route path="/recruiter/jobs" element={<ProtectedRoute><RecruiterJobsPage /></ProtectedRoute>} />
+  <Route path="/recruiter/jobs/:jobId/applications" element={<ProtectedRoute><ApplicationsPage /></ProtectedRoute>} />
+<Route path="/recruiter/jobs/:jobId/chat" element={ <ProtectedRoute> <RecruiterChatPage /></ProtectedRoute> } />
 
-
-
-
-      {/* صفحة إنشاء المنظمة - متاحة فقط للموظفين اللي لسه معندهمش شركة */}
-    {/* <Route path="/organization/create"  element={<OrgCreatePage />} />  */}
-     
-
-
-
-<Route path="/recruiter/jobs" element={<RecruiterJobsPage />} />
-  <Route path="/recruiter/jobs/:jobId/applications" element={<ApplicationsPage />} />
-<Route path="/recruiter/jobs/:jobId/chat" element={<RecruiterChatPage />} />
-
-<Route path="/recruiter/manageJobs" element={<JobsPage />} />
+<Route path="/recruiter/manageJobs" element={<ProtectedRoute><JobsPage /></ProtectedRoute>} />
 
             
             <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />

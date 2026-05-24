@@ -1,44 +1,141 @@
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import { FileText, Search, CheckCircle2 } from "lucide-react";
+import { FileText, Search, Check, X, Circle } from "lucide-react";
 import { motion } from "framer-motion";
 import { Badge } from "@/components/ui/badge";
-import { Application } from "@/features/submitedApplication/submitedInterface";
 import { useMyApplications } from "@/features/submitedApplication/useSubmitted";
 import { useNavigate } from "react-router-dom";
-import { id } from "date-fns/locale";
+import { Application } from "@/features/submitedApplication/submitedInterface";
 
-const statusAccent: Record<string, string> = {
-  HIRED:        "border-l-[#1ca37b]",
-  SHORTLISTED:  "border-l-[#7F77DD]",
-  UNDER_REVIEW: "border-l-[#EF9F27]",
-  SUBMITTED:    "border-l-[#378ADD]",
-  REJECTED:     "border-l-[#E24B4A]",
+// ── Config ──────────────────────────────────────────────────────────────────
+
+const STEPS = [
+  { key: "SUBMITTED",    label: "Submitted" },
+  { key: "UNDER_REVIEW", label: "Under review" },
+  { key: "SHORTLISTED",  label: "Shortlisted" },
+  { key: "INTERVIEW",    label: "Interview" },
+  { key: "OFFERED",      label: "Offered" },
+  { key: "HIRED",        label: "Hired" },
+] as const;
+
+const statusBadge: Record<string, { label: string; bg: string; text: string }> = {
+  SUBMITTED:    { label: "Submitted",    bg: "#E6F1FB", text: "#0C447C" },
+  UNDER_REVIEW: { label: "Under review", bg: "#FAEEDA", text: "#633806" },
+  SHORTLISTED:  { label: "Shortlisted",  bg: "#EEEDFE", text: "#3C3489" },
+  INTERVIEW:    { label: "Interview",    bg: "#FEF3C7", text: "#92400E" },
+  OFFERED:      { label: "Offered",      bg: "#E0F2FE", text: "#0C4A6E" },
+  HIRED:        { label: "Hired",        bg: "#E1F5EE", text: "#085041" },
+  REJECTED:     { label: "Rejected",     bg: "#FCEBEB", text: "#791F1F" },
+  WITHDRAWN:    { label: "Withdrawn",    bg: "#F1EFE8", text: "#444441" },
 };
 
+const matchColor = (pct: number) =>
+  pct >= 75 ? "#1ca37b" : pct >= 50 ? "#EF9F27" : "#E24B4A";
 
+// ── Timeline ─────────────────────────────────────────────────────────────────
 
-const statusBadge: Record<string, { label: string; className: string }> = {
-  HIRED:        { label: "Hired",        className: "bg-[#E1F5EE] text-[#085041]" },
-  SHORTLISTED:  { label: "Shortlisted",  className: "bg-[#EEEDFE] text-[#3C3489]" },
-  UNDER_REVIEW: { label: "Under review", className: "bg-[#FAEEDA] text-[#633806]" },
-  SUBMITTED:    { label: "Submitted",    className: "bg-[#E6F1FB] text-[#0C447C]" },
-  REJECTED:     { label: "Rejected",     className: "bg-[#FCEBEB] text-[#791F1F]" },
-};
+function ApplicationTimeline({ status }: { status: Application["status"] }) {
+  const isRejected  = status === "REJECTED";
+  const isWithdrawn = status === "WITHDRAWN";
+  const isTerminal  = isRejected || isWithdrawn;
 
-const matchColor: Record<string, string> = {
-  HIRED:        "#1ca37b",
-  SHORTLISTED:  "#7F77DD",
-  UNDER_REVIEW: "#EF9F27",
-  SUBMITTED:    "#378ADD",
-  REJECTED:     "#E24B4A",
-};
+  // لو rejected/withdrawn نقطع الـ timeline بعد SHORTLISTED ونضيف الـ terminal step
+  const steps = isTerminal
+    ? [...STEPS.slice(0, 3), { key: status, label: isRejected ? "Rejected" : "Withdrawn" }]
+    : [...STEPS];
+
+  const currentIdx = steps.findIndex((s) => s.key === status);
+
+  return (
+    <div className="px-4 pb-4 flex items-start overflow-x-auto scrollbar-none gap-0">
+      {steps.map((step, i) => {
+        const isDone     = i < currentIdx;
+        const isActive   = i === currentIdx;
+        const isTermStep = isTerminal && i === steps.length - 1;
+
+        return (
+          <div key={step.key} className="flex flex-col items-center flex-1 min-w-[52px] relative">
+            {/* connector line */}
+            {i < steps.length - 1 && (
+              <div className="absolute top-[10px] left-[calc(50%+11px)] right-[calc(-50%+11px)] h-[2px] z-0"
+                style={{
+                  background: isDone && !isTermStep
+                    ? isRejected && i === steps.length - 2 ? "#E24B4A" : "#1ca37b"
+                    : "#e8e8e4"
+                }}
+              />
+            )}
+
+            {/* dot */}
+            <div className="relative z-10 w-[22px] h-[22px] rounded-full border-2 flex items-center justify-center flex-shrink-0"
+              style={{
+                borderColor: isTermStep  ? (isRejected ? "#E24B4A" : "#888780")
+                           : isActive    ? "#378ADD"
+                           : isDone      ? "#1ca37b"
+                           : "#e8e8e4",
+                background:  isTermStep  ? (isRejected ? "#FEECEC" : "#F1EFE8")
+                           : isActive    ? "#EBF4FF"
+                           : isDone      ? "#1ca37b"
+                           : "#fff",
+                boxShadow: isActive ? "0 0 0 4px rgba(55,138,221,0.15)" : undefined,
+              }}
+            >
+              {isDone && !isTermStep && <Check className="w-3 h-3 text-white" strokeWidth={3} />}
+              {isActive && !isTermStep && (
+                <div className="w-2 h-2 rounded-full"
+                  style={{ background: "#378ADD" }} />
+              )}
+              {isTermStep && isRejected  && <X      className="w-3 h-3" style={{ color: "#E24B4A" }} strokeWidth={3} />}
+              {isTermStep && isWithdrawn && <Circle className="w-2.5 h-2.5" style={{ color: "#888" }} />}
+            </div>
+
+            {/* label */}
+            <span className="text-[9.5px] font-semibold text-center mt-1.5 leading-tight"
+              style={{
+                color: isTermStep  ? (isRejected ? "#E24B4A" : "#888780")
+                     : isActive    ? "#378ADD"
+                     : isDone      ? "#1ca37b"
+                     : "#bbb"
+              }}
+            >
+              {step.label}
+            </span>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+// ── Match bar ────────────────────────────────────────────────────────────────
+
+// function MatchBar({ pct }: { pct: number }) {
+//   const color = matchColor(pct);
+//   return (
+//     <div className="flex items-center gap-2.5 px-4 pb-4">
+//       <span className="text-[11px] font-semibold text-muted-foreground w-9">Match</span>
+//       <div className="flex-1 h-1 bg-muted rounded-full overflow-hidden">
+//         <motion.div className="h-full rounded-full"
+//           style={{ background: color }}
+//           initial={{ width: 0 }}
+//           animate={{ width: `${pct}%` }}
+//           transition={{ duration: 1, ease: "easeOut" }}
+//         />
+//       </div>
+//       <span className="text-[11px] font-bold font-mono w-7 text-right" style={{ color }}>
+//         {pct}%
+//       </span>
+//     </div>
+//   );
+// }
+
+// ── Main ─────────────────────────────────────────────────────────────────────
 
 const Applications = () => {
   const { applications, isLoading, error } = useMyApplications();
- const navigate = useNavigate();
-  return (
+  const navigate = useNavigate();
 
+  return (
     <div className="flex min-h-screen flex-col bg-background">
       <Navbar />
 
@@ -50,9 +147,7 @@ const Applications = () => {
             <FileText className="h-6 w-6 text-[#1ca37b]" />
           </div>
           <div>
-            <h1 className="font-display text-3xl font-bold text-foreground">
-              My Applications
-            </h1>
+            <h1 className="font-display text-3xl font-bold text-foreground">My applications</h1>
             <p className="text-sm text-muted-foreground mt-0.5">
               Track and manage your AI-matched job applications
             </p>
@@ -62,81 +157,60 @@ const Applications = () => {
         {/* Loading */}
         {isLoading ? (
           <div className="flex flex-col items-center justify-center py-24 gap-4">
-            <div className="h-9 w-9 animate-spin rounded-full border-[3px] border-primary border-t-transparent" />
-            <p className="text-sm text-muted-foreground animate-pulse">
-              Fetching your applications...
-            </p>
+            <div className="h-8 w-8 animate-spin rounded-full border-[3px] border-primary border-t-transparent" />
+            <p className="text-sm text-muted-foreground animate-pulse">Fetching your applications…</p>
           </div>
 
-        /* Error */
         ) : error ? (
           <div className="text-center py-16 bg-destructive/5 rounded-2xl border border-destructive/20">
             <p className="text-destructive text-sm font-medium">{error}</p>
           </div>
 
-        /* Empty */
         ) : applications.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-24 border border-dashed rounded-2xl">
-            <Search className="h-10 w-10 text-muted-foreground/30 mb-3" />
-            <h2 className="text-base font-medium text-foreground">
-              No applications yet
-            </h2>
-            <p className="text-sm text-muted-foreground mt-1">
-              Start applying to jobs to track your progress here.
-            </p>
+          <div className="flex flex-col items-center justify-center py-24 border border-dashed rounded-2xl gap-3">
+            <Search className="h-10 w-10 text-muted-foreground/30" />
+            <h2 className="text-base font-medium text-foreground">No applications yet</h2>
+            <p className="text-sm text-muted-foreground">Start applying to jobs to track your progress here.</p>
           </div>
 
-        /* List */
         ) : (
           <div className="flex flex-col gap-3">
             {applications.map((app, i) => {
-              const badge  = statusBadge[app.status] ?? { label: app.status, className: "bg-muted text-muted-foreground" };
-              const accent = statusAccent[app.status] ?? "border-l-border";
-              const color  = matchColor[app.status]  ?? "#888";
-              const pct    = Math.round(app.matchingRatio ?? 0);
+              const badge = statusBadge[app.status] ?? { label: app.status, bg: "#f5f5f3", text: "#666" };
+              const pct   = Math.round(app.matchingRatio ?? 0);
 
               return (
                 <motion.div
-                   key={app.id}
-  initial={{ opacity: 0, y: 16 }}
-  animate={{ opacity: 1, y: 0 }}
-  transition={{ delay: i * 0.07 }}
-  whileHover={{ 
-    y: -3, 
-    scale: 1.01,
-    boxShadow: "0 12px 40px rgba(45, 35, 106, 0.12)"
-  }}
-  onClick={() => navigate(`/jobs?id=${app.jobId}`)}
-  className={`
-  rounded-2xl bg-card cursor-pointer
-  border border-border/50 border-l-[3px] ${accent}
-  p-5 flex flex-col gap-3
-  transition-colors
-`}
+                  key={app.id}
+                  initial={{ opacity: 0, y: 14 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: i * 0.06 }}
+                  whileHover={{ y: -2, boxShadow: "0 8px 32px rgba(0,0,0,0.08)" }}
+                  onClick={() => navigate(`/jobs?id=${app.jobId}`)}
+                  className="bg-card border border-border/60 rounded-2xl overflow-hidden cursor-pointer transition-shadow"
                 >
-                  {/* Row 1 — title + badge */}
-                  <div className="flex items-start justify-between gap-3 flex-wrap">
-                    <div className="flex flex-col gap-0.5">
-                    
-                      <span className="text-[15px] font-semibold text-foreground">
+                  {/* Top row */}
+                  <div className="flex items-start justify-between gap-3 px-4 pt-4 pb-3">
+                    <div className="min-w-0">
+                      <p className="text-[17px] font-semibold text-foreground truncate">
                         {app.jobTitle}
-                      </span>
+                      </p>
+                      {app.coverLetter && (
+                        <p className="text-[12px] text-muted-foreground italic truncate mt-0.5">
+                          {app.coverLetter}
+                        </p>
+                      )}
                     </div>
-
-                    <Badge
-                      className={`${badge.className} rounded-full text-[11px] px-2.5 py-0.5 border-0 font-medium`}
-                    >
+                    <Badge className="rounded-full text-[11px] px-2.5 py-0.5 border-0 font-semibold shrink-0"
+                      style={{ background: badge.bg, color: badge.text }}>
                       {badge.label}
                     </Badge>
                   </div>
 
-                
-                 
+                  {/* Timeline */}
+                  <ApplicationTimeline status={app.status} />
 
-                  {/* Row 3 — cover letter */}
-                  <p className="text-[12px] text-muted-foreground italic truncate">
-                    {app.coverLetter || "No cover letter provided."}
-                  </p>
+                  
                 </motion.div>
               );
             })}
@@ -150,5 +224,3 @@ const Applications = () => {
 };
 
 export default Applications;
-
-
