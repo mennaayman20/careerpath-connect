@@ -68,14 +68,13 @@
 /* ── Root Layout ────────────────────────────────────────────────────────── */
 .recruiter-chat {
   display: flex;
-  height: 100vh;
+  
   width: 100%;
   background: var(--rc-bg);
   overflow: hidden;
   font-family: 'DM Sans', system-ui, sans-serif;
   color: var(--rc-text-primary);
 }
-
 /* ════════════════════════════════════════════════════════════════════════════
    SIDEBAR
    ════════════════════════════════════════════════════════════════════════════ */
@@ -275,15 +274,16 @@
 /* ════════════════════════════════════════════════════════════════════════════
    MAIN CHAT AREA
    ════════════════════════════════════════════════════════════════════════════ */
+/* ── Chat Main ── */
 .chat-main {
   flex: 1;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
+  overflow: hidden;       /* ← موجود أصلاً ✓ */
   position: relative;
   background: var(--rc-bg);
+  min-height: 0;          /* ← ده اللي ناقص */
 }
-
 /* ── Error Toast ─────────────────────────────────────────────────────────── */
 .error-toast {
   position: absolute;
@@ -478,9 +478,11 @@
 }
 
 /* ── Messages ────────────────────────────────────────────────────────────── */
+/* ── Messages ── */
 .chat-messages {
   flex: 1;
   overflow-y: auto;
+  min-height: 0;          /* ← ده اللي ناقص */
   padding: 24px;
   display: flex;
   flex-direction: column;
@@ -488,7 +490,6 @@
   scrollbar-width: thin;
   scrollbar-color: var(--rc-border) transparent;
 }
-
 .chat-messages::-webkit-scrollbar { width: 4px; }
 .chat-messages::-webkit-scrollbar-thumb {
   background: var(--rc-border);
