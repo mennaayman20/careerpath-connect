@@ -298,19 +298,24 @@ const isEmailLink = (link?: string) => {
 
         {/* تفاصيل المكان والوقت */}
         <div className="mt-4 flex flex-wrap gap-y-2 gap-x-4">
-          <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+          {job.location && (
+                      <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
             <div className="flex h-6 w-6 items-center justify-center rounded-md bg-muted group-hover:bg-violet-100  transition-colors">
               <MapPin className="h-3.5 w-3.5" />
             </div>
-            {job.location || "Remote"}
+            {job.location}
           </div>
+          )}
 
-          <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-            <div className="flex h-6 w-6 items-center justify-center rounded-md bg-muted group-hover:bg-violet-100 transition-colors">
-              <Briefcase className="h-3.5 w-3.5" />
-            </div>
-            {job.type}
-          </div>
+
+          {job.type && (
+  <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+    <div className="flex h-6 w-6 items-center justify-center rounded-md bg-muted group-hover:bg-violet-100 transition-colors">
+      <Briefcase className="h-3.5 w-3.5" />
+    </div>
+    {job.type}
+  </div>
+)}
 
           <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
             <div className="flex h-6 w-6 items-center justify-center rounded-md bg-muted group-hover:bg-violet-100 transition-colors">
