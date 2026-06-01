@@ -266,7 +266,7 @@ export default function RecruiterDashboard() {
                   <span>Next-Gen Feature</span>
                 </div>
                 
-                <h2 className="font-syne text-2xl md:text-3xl font-extrabold text-gray-900 leading-tight mb-3">
+                <h2 className="font-syne text-2xl md:text-2xl font-extrabold text-gray-900 leading-tight mb-3">
                   AI Voice <span className="text-[#1ca37b]">Interviews Simulator</span>
                 </h2>
                 
