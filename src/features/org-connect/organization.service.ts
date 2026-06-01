@@ -4,17 +4,18 @@ import type {
   ConnectToOrganizationResponse,
   OrganizationResponse,
 } from "./organization.interfaces";
+import { JobResponse } from "../Recruiter/MangeJobs/types/recruiter.types"; // ← اضبط الـ path
+
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 interface PaginatedJobsResponse {
-  content: Job[];
+  content: JobResponse[];   // ← بدل Job[]
   totalPages: number;
   totalElements: number;
   number: number;
   size: number;
 }
-
 interface Job {
   id: number;
   title: string;
@@ -129,6 +130,28 @@ getMyOrganization: async (): Promise<OrganizationResponse | null> => {
     );
     return data;
   },
+
+
+
+// أضف دي جنب getOrganizationJobs
+getOrganizationJobsByStatus: async (
+  id: number,
+  status: "OPEN" | "PAUSED" | "CLOSED",  // ← uppercase
+  page = 0,
+  size = 10
+): Promise<PaginatedJobsResponse> => {
+  const { data } = await api.get<PaginatedJobsResponse>(
+    `/organizations/${id}/jobs/${status}`,
+    { params: { page, size } }
+  );
+  return data;
+},
+
+
+  
+
+
+
 };
 
 export default organizationService;

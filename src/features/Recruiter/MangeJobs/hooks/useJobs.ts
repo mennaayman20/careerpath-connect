@@ -1,83 +1,68 @@
-import { useState, useCallback } from "react";
-import { recruiterJobService } from "../services/recruiterJob.service";
-import { JobResponse, PaginatedJobsResponse } from "../types/recruiter.types";
-import { toast } from "sonner";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useState } from "react";
+import { api } from "@/lib/api";
+import organizationService from "../../../org-connect/organization.service";
+import { JobResponse } from "../types/recruiter.types";
 
+type JobStatus = "OPEN" | "PAUSED" | "CLOSED";
+type StatusFilter = JobStatus | "all";
+type JobActionType = "resume" | "pause" | "close";
 
-export const useJobs = (organizationId: number) => {
-  const [jobs, setJobs] = useState<JobResponse[]>([]);
-  
-  const [pagination, setPagination] = useState({
-    page: 0,
-    size: 10,
-    totalPages: 0,
-    totalElements: 0,
+export function useJobs(orgId: number) {
+  const queryClient = useQueryClient();
+  const [page, setPage] = useState(0);
+  const [activeStatus, setActiveStatus] = useState<StatusFilter>("all");
+
+  // ── Fetch ─────────────────────────────────────────────────────────────────
+  const { data, isLoading } = useQuery({
+    queryKey: ["jobs", orgId, activeStatus, page],
+    queryFn: () =>
+      activeStatus === "all"
+        ? organizationService.getOrganizationJobs(orgId, page)
+        : organizationService.getOrganizationJobsByStatus(orgId, activeStatus, page),
+    enabled: !!orgId,
+    staleTime: 1000 * 60 * 2,
   });
-  const [loading, setLoading] = useState(false);
-  const [actionLoading, setActionLoading] = useState<number | null>(null);
 
-  const fetchJobs = useCallback(async (page = 0, size = 10) => {
-    if (!organizationId) {
-    console.error("Organization ID is missing!");
-    return;
-  }
-    setLoading(true);
-    try {
-      const data: PaginatedJobsResponse = await recruiterJobService.getJobs(organizationId,page, size);
-      setJobs(data.content);
-      setPagination({
-        page: data.number,
-        size: data.size,
-        totalPages: data.totalPages,
-        totalElements: data.totalElements,
-      });
-    } catch {
-      toast.error("Failed to load jobs");
-    } finally {
-      setLoading(false);
-    }
-  }, [organizationId]);
-
-  const handleJobAction = useCallback(
-    async (
-      id: number,
-      action: "resume" | "pause" | "close",
-      onSuccess?: () => void
-    ) => {
-      setActionLoading(id);
-      try {
-        const actionMap = {
-          resume: recruiterJobService.resumeJob,
-          pause: recruiterJobService.pauseJob,
-          close: recruiterJobService.closeJob,
-        };
-        const updated = await actionMap[action](id);
-        setJobs((prev) =>
-          prev.map((job) => (job.id === id ? { ...job, status: updated.status } : job))
-        );
-        toast.success(`Job ${action}d successfully`);
-        onSuccess?.();
-      } catch {
-        toast.error(`Failed to ${action} job`);
-      } finally {
-        setActionLoading(null);
-      }
+  // ── Actions ───────────────────────────────────────────────────────────────
+  const { mutate: jobActionMutate, isPending: actionLoading } = useMutation({
+    mutationFn: ({ id, action }: { id: number; action: JobActionType }) =>
+      api.patch(`/jobs/${id}/${action}`),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["jobs", orgId] });
     },
-    []
-  );
+  });
 
-  const goToPage = useCallback(
-    (page: number) => fetchJobs(page, pagination.size),
-    [fetchJobs, pagination.size]
-  );
+  const handleJobAction = (
+    id: number,
+    action: JobActionType,
+    _?: () => void
+  ) => jobActionMutate({ id, action });
+
+  // ── Helpers ───────────────────────────────────────────────────────────────
+  const filterByStatus = (status: StatusFilter) => {
+    setActiveStatus(status);
+    setPage(0);
+  };
+
+  const goToPage = (newPage: number) => setPage(newPage);
+
+  const fetchJobs = () =>
+    queryClient.invalidateQueries({ queryKey: ["jobs", orgId] });
 
   return {
-    jobs,
-    pagination,
-    loading,
+    jobs: (data?.content as JobResponse[]) ?? [],
+    pagination: {
+      page: data?.number ?? 0,
+      totalPages: data?.totalPages ?? 1,
+      totalElements: data?.totalElements ?? 0,
+    },
+    loading: isLoading,
     actionLoading,
+    activeStatus,
     fetchJobs,
     handleJobAction,
     goToPage,
+    filterByStatus,
   };
-};
+}

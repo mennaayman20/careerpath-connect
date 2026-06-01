@@ -191,7 +191,7 @@ export default function RecruiterDashboard() {
               <h1 className="font-syne text-3xl md:text-3xl font-bold text-white mb-2">
                 Welcome to your <span className="text-[#59daad]">Recruiter Dashboard</span>
               </h1>
-              <p className="text-sm text-white/50 max-w-md">
+              <p className="text-sm text-white/70 max-w-md">
                 Build your org, post jobs, and manage all listings in one place.
               </p>
             </div>
@@ -200,7 +200,7 @@ export default function RecruiterDashboard() {
                 num={loading ? "—" : hasOrg ? org!.name.split(" ")[0] : "—"}
                 label="Organization"
               />
-              <Stat num={loading ? "—" : String(jobs.length)} label="Total Jobs" />
+              <Stat num={loading ? "—" : String(jobs.length)} label="active Jobs" />
             </div>
           </div>
         </section>
