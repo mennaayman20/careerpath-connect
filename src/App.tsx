@@ -16,6 +16,7 @@ import Jobs from "./pages/Jobs";
 import MatchedJobs from "./pages/MatchedJobs";
 import Applications from "./pages/Applications";
 import Profile from "./pages/Profile";
+// import PublicProfile from "./pages/PublicProfile";
 import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
 import ActivateAccount from "./pages/ActivateAccount";
@@ -70,6 +71,9 @@ const App = () => (
             <Route path="/matched-jobs" element={<ProtectedRoute><MatchedJobs /></ProtectedRoute>} />
             <Route path="/applications" element={<ProtectedRoute><Applications /></ProtectedRoute>} />
             <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+
+       {/* <Route path="/profile/public" element={<PublicProfile />} /> */}
+
 
 <Route path="/recruiter-dashboard" element={  <ProtectedRoute><RecruiterDashboard /></ProtectedRoute>   } />
 

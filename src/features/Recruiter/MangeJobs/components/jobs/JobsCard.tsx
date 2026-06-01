@@ -2,16 +2,13 @@ import React from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import {
-  MapPin, Briefcase, Clock, Building2, Globe,
-  Eye, XCircle, Pause, Play, MessageSquare,
+  MapPin, Briefcase, Clock, Building2,
+  Eye, XCircle, Pause, Play,
 } from "lucide-react";
 import { Badge }   from "@/components/ui/badge";
 import { Button }  from "@/components/ui/button";
 import { cn }      from "@/lib/utils";
 import { JobResponse } from "../../types/recruiter.types";
-
-// import { chatService } from "../../../recruiter-chat/services/chatService";
-
 
 export type JobActionType = "resume" | "pause" | "close";
 
@@ -52,123 +49,137 @@ export const JobCard: React.FC<JobCardProps> = ({
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      className={cn(
-       "   rounded-3xl border border-slate-300 dark:border-white/10 bg-white/90 dark:bg-slate-900/60 p-6 transition-all duration-300",
-"hover:shadow-xl hover:border-violet-400 dark:hover:border-violet-500 backdrop-blur-sm flex flex-col justify-between"
-      )}
+     initial={{ opacity: 0, y: 15 }}
+  animate={{ opacity: 1, y: 0 }}
+  // ⬇️ عملنا transition سريع ومحدد للـ hover بس (Duration: 0.2 ثانية)
+  whileHover={{ 
+    scale: 1.02, 
+    y: -2,
+    transition: { duration: 0.2, ease: "easeInOut" }
+  }}
+  // الـ transition ده هيفضل مسؤول بس عن أول ما الكارد يظهر في الصفحة
+  transition={{ duration: 0.2, ease: "easeOut" }}
+  className={cn(
+    "group relative rounded-[24px] border-2 border-slate-200/90 dark:border-white/10 bg-white dark:bg-slate-900 m-3 p-6 flex flex-col justify-between h-full",
+    "shadow-[0_8px_24px_rgba(45,35,106,0.02)] hover:shadow-[0_20px_40px_-4px_rgba(45,35,106,0.12)]",
+    "hover:border-violet-400/80 dark:hover:border-violet-500/80 transition-colors duration-300" 
+    // 💡 شيلنا transition-all وخليناها transition-colors عشان الـ Tailwind ما يعملش تداخل مع الـ Framer Motion في الأبعاد
+  )}
     >
+      {/* Smooth Subtle Glow Background Layer on Hover */}
+      <div className="absolute inset-0 bg-gradient-to-br from-violet-500/[0.01] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-[22px] pointer-events-none" />
 
-      {/* الجزء العلوي: العنوان وبادج الحالة */}
-      <div className="flex items-start justify-between gap-4 ">
+      <div className="relative z-10 flex flex-col flex-1 justify-between">
+        {/* Top Section: Title & Status Badge */}
         <div>
-          <h3 className="font-syne font-bold text-xl text-[#2D236A] dark:text-white leading-snug">
-            {job.title}
-          </h3>
+          <div className="flex items-start justify-between gap-4">
+            <div className="space-y-1.5 flex-1 min-w-0">
+              <h3 className="font-syne font-bold text-lg md:text-[22px] text-[#2D236A] dark:text-white leading-snug tracking-tight truncate group-hover:text-violet-900 dark:group-hover:text-violet-300 transition-colors duration-300">
+                {job.title}
+              </h3>
 
-          {job.organizationName && (
-            <p className="mt-1.5 flex items-center gap-1.5 text-l text-slate-500 dark:text-slate-400">
-              <Building2 className="h-3.5 w-3.5 text-violet-500" />
-              {job.organizationName}
-            </p>
-          )}
+              {job.organizationName && (
+                <p className="flex items-center gap-1.5 text-sm font-medium text-slate-600 dark:text-slate-400">
+                  <Building2 className="h-4 w-4 text-violet-500 shrink-0" />
+                  <span className="truncate">{job.organizationName}</span>
+                </p>
+              )}
+            </div>
 
-          {/* مصدر الوظيفة */}
-          <div className="mt-2.5 flex items-center gap-2">
-            <span className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-violet-600 bg-violet-50 border border-violet-200/60 px-2 py-0.5 rounded-md dark:bg-violet-950/20 dark:text-violet-400 dark:border-violet-800">
+            {/* Status Badge */}
+            <Badge
+              className={cn(
+                "px-3 py-1 text-[10px] font-bold uppercase tracking-wider rounded-lg shadow-sm border-0 shrink-0 select-none transition-all duration-300",
+                !isClosed
+                  ? "bg-[#1ca37b] text-white hover:bg-[#19926e]"
+                  : "bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400"
+              )}
+            >
+              {job.status || "Unknown"}
+            </Badge>
+          </div>
+
+          {/* Job Source Tag */}
+          <div className="mt-3 flex items-center gap-2">
+            <span className="flex items-center gap-1 text-[9px] font-extrabold uppercase tracking-widest text-violet-600 bg-violet-50 border border-violet-100 px-2.5 py-0.5 rounded-md dark:bg-violet-950/40 dark:text-violet-400 dark:border-violet-900/60">
               By UPPLY
             </span>
           </div>
         </div>
 
-        {/* بادج الحالة يمين فوق */}
-        <Badge
-          className={cn(
-            "px-3 py-1 text-[10px] font-semibold uppercase border-none tracking-wider rounded-lg shadow-sm shrink-0",
-            !isClosed
-              ? "bg-[#4da78c] text-white"
-              : "bg-slate-200 text-slate-600 dark:bg-slate-800 dark:text-slate-400",
+        {/* Metadata Grid (Location, Type, Time) */}
+        <div className="mt-5 pt-4 border-t border-slate-100 dark:border-white/5 flex flex-wrap gap-x-4 gap-y-2.5 text-xs md:text-sm font-medium text-slate-500 dark:text-slate-400">
+          {job.location && (
+            <span className="flex items-center gap-1.5 bg-slate-50 dark:bg-slate-800/40 px-2.5 py-1 rounded-lg">
+              <MapPin className="h-3.5 w-3.5 text-violet-400 shrink-0" />
+              {job.location}
+            </span>
           )}
-        >
-          {job.status || "Unknown"}
-        </Badge>
+          {job.type && (
+            <span className="flex items-center gap-1.5 bg-slate-50 dark:bg-slate-800/40 px-2.5 py-1 rounded-lg">
+              <Briefcase className="h-3.5 w-3.5 text-violet-400 shrink-0" />
+              {job.type}
+            </span>
+          )}
+          <span className="flex items-center gap-1.5 bg-slate-50 dark:bg-slate-800/40 px-2.5 py-1 rounded-lg ml-auto">
+            <Clock className="h-3.5 w-3.5 text-violet-400 shrink-0" />
+            {getRelativeTime(job.createdDate || new Date())}
+          </span>
+        </div>
       </div>
 
-      {/* الـ Meta Data (الموقع، النوع، الوقت) مصفوفة بشكل منظم قبل الأزرار مباشرة */}
-      <div className="mt-4 pt-3 border-t border-slate-100/70 dark:border-white/5 flex flex-wrap gap-x-4 gap-y-2 text-sm text-slate-400">
-        {job.location && (
-          <span className="flex items-center gap-1.5">
-            <MapPin className="h-3.5 w-3.5 text-violet-400" />
-            {job.location}
-          </span>
-        )}
-        {job.type && (
-          <span className="flex items-center gap-1.5">
-            <Briefcase className="h-3.5 w-3.5 text-violet-400" />
-            {job.type}
-          </span>
-        )}
-        <span className="flex items-center gap-1.5">
-          <Clock className="h-3.5 w-3.5 text-violet-400" />
-          {getRelativeTime(job.createdDate || new Date())}
-        </span>
-      </div>
-
-      {/* ── حاوية أزرار التحكم السفلية (تحت الداتا بالكامل) ── */}
-      <div className="mt-5 pt-4 border-t border-slate-100 dark:border-white/5 grid grid-cols-2 sm:flex sm:items-center sm:justify-center gap-2.5">
+      {/* ── Action Buttons Bottom Row ── */}
+      <div className="relative z-10 mt-5 pt-4 border-t border-slate-100 dark:border-white/5 grid grid-cols-3 gap-2 w-full">
         
-        {/* زر Ask AI */}
-        {/* <Button
-          size="sm"
-          variant="outline"
-          className="h-10 gap-1.5 text-xs font-semibold rounded-xl border-[#1ca37b]/30 text-[#1ca37b] bg-[#1ca37b]/5 hover:bg-[#1ca37b] hover:text-white hover:border-[#1ca37b] transition-all duration-200"
-          onClick={() => navigate(`/recruiter/jobs/${job.id}/chat`)}
-        >
-          <MessageSquare className="h-4 w-4" />
-          Ask AI
-        </Button> */}
-
-        {/* زر View Applicants */}
+        {/* Applicants Button */}
         <Button
           size="sm"
           variant="outline"
-          className="h-10 gap-1.5 text-xs font-semibold rounded-xl border-violet-200 text-violet-600 bg-violet-50/40 hover:bg-violet-600 hover:text-white hover:border-violet-600 transition-all duration-200 dark:border-violet-900 dark:text-violet-400"
+          className="h-10 gap-1.5 text-xs font-bold rounded-xl border-slate-300 text-violet-600 bg-white hover:bg-violet-600 hover:text-white hover:border-violet-600 transition-all duration-300 dark:border-slate-800 dark:text-violet-400 shadow-sm"
           onClick={() => navigate(`/recruiter/jobs/${job.id}/applications`, { state: { jobTitle: job.title } })}
         >
-          <Eye className="h-4 w-4" />
-          Applicants
+          <Eye className="h-4 w-4 shrink-0" />
+          <span className="hidden sm:inline">Applicants</span>
         </Button>
 
-        {/* زر Pause / Resume */}
+        {/* Pause / Resume Button */}
         <Button
           size="sm"
           variant="outline"
           disabled={actionLoading}
           className={cn(
-            "h-10 gap-1.5 text-xs font-semibold rounded-xl transition-all duration-200",
+            "h-10 gap-1.5 text-xs font-bold rounded-xl transition-all duration-300 shadow-sm",
             isPaused
-              ? "border-green-200 text-green-600 bg-green-50/30 hover:bg-green-600 hover:text-white hover:border-green-600"
-              : "border-amber-200 text-amber-600 bg-amber-50/30 hover:bg-amber-600 hover:text-white hover:border-amber-300"
+              ? "border-emerald-200 text-emerald-600 bg-emerald-50/20 hover:bg-emerald-600 hover:text-white hover:border-emerald-600"
+              : "border-amber-300 text-amber-600 bg-amber-50/20 hover:bg-amber-600 hover:text-white hover:border-amber-600"
           )}
           onClick={() => onAction(job.id, isPaused ? "resume" : "pause")}
         >
-          {isPaused ? <><Play className="h-4 w-4" /> Resume</> : <><Pause className="h-4 w-4" /> Pause</>}
+          {isPaused ? (
+            <>
+              <Play className="h-4 w-4 shrink-0" />
+              <span>Resume</span>
+            </>
+          ) : (
+            <>
+              <Pause className="h-4 w-4 shrink-0" />
+              <span>Pause</span>
+            </>
+          )}
         </Button>
 
-        {/* زر Close */}
+        {/* Close Button */}
         <Button
           size="sm"
           variant="outline"
           disabled={actionLoading || isClosed}
-          className="h-10 gap-1.5 text-xs font-semibold rounded-xl border-red-200 text-red-600 bg-red-50/30 hover:bg-red-600 hover:text-white hover:border-red-600 transition-all duration-200 disabled:opacity-40 disabled:hover:bg-transparent"
+          className="h-10 gap-1.5 text-xs font-bold rounded-xl border-red-300 text-red-600 bg-red-50/10 hover:bg-red-600 hover:text-white hover:border-red-600 transition-all duration-300 shadow-sm disabled:opacity-30 disabled:hover:bg-transparent"
           onClick={() => onAction(job.id, "close")}
         >
-          <XCircle className="h-4 w-4" />
-          Close
+          <XCircle className="h-4 w-4 shrink-0" />
+          <span>Close</span>
         </Button>
       </div>
-
     </motion.div>
   );
 };

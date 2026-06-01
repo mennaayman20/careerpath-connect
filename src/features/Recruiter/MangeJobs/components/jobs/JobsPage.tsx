@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { ArrowLeft, ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
+import { ArrowLeft, ChevronLeft, ChevronRight, Loader2, Sparkles } from "lucide-react";
 import { useJobs } from "../../hooks/useJobs";
 import { JobCard } from "./JobsCard";
 import { JobResponse } from "../../types/recruiter.types";
@@ -12,6 +12,7 @@ import Footer from "@/components/Footer";
 import { useRecruiterOrg } from "../../../../org-connect/useRecruiterOrg";
 import { AIChatFAB } from "./Aichatfab";
 import { useNavigate } from "react-router-dom";
+import AiButton from '@/components/ui/AiButton';
 
 // ─── SUB-COMPONENTS ──────────────────────────────────────────────────────────
 
@@ -65,6 +66,9 @@ export const JobsPage: React.FC = () => {
       </div>
     );
   }
+  const handleCreateInterview = () => {
+  console.log("الركروتر ضغط على الزرار! افتحي الـ Modal هنا 🚀");
+};
 
   return (
     <div className="min-h-screen bg-[#f6f5ff]">
@@ -130,7 +134,7 @@ export const JobsPage: React.FC = () => {
             <span className="font-syne text-[13px] font-medium uppercase whitespace-nowrap text-[#2D236A]">
               All Listings
             </span>
-            <div className="flex-1 h-px bg-[#2D236A]/70" />
+            <div className="flex-1 h-px bg-[#2D236A]/50" />
           </header>
 
           {/* Jobs List */}
@@ -183,6 +187,41 @@ export const JobsPage: React.FC = () => {
               </button>
             </div>
           )}
+
+                    {/* AI Voice Interviews Section */}
+          <div className="w-full overflow-hidden rounded-[32px] border border-teal-500/20 bg-gradient-to-r from-white via-[#1ca37b]/5 to-[#2D236A]/5 p-8 md:p-10 relative
+            shadow-[0_12px_40px_-12px_rgba(28,163,123,0.15)]
+            transition-all duration-500 ease-out
+            hover:shadow-[0_24px_60px_-10px_rgba(45,35,106,0.2)]
+            hover:-translate-y-1
+            hover:border-teal-400/50"
+          >
+            <div className="absolute top-0 right-0 w-[300px] h-[300px] bg-gradient-to-bl from-[#1ca37b]/10 to-transparent rounded-full blur-3xl pointer-events-none" />
+            <div className="absolute bottom-0 left-0 w-[200px] h-[200px] bg-gradient-to-tr from-[#2D236A]/5 to-transparent rounded-full blur-2xl pointer-events-none" />
+
+            <div className="relative z-10 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-8">
+              <div className="max-w-3xl">
+                <div className="mb-4 inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-[#1ca37b]/15 to-[#2D236A]/15 px-4 py-1 text-[11px] font-bold uppercase tracking-wider text-[#107e5e] border border-[#1ca37b]/20 shadow-sm">
+                  <Sparkles size={12} className="text-[#1ca37b] animate-pulse" />
+                  <span>Next-Gen Feature</span>
+                </div>
+                
+                <h2 className="font-syne text-2xl md:text-3xl font-extrabold text-gray-900 leading-tight mb-3">
+                  AI Voice <span className="text-[#1ca37b]">Interviews Simulator</span>
+                </h2>
+                
+                <p className="text-sm md:text-base leading-relaxed text-gray-600 font-medium max-w-2xl">
+                  Generate custom job-specific questions, run real-time voice-to-text conversations, 
+                  and get instant semantic scoring using advanced Cross-Encoder evaluation. 
+                  Streamline your screening workflow effortlessly.
+                </p>
+              </div>
+          
+              <div className="flex items-center justify-start lg:justify-center shrink-0 self-start lg:self-center bg-white p-3 rounded-2xl shadow-md border border-slate-100/80">
+                <AiButton onClick={handleCreateInterview} />
+              </div>
+            </div>
+          </div>
 
           {/* Tips Footer */}
           <footer className="mt-5 bg-white rounded-2xl border border-[#2D236A]/8 px-6 py-4 flex items-center gap-6 flex-wrap shadow-sm">
