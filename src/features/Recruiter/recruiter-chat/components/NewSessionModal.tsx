@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import type { SessionResponse } from '../interfaces/chat.interfaces';
 
 const SUGGESTIONS = [
@@ -52,17 +52,19 @@ export const NewSessionModal: React.FC<Props> = ({
   const [customText, setCustomText]       = useState('');
 
   // unique jobs من الـ sessions الموجودة
-  const uniqueJobs = Array.from(
+  const uniqueJobs = useMemo(() =>
+  Array.from(
     new Map(sessions.map((s) => [s.jobId, s])).values()
-  ).map((s) => ({ jobId: s.jobId, title: s.title || `Job #${s.jobId}` }));
-
-  useEffect(() => {
-    if (!isOpen) return;
-    setSelectedId('summary');
-    setCustomMode(false);
-    setCustomText('');
-    setSelectedJobId(defaultJobId ?? (uniqueJobs[0]?.jobId || ''));
-  }, [isOpen]);          // eslint-disable-line react-hooks/exhaustive-deps
+  ).map((s) => ({ jobId: s.jobId, title: s.title || `Job #${s.jobId}` })),
+  [sessions] // ← مرة واحدة بس لما sessions تتغير
+);
+ useEffect(() => {
+  if (!isOpen) return;
+  setSelectedId('summary');
+  setCustomMode(false);
+  setCustomText('');
+  setSelectedJobId(defaultJobId ?? (uniqueJobs[0]?.jobId || ''));
+}, [isOpen, defaultJobId, uniqueJobs]); // ← deps صح بدل eslint-disable
 
   const resolvedPrompt = customMode
     ? customText.trim()

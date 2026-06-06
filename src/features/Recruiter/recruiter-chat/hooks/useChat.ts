@@ -50,14 +50,12 @@ export function useChat(): UseChatReturn {
     return () => { abortRef.current?.abort(); };
   }, []);
 
-  // ── Helper: ابعت signal جديد وابort القديم بشكل آمن ──────────────────────
-  const freshSignal = () => {
-    // عمل الـ controller الجديد الأول، THEN abort القديم
-    const controller = new AbortController();
-    abortRef.current?.abort();
-    abortRef.current = controller;
-    return controller.signal;
-  };
+const freshSignal = useCallback(() => {
+  abortRef.current?.abort();           // ← abort الأول أولاً
+  const controller = new AbortController();
+  abortRef.current = controller;
+  return controller.signal;
+}, []);
 
   // ── Fetch all sessions ──────────────────────────────────────────────────────
   const fetchSessions = useCallback(async () => {
@@ -106,7 +104,7 @@ export function useChat(): UseChatReturn {
       setActiveSession((prev) => (prev ? { ...prev, isStreaming: false } : prev));
       setIsCreatingSession(false);
     }
-  }, []);
+  }, [freshSignal]);
 
   // ── Load existing session messages ──────────────────────────────────────────
   const selectSession = useCallback(async (sessionId: string) => {
@@ -158,7 +156,7 @@ export function useChat(): UseChatReturn {
     } finally {
       setActiveSession((prev) => (prev ? { ...prev, isStreaming: false } : prev));
     }
-  }, []);
+  }, [freshSignal]);
 
   // ── Delete session ──────────────────────────────────────────────────────────
   const deleteSession = useCallback(async (sessionId: string) => {

@@ -58,14 +58,15 @@ useEffect(() => {
   } else if (defaultJobId) {
     setIsModalOpen(true);
   }
-}, []);
+}, [createSession, selectSession, defaultJobId]); // ← deps صح
 
   // Auto-scroll
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [activeSession?.messages]);
 
- const handleNewChat = () => {
+const handleNewChat = () => {
+  if (activeSession?.isStreaming) return; // ← المنع
   setIsModalOpen(true);
 };
 
@@ -86,13 +87,14 @@ useEffect(() => {
 
         {/* ── Sidebar ── */}
         <SessionSidebar
-          sessions={sessions}
-          activeSessionId={activeSession?.sessionId}
-          isLoading={isLoadingSessions}
-          onSelect={selectSession}
-          onDelete={deleteSession}
-          onNewChat={handleNewChat}
-        />
+  sessions={sessions}
+  activeSessionId={activeSession?.sessionId}
+  isLoading={isLoadingSessions}
+  isStreaming={activeSession?.isStreaming} // ← جديد
+  onSelect={selectSession}
+  onDelete={deleteSession}
+  onNewChat={handleNewChat}
+/>
 
         {/* ── Main Area ── */}
         <main className="chat-main">
@@ -128,9 +130,13 @@ useEffect(() => {
                     'How does this candidate match the job requirements?',
                     "Summarize the candidate's work experience",
                   ].map((s) => (
-                    <button key={s} className="suggestion-chip" onClick={handleNewChat}>
-                      {s}
-                    </button>
+                    <button
+  key={s}
+  className="suggestion-chip"
+  onClick={handleNewChat}  // handleNewChat فيها الـ guard بالفعل
+>
+  {s}
+</button>
                   ))}
                 </div>
               </div>
@@ -150,12 +156,12 @@ useEffect(() => {
                     </span>
                   </div>
                 </div>
-                {activeSession.isStreaming && (
-                  <div className="chat-header__streaming">
-                    <span className="pulse-dot" />
-                    AI is thinking…
-                  </div>
-                )}
+                {activeSession?.isStreaming && (
+  <div className="chat-header__streaming">
+    <span className="pulse-dot" />
+    AI is thinking… {/* لما يخلص، الـ buttons بترجع تشتغل */}
+  </div>
+)}
               </div>
 
               <div className="chat-messages">

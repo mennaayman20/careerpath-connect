@@ -29,69 +29,69 @@ export const chatService = {
     await api.delete(`/jobs/chat/sessions/${sessionId}`);
   },
 
-  // ── GET /jobs/chat/sessions/{sessionId}/stream?question=... ─────────────────
-  // بيستخدم fetch عشان SSE
-  // الـ question بيتبعت كـ query param في الـ URL
-  consumeStream: async (
-    sessionId: string,
-    question: string,
-    onChunk: (chunk: string) => void,
-    signal?: AbortSignal
-  ): Promise<void> => {
-    const baseUrl = api.defaults.baseURL ?? "";
-    const token   = localStorage.getItem("token") ?? "";
+// المشكلة: السيرفر ممكن يبعت chunks متقطعة تقطع في نص الـ "data:" line
+// الحل: buffer الـ lines عشان نتأكد إن كل سطر اتكمل
+consumeStream: async (
+  sessionId: string,
+  question: string,
+  onChunk: (chunk: string) => void,
+  signal?: AbortSignal
+): Promise<void> => {
+  const baseUrl = api.defaults.baseURL ?? "";
+  const token   = localStorage.getItem("token") ?? "";
+  const url = `${baseUrl}/jobs/chat/sessions/${sessionId}/stream?question=${encodeURIComponent(question)}`;
 
-    const url = `${baseUrl}/jobs/chat/sessions/${sessionId}/stream?question=${encodeURIComponent(question)}`;
+  const res = await fetch(url, {
+    signal,
+    headers: {
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      Accept: "text/event-stream",
+    },
+  });
 
-    const res = await fetch(url, {
-      signal,
-      headers: {
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        Accept: "text/event-stream",
-      },
-    });
+  if (!res.ok) throw new Error(`Stream failed: ${res.status} ${res.statusText}`);
+  if (!res.body) throw new Error("No response body");
 
-    if (!res.ok) throw new Error(`Stream failed: ${res.status} ${res.statusText}`);
-    if (!res.body) throw new Error("No response body");
+  const reader  = res.body.getReader();
+  const decoder = new TextDecoder();
+  let buffer = "";
 
-    const reader  = res.body.getReader();
-    const decoder = new TextDecoder();
-
+  const processLine = (line: string) => {
+    if (!line.startsWith("data:")) return;
+    const raw = line.replace(/^data:\s*/, "").trim();
+    if (!raw || raw === "[DONE]") return;
     try {
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-
-        const text  = decoder.decode(value, { stream: true });
-        const lines = text.split("\n");
-
-        for (const line of lines) {
-          // السيرفر بيبعت: event:token / event:done
-          // نتجاهل سطور الـ event ونشتغل بس على سطور الـ data
-          if (!line.startsWith("data:")) continue;
-
-          // شيل "data:" سواء بمسافة أو بدونها
-          const raw = line.replace(/^data:\s*/, "").trim();
-
-          if (raw === "") continue;
-
-          // لو وصلنا [DONE] أو event:done — نخرج فوراً
-          if (raw === "[DONE]") return;
-
-          try {
-            const parsed = JSON.parse(raw);
-            onChunk(parsed?.content ?? parsed?.delta ?? raw);
-          } catch {
-            // الـ data مش JSON — ابعتها مباشرة (plain text token)
-            onChunk(raw);
-          }
-        }
-
-        // لو السيرفر بعت event:done في نفس الـ chunk
-        if (text.includes("event:done")) return;
-      }
-    } finally {
-      reader.releaseLock();
+      const parsed = JSON.parse(raw);
+      onChunk(parsed?.content ?? parsed?.delta ?? raw);
+    } catch {
+      onChunk(raw);
     }
-  },
+  };
+
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
+
+      if (done) {
+        // ← flush TextDecoder + عالج اللي فضل في الـ buffer
+        buffer += decoder.decode();
+        if (buffer.trim()) processLine(buffer.trim());
+        break;
+      }
+
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split("\n");
+      buffer = lines.pop() ?? "";
+
+      for (const line of lines) {
+        if (line.includes("event:done")) return;
+        processLine(line.trim());
+      }
+    }
+  } finally {
+    reader.releaseLock();
+  }
+},
+
+
 };

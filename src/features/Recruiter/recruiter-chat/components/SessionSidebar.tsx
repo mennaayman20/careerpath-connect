@@ -7,6 +7,7 @@ interface Props {
   sessions: SessionResponse[];
   activeSessionId?: string;
   isLoading: boolean;
+  isStreaming?: boolean; // ← جديد
   onSelect: (sessionId: string) => void;
   onDelete: (sessionId: string) => void;
   onNewChat: () => void;
@@ -26,6 +27,7 @@ export const SessionSidebar: React.FC<Props> = ({
   sessions,
   activeSessionId,
   isLoading,
+  isStreaming,
   onSelect,
   onDelete,
   onNewChat,
@@ -40,7 +42,13 @@ export const SessionSidebar: React.FC<Props> = ({
           </svg>
           <span>Recruiter Chat</span>
         </div>
-        <button className="btn-new-chat" onClick={onNewChat} title="New Chat">
+       <button
+  className="btn-new-chat"
+  onClick={onNewChat}
+  title={isStreaming ? 'Please wait for the AI to finish' : 'New Chat'}
+  disabled={isStreaming}
+  style={{ opacity: isStreaming ? 0.4 : 1, cursor: isStreaming ? 'not-allowed' : 'pointer' }}
+>
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
             <path d="M12 5v14M5 12h14" stroke="currentColor" strokeWidth="2.5"
               strokeLinecap="round"/>
