@@ -1,48 +1,49 @@
-import { useState, useEffect } from 'react';
-import { userProfileService } from '../services/userService'; // حسب مسار ملفك
-import { profile } from 'console';
-import { toast } from './use-toast';
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { userProfileService } from "../services/userService";
+import { personal } from "@/types/profile";
+import { toast } from "./use-toast";
+import { useState, useEffect } from "react";
 
 export const useProfileManager = () => {
-  const [personal, setPersonal] = useState({
-    id: 0,
-    firstName: '',
-    lastName: '',
-    university: ''
+  const queryClient = useQueryClient();
+  const [personalState, setPersonalState] = useState<personal>({
+    id: 0, firstName: "", lastName: "", university: "",
   });
-  const [loading, setLoading] = useState(true);
 
-  // جلب البيانات عند فتح الصفحة
+  const { data, isLoading: loading } = useQuery({
+    queryKey: ["profile", "personal"],
+    queryFn: userProfileService.getUserProfile,
+    staleTime: 5 * 60 * 1000,
+    refetchOnWindowFocus: false,
+  });
+
+  // sync server data into local editable state once it arrives
   useEffect(() => {
-    const loadProfile = async () => {
-      try {
-        const data = await userProfileService.getUserProfile();
-        // بنملى الـ State بالبيانات اللي رجعت من السيرفر
-        setPersonal({
-          id: data.id || 0,
-          firstName: data.firstName || '',
-          lastName: data.lastName || '',
-          university: data.university || ''
-        });
-      } catch (error) {
-        console.error("Failed to load profile", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadProfile();
-  }, []);
-
-  // دالة الحفظ (Update)
-  const handleSave = async () => {
-    try {
-      await userProfileService.updateUserProfile(personal);
-      toast({ title: "Personal  Info Updated Successfully" });
-    } catch (error) {
-      toast({ variant: "destructive", title: "Update Failed", description: "Failed to update personal info." });
+    if (data) {
+      setPersonalState({
+        id: data.id || 0,
+        firstName: data.firstName || "",
+        lastName: data.lastName || "",
+        university: data.university || "",
+      });
     }
-  };
+  }, [data]);
 
-  return { personal, setPersonal, loading, handleSave };
+  const saveMutation = useMutation({
+    mutationFn: (payload: personal) => userProfileService.updateUserProfile(payload),
+    onSuccess: (updated) => {
+      queryClient.setQueryData(["profile", "personal"], updated);
+      toast({ title: "Personal Info Updated Successfully" });
+    },
+    onError: () => {
+      toast({ variant: "destructive", title: "Update Failed", description: "Failed to update personal info." });
+    },
+  });
+
+  return {
+    personal: personalState,
+    setPersonal: setPersonalState,
+    loading: loading || saveMutation.isPending,
+    handleSave: () => saveMutation.mutate(personalState),
+  };
 };

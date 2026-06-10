@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import { Search, MapPin, Clock, Building2, Briefcase, X, Sparkles, Star, Globe, Mail, ChevronRight, ChevronLeft } from "lucide-react";
+import { Search, MapPin, Clock, Building2, Briefcase, X, Sparkles, Star, Globe, Mail, ChevronRight, ChevronLeft, FileText } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { motion } from "framer-motion";
 import { useQuery } from "@tanstack/react-query";
@@ -91,31 +91,6 @@ const isSearching = debouncedSearch.trim().length > 0;
 const isLoading = isSearching ? isSearchLoading : isJobsLoading;
 const totalPages = isSearching ? (searchData?.totalPages || 1) : (jobsData?.totalPages || 1);
 const jobs = isSearching ? (searchData?.content || []) : (jobsData?.content || []);
-
-
-// // 2. الـ Logic ده بيشتغل فوري في المتصفح
-// const jobs = allJobs.filter((job) => {
-//   const q = search.toLowerCase().trim();
-  
-//   // لو مفيش سيرش، اعرضي كل الوظائف
-//   if (!q) return true;
-
-//   // فلتري بناءً على الحقول اللي تحبيها
-//   return (
-//     job.title?.toLowerCase().includes(q) ||
-//     job.organizationName?.toLowerCase().includes(q) ||
-//     job.location?.toLowerCase().includes(q) ||
-//     job.description?.toLowerCase().includes(q) ||
-//     // لو عايزة تفلتري بالمهارات كمان:
-//     job.skills?.some(skill => skill.skillName.toLowerCase().includes(q))
-//   );
-// });
-  
-
-
-
-
-
   const currentJobBase = jobs.find(j => j.id.toString() === jobIdFromUrl);
   const selectedJob = selectedJobDetails ? { ...currentJobBase, ...selectedJobDetails } : currentJobBase;
 
@@ -178,6 +153,79 @@ const isEmailLink = (link?: string) => {
   return true;
 };
 
+// helper function - حطيها فوق الكومبوننت أو في ملف utils منفصل
+const formatJobDescription = (text: string) => {
+  if (!text) return null;
+
+  const lines = text.split("\n").map(l => l.trim()).filter(l => l.length > 0);
+  const blocks: { type: "heading" | "list" | "paragraph"; content: string[] }[] = [];
+
+  let currentList: string[] = [];
+
+  const flushList = () => {
+    if (currentList.length > 0) {
+      blocks.push({ type: "list", content: currentList });
+      currentList = [];
+    }
+  };
+
+  lines.forEach((line) => {
+    const isBullet = /^[-•*]\s+/.test(line);
+    // عنوان: سطر قصير نسبياً وبينتهي بـ : أو كله كابيتال
+    const isHeading = /^[A-Za-z\s]{3,40}:$/.test(line) && !isBullet;
+
+    if (isBullet) {
+      currentList.push(line.replace(/^[-•*]\s+/, ""));
+    } else if (isHeading) {
+      flushList();
+      blocks.push({ type: "heading", content: [line.replace(/:$/, "")] });
+    } else {
+      flushList();
+      blocks.push({ type: "paragraph", content: [line] });
+    }
+  });
+  flushList();
+
+  return blocks;
+};
+const JobDescription = ({ description }: { description: string }) => {
+  const blocks = formatJobDescription(description);
+
+  if (!blocks || blocks.length === 0) {
+    return <p className="text-sm text-muted-foreground">No description available.</p>;
+  }
+
+  return (
+    <div className="space-y-3">
+      {blocks.map((block, i) => {
+        if (block.type === "heading") {
+          return (
+            <h5 key={i} className="text-m font-bold  mt-4 first:mt-0">
+              {block.content[0]}
+            </h5>
+          );
+        }
+        if (block.type === "list") {
+          return (
+            <ul key={i} className="space-y-1.5 pl-1">
+              {block.content.map((item, j) => (
+                <li key={j} className="flex items-start gap-2.5 text-m  leading-relaxed">
+                  <span className="mt-1.5 h-1.5 w-1.5 rounded-full bg-violet-800 shrink-0" />
+                  <span>{item}</span>
+                </li>
+              ))}
+            </ul>
+          );
+        }
+        return (
+          <p key={i} className="text-[15px]  leading-relaxed">
+            {block.content[0]}
+          </p>
+        );
+      })}
+    </div>
+  );
+};
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
@@ -447,12 +495,19 @@ const isEmailLink = (link?: string) => {
                 
 
 
-                {/* Job Description */}
-                <div className="mt-6">
-                  <h4 className="font-semibold text-base text-foreground mb-1">Description</h4>
-<p className="text-sm text-muted-foreground leading-relaxed tracking-wide whitespace-pre-line bg-muted/20 p-4 rounded-xl border border-border/50 font-medium">
-    {selectedJob.description}
-  </p>                </div>
+               
+{/* Job Description */}
+<div className="mt-6">
+  <h4 className="font-semibold text-base text-foreground mb-3 flex items-center gap-2">
+    <FileText className="w-4 h-4 text-violet-900" />
+    Description
+  </h4>
+  <div className="bg-muted/30 p-5 rounded-xl border border-border/50">
+    <JobDescription 
+    
+    description={selectedJob.description} />
+  </div>
+</div>
 
                 {/* Required Skills */}
                 {selectedJob.skills?.length > 0 && (

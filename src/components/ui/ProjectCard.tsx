@@ -1,13 +1,13 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { userProfileService } from "@/services/userService";
 import { Project } from "@/types/profile";
-import { useToast } from "@/hooks/use-toast"; // تأكد من المسار الصح عندك
+import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { FolderGit2, Trash2, ExternalLink } from "lucide-react";
+import { FolderGit2, Trash2, ExternalLink, Loader2 } from "lucide-react";
 
 interface ProjectCardProps {
   project: Project;
@@ -17,133 +17,177 @@ export const ProjectCard = ({ project }: ProjectCardProps) => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  // 1. حالة محلية عشان التغييرات اللي بتكتبها تكون سريعة (Performance)
   const [localData, setLocalData] = useState<Project>(project);
 
-  // 2. Mutation الحفظ لهذا الكارد فقط
+  useEffect(() => {
+    setLocalData(project);
+  }, [project]);
+
+  // 1. Mutation الحفظ
   const saveMutation = useMutation({
     mutationFn: () => userProfileService.updateUserProject(project.id, localData),
     onSuccess: () => {
-      // بنعمل invalidate عشان نضمن إن الداتا اللي في الكاش هي اللي في السيرفر
       queryClient.invalidateQueries({ queryKey: ["profile", "projects"] });
       toast({ title: "Saved!", description: "Project updated successfully." });
     },
-    onError: () => toast({ variant: "destructive", title: "Save Failed" }),
+    onError: () => toast({ variant: "destructive", title: "Save Failed", description: "Please complete all fields to proceed" }),
   });
 
-  // 3. Mutation الحذف لهذا الكارد فقط
+  // 2. Mutation الحذف
   const deleteMutation = useMutation({
     mutationFn: () => userProfileService.deleteUserProject(project.id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["profile", "projects"] });
-      toast({ title: "Deleted", description: "Project removed." });
+      toast({ title: "Deleted", description: "Project removed successfully." });
     },
-    onError: () => toast({ variant: "destructive", title: "Delete Failed" }),
+    onError: () => toast({ variant: "destructive", title: "Delete Failed", description: "Could not delete project." }),
   });
 
   const handleChange = (field: keyof Project, value: string) => {
     setLocalData((prev) => ({ ...prev, [field]: value }));
   };
 
-  return (
-    <div className="group rounded-xl bg-card shadow-card border border-border/50 overflow-hidden hover:shadow-elevated transition-shadow">
-      {/* Project Header */}
-      <div className="aspect-video bg-gradient-to-br from-secondary to-secondary/50 relative flex items-center justify-center">
-        <FolderGit2 className="h-12 w-12 text-muted-foreground" />
-        
-        {project.projectUrl && (
-          <a
-            href={project.projectUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="absolute bottom-4 right-4 rounded-full bg-accent p-2 text-accent-foreground shadow-lg opacity-0 group-hover:opacity-100 transition-opacity"
-          >
-            <ExternalLink className="h-4 w-4" />
-          </a>
-        )}
+  const isPending = saveMutation.isPending || deleteMutation.isPending;
+  const isSaveDisabled = isPending || !localData.title?.trim() || !localData.description?.trim();
 
-        {/* زرار الحذف - هيعمل Loading في الكارد ده بس */}
+  return (
+    <div className="group rounded-xl bg-card shadow-sm border border-border/60 overflow-hidden hover:shadow-md hover:border-primary/20 transition-all duration-300">
+      
+      {/* Project Compact Header Strip */}
+      <div className="h-14 bg-gradient-to-r from-secondary/70 to-secondary/30 px-4 flex items-center justify-between border-b border-border/50">
+        <div className="flex items-center gap-2">
+          <div className="p-1.5 rounded-md bg-background/80 border border-border/40 shadow-sm text-muted-foreground/80 group-hover:text-primary transition-colors duration-300">
+            <FolderGit2 className="h-4 w-4" />
+          </div>
+          
+          {project.projectUrl && (
+            <a
+              href={project.projectUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 text-xs text-muted-foreground bg-background/50 px-2.5 py-1 rounded-md border border-border/40 shadow-2xs transition-all duration-300 ease-out
+              group-hover:text-primary-foreground group-hover:bg-primary group-hover:border-primary group-hover:scale-105 group-hover:shadow-[0_0_14px_rgba(var(--primary),0.35)]"
+            >
+              {/* السهم بيتحرك بالتوازي والتزامن التام مع تكبير الكبسولة (الديف) */}
+              <ExternalLink className="h-3.5 w-3.5 transition-transform duration-300 ease-out transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+              <span className="max-w-[120px] truncate text-[10px] font-bold tracking-wide uppercase">View Project</span>
+            </a>
+          )}
+        </div>
+
+        {/* زرار الحذف */}
         <Button
           variant="ghost"
-          size="sm"
+          size="icon"
           onClick={() => deleteMutation.mutate()}
-          disabled={deleteMutation.isPending}
-          className="absolute top-4 right-4 h-8 w-8 p-0 bg-background/80 text-muted-foreground hover:text-destructive opacity-0 group-hover:opacity-100 transition-opacity"
+          disabled={isPending}
+          className="h-8 w-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-lg transition-colors"
+          title="Delete Project"
         >
-          {deleteMutation.isPending ? "..." : <Trash2 className="h-4 w-4" />}
+          {deleteMutation.isPending ? (
+            <Loader2 className="h-3.5 w-3.5 animate-spin" />
+          ) : (
+            <Trash2 className="h-3.5 w-3.5" />
+          )}
         </Button>
       </div>
 
-      {/* Project Content */}
-      <div className="p-6">
+      {/* Project Content Form */}
+      <div className="p-5">
         <div className="space-y-4">
-          <div>
-            <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Project Title</Label>
+          
+          {/* Title */}
+          <div className="space-y-1">
+            <Label className="text-[11px] font-bold text-muted-foreground/80 uppercase tracking-wide flex items-center gap-1">
+              Project Title
+              {!localData.title?.trim() && <span className="text-destructive font-bold">*</span>}
+            </Label>
             <Input
               value={localData.title || ""}
               onChange={(e) => handleChange("title", e.target.value)}
+              disabled={isPending}
               placeholder="My Awesome Project"
-              className="mt-1 bg-input border-0 p-0 text-foreground font-display font-semibold text-lg"
+              className="bg-transparent border-0 p-0 text-foreground font-semibold text-base focus-visible:ring-0 shadow-none h-auto placeholder:text-muted-foreground/40"
             />
           </div>
 
-          <div className="grid gap-3 sm:grid-cols-2">
-            <div>
-              <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Project URL</Label>
+          {/* Grid Inputs */}
+          <div className="grid gap-3.5 sm:grid-cols-2">
+            <div className="space-y-1">
+              <Label className="text-[11px] font-bold text-muted-foreground/80 uppercase tracking-wide">Project URL</Label>
               <Input
                 value={localData.projectUrl || ""}
                 onChange={(e) => handleChange("projectUrl", e.target.value)}
+                disabled={isPending}
                 placeholder="https://..."
-                className="mt-1 bg-input"
+                className="bg-muted/30 focus-visible:bg-transparent transition-colors"
               />
             </div>
-            <div>
-              <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Technologies</Label>
+            
+            <div className="space-y-1">
+              <Label className="text-[11px] font-bold text-muted-foreground/80 uppercase tracking-wide">Technologies</Label>
               <Input
                 value={localData.technologies || ""}
                 onChange={(e) => handleChange("technologies", e.target.value)}
+                disabled={isPending}
                 placeholder="React, Node.js..."
-                className="mt-1 bg-input"
+                className="bg-muted/30 focus-visible:bg-transparent transition-colors"
               />
             </div>
-            <div>
-              <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Start Date</Label>
+            
+            <div className="space-y-1">
+              <Label className="text-[11px] font-bold text-muted-foreground/80 uppercase tracking-wide">Start Date</Label>
               <Input
                 type="date"
                 value={localData.startDate || ""}
                 onChange={(e) => handleChange("startDate", e.target.value)}
-                className="mt-1 bg-input"
+                disabled={isPending}
+                className="bg-muted/30 focus-visible:bg-transparent transition-colors"
               />
             </div>
-            <div>
-              <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">End Date</Label>
+            
+            <div className="space-y-1">
+              <Label className="text-[11px] font-bold text-muted-foreground/80 uppercase tracking-wide">End Date</Label>
               <Input
                 type="date"
                 value={localData.endDate || ""}
                 onChange={(e) => handleChange("endDate", e.target.value)}
-                className="mt-1 bg-input"
+                disabled={isPending}
+                className="bg-muted/30 focus-visible:bg-transparent transition-colors"
               />
             </div>
           </div>
 
-          <div>
-            <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Description</Label>
+          {/* Description */}
+          <div className="space-y-1">
+            <Label className="text-[11px] font-bold text-muted-foreground/80 uppercase tracking-wide flex items-center gap-1">
+              Description
+              {!localData.description?.trim() && <span className="text-destructive font-bold">*</span>}
+            </Label>
             <Textarea
               value={localData.description || ""}
               onChange={(e) => handleChange("description", e.target.value)}
+              disabled={isPending}
               placeholder="Brief description..."
-              className="mt-1 bg-input min-h-[80px] resize-none"
+              className="bg-muted/30 focus-visible:bg-transparent min-h-[85px] resize-none transition-colors"
             />
           </div>
 
-          {/* زرار الحفظ - هيعمل Loading في الكارد ده بس */}
+          {/* زرار الحفظ */}
           <Button
             onClick={() => saveMutation.mutate()}
-            disabled={saveMutation.isPending || !localData.title?.trim() || !localData.description?.trim()}
-            className="w-full bg-[#4b4f52] border-0 text-accent-foreground"
+            disabled={isSaveDisabled}
+            className="w-full bg-[#4b4f52] hover:bg-[#3b3e40] text-white font-medium shadow-sm transition-colors mt-2"
           >
-            {saveMutation.isPending ? "Saving..." : "Save Project"}
+            {saveMutation.isPending ? (
+              <span className="flex items-center gap-2 justify-center">
+                <Loader2 className="h-4 w-4 animate-spin" /> Saving...
+              </span>
+            ) : (
+              "Save Project"
+            )}
           </Button>
+          
         </div>
       </div>
     </div>

@@ -89,6 +89,12 @@ const loadingMessages = [
   { text: "Calculating Match Score…", icon: Sparkles },
 ];
 
+const isEmailLink = (link?: string) => {
+  if (!link) return false;
+  if (link.startsWith("http://") || link.startsWith("https://")) return false;
+  return true;
+};
+
 const ResumeAnalysis = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
@@ -558,16 +564,37 @@ const ResumeAnalysis = () => {
                         
                         <div className="shrink-0 flex items-center justify-center">
                           {jobDetails.applicationLink ? (
-                            <a 
-                              href={jobDetails.applicationLink} 
-                              target="_blank" 
-                              rel="noopener noreferrer"
-                              className="flex items-center gap-2.5 px-6 py-3 rounded-xl font-bold text-[13px] tracking-wide text-white transition-all duration-300
-                                bg-blue-600 shadow-md shadow-blue-600/20 hover:bg-blue-700 hover:-translate-y-0.5"
-                            >
-                              Go to Application way
-                              <ArrowLeft className="w-4 h-4 rotate-180" />
-                            </a>
+                           <div className="shrink-0 flex items-center justify-center">
+  {jobDetails.applicationLink ? (
+    <button
+      onClick={() => {
+        const link = jobDetails.applicationLink;
+        if (isEmailLink(link)) {
+          const email = link.replace(/^mailto:/i, "").trim();
+          window.location.href = `mailto:${email}`;
+        } else {
+          window.open(link, "_blank", "noopener,noreferrer");
+        }
+      }}
+      className="flex items-center gap-2.5 px-6 py-3 rounded-xl font-bold text-[13px] tracking-wide text-white transition-all duration-300
+        bg-blue-600 shadow-md shadow-blue-600/20 hover:bg-blue-700 hover:-translate-y-0.5"
+    >
+      {isEmailLink(jobDetails.applicationLink) ? (
+        <>
+          Send Email
+          <Send className="w-4 h-4" />
+        </>
+      ) : (
+        <>
+          Go to Application way
+          <ArrowLeft className="w-4 h-4 rotate-180" />
+        </>
+      )}
+    </button>
+  ) : (
+    <span className="text-sm font-semibold text-destructive/80">Application link is not available.</span>
+  )}
+</div>
                           ) : (
                             <span className="text-sm font-semibold text-destructive/80">Application link is not available.</span>
                           )}
