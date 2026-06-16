@@ -25,7 +25,7 @@ import RecruiterDashboard from "./features/Recruiter/RecruiterDashboard";
 // import { OrganizationProfile } from "./features/Recruiter/OrgProfile/Orgprofilepage";
 // import { OrgCreatePage } from "./features/Recruiter/OrgProfile/OrgCreatePage";
 import { RecruiterJobsPage } from "./features/Recruiter/jobPosts/RecruiterJobsPage";
-
+import { DemoLoginPage } from './pages/DemoLoginPage'; // الصفحة الجديدة
 import VerifyOrganization from "@/pages/VerifyOrganization";
 
 import { JobsPage } from "@/features/Recruiter/MangeJobs/components/jobs/JobsPage";
@@ -80,6 +80,11 @@ const App = () => (
 <Route path="/recruiter/OrganizationProfile" element={ <ProtectedRoute><OrganizationProfilePage /></ProtectedRoute> } />
 
 <Route path="/organizations/connect/verify" element={ <ProtectedRoute> <VerifyOrganization /></ProtectedRoute>   } />
+
+
+
+<Route path="/demo" element={<DemoLoginPage />} />
+
 
 <Route path="/recruiter/jobs" element={<ProtectedRoute><RecruiterJobsPage /></ProtectedRoute>} />
   <Route path="/recruiter/jobs/:jobId/applications" element={<ProtectedRoute><ApplicationsPage /></ProtectedRoute>} />
