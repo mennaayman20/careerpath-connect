@@ -14,12 +14,25 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { toast } from "sonner";
 
 const Navbar = () => {
   const { isAuthenticated, user, logout } = useAuth();
   const navigate = useNavigate();
   const [mobileOpen, setMobileOpen] = useState(false);
 
+const isDemoUser = user?.email === "mennaayman200004@gmail.com";
+const handleLogout = () => {
+  if (isDemoUser) {
+    toast.error("Action Restrained", {
+      description: "Logout is disabled in demo mode to maintain session stability for all viewers.",
+      duration: 4000,
+      position: "top-center",
+    });
+    return;
+  }
+  logout();
+};
   return (
     <nav className="sticky top-0 z-50 border-b border-border/40 bg-white/40 backdrop-blur-xl">
       <div className="container flex h-16 items-center justify-between">
@@ -136,7 +149,7 @@ const Navbar = () => {
                       <User className="h-4 w-4" /> Profile
                     </DropdownMenuItem>
                     <DropdownMenuSeparator className="my-1.5" />
-                    <DropdownMenuItem onClick={logout} className="cursor-pointer rounded-lg gap-2 text-destructive hover:bg-destructive hover:text-destructive-foreground transition-all duration-150">
+                   <DropdownMenuItem onClick={handleLogout} className="cursor-pointer rounded-lg gap-2 text-destructive hover:bg-destructive hover:text-destructive-foreground transition-all duration-150">
                       <LogOut className="h-4 w-4" /> Logout
                     </DropdownMenuItem>
                   </DropdownMenuContent>
