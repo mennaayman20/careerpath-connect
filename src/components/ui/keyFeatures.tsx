@@ -1,12 +1,11 @@
-
 "use client";
 import { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
-import { Sparkles, FileText, BarChart3, Filter, LucideIcon } from "lucide-react";
+import { Target, ScanLine, FileSearch, MessageSquareText, LucideIcon } from "lucide-react";
 import { keyFeaturesCards } from "@/data/landingData";
 
-const icons: LucideIcon[] = [Sparkles, FileText, BarChart3, Filter];
-const tags = ["Powered by AI", "For employers", "Smart ranking", "For job seekers"];
+const icons: LucideIcon[] = [Target, ScanLine, FileSearch, MessageSquareText];
+const tags = ["Smart matching", "For job seekers", "CV analysis", "For employers"];
 
 const KeyFeatures = () => {
   const [active, setActive] = useState(0);
@@ -28,7 +27,7 @@ const KeyFeatures = () => {
   const ActiveIcon = icons[active];
 
   return (
-    <section className="py-10 bg-background">
+    <section className="py-10 m-14 bg-background ">
       <div className="container mx-auto px-6">
 
         {/* Header */}
@@ -36,9 +35,11 @@ const KeyFeatures = () => {
           <p className="text-[11px] font-medium tracking-widest uppercase text-violet-600 dark:text-violet-400 mb-2">
             Key Features
           </p>
-          <h2 className="text-3xl font-semibold tracking-tight text-foreground">
-            Everything you need,<br />nothing you don't
-          </h2>
+          <h3 className="text-3xl sm:text-4xl font-bold tracking-tight text-foreground">
+Everything you need, <span className="bg-gradient-to-r from-violet-600 to-indigo-600 dark:from-violet-400 dark:to-cyan-400 bg-clip-text text-transparent">
+    nothing you don't</span>
+</h3>
+
         </div>
 
         {/* Sticky layout */}
@@ -155,58 +156,3 @@ const KeyFeatures = () => {
 };
 
 export default KeyFeatures;
-
-
-// import { motion } from "framer-motion";
-// import { keyFeaturesCards } from "@/data/landingData";
-// import { Sparkles, FileText, BarChart3, Filter } from "lucide-react";
-
-// const icons = [Sparkles, FileText, BarChart3, Filter];
-
-// const KeyFeatures = () => {
-//   return (
-//     <section className="py-20">
-//       <div className="container mx-auto px-6">
-//         <motion.div
-//           initial={{ opacity: 0, y: 20 }}
-//           whileInView={{ opacity: 1, y: 0 }}
-//           viewport={{ once: true }}
-//           className="text-center mb-16"
-//         >
-//           <span className="inline-block px-6 py-2 rounded-full bg-accent text-accent-foreground font-semibold text-sm">
-//             Key Features
-//           </span>
-//         </motion.div>
-
-//         <div className="grid sm:grid-cols-2 gap-6 max-w-4xl mx-auto">
-//           {keyFeaturesCards.map((card, index) => {
-//             const Icon = icons[index];
-//             return (
-//               <motion.div
-//                 key={card.title}
-//                 initial={{ opacity: 0, y: 20 }}
-//                 whileInView={{ opacity: 1, y: 0 }}
-//                 viewport={{ once: true }}
-//                 transition={{ delay: index * 0.1 }}
-//                 className="relative overflow-hidden rounded-2xl border border-border/50 p-6 hover:shadow-lg transition-all duration-300 group"
-//               >
-//                 <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-accent/5 to-transparent rounded-bl-full" />
-//                 <div className="relative">
-//                   <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center mb-4">
-//                     <Icon className="w-5 h-5 text-primary" />
-//                   </div>
-//                   <h3 className="font-bold text-lg mb-2">{card.title}</h3>
-//                   <p className="text-muted-foreground text-sm leading-relaxed">
-//                     {card.description}
-//                   </p>
-//                 </div>
-//               </motion.div>
-//             );
-//           })}
-//         </div>
-//       </div>
-//     </section>
-//   );
-// };
-
-// export default KeyFeatures;

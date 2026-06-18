@@ -81,12 +81,12 @@ function DashCard({
       {/* Card Top / Header */}
       <div className="relative p-7 w-full z-10 flex flex-col flex-1">
         <div className="flex justify-between items-center mb-6">
-          <span className={`font-syne text-[9px] font-bold uppercase tracking-[0.2em] px-3 py-1.5 rounded-full border transition-all duration-500 ease-in-out
+          {/* <span className={`font-syne text-[9px] font-bold uppercase tracking-[0.2em] px-3 py-1.5 rounded-full border transition-all duration-500 ease-in-out
             ${isActive
               ? "bg-white/10 text-white border-white/10"
               : "bg-slate-100 border-slate-300 text-slate-500 group-hover:bg-white/10 group-hover:text-white group-hover:border-white/10"}`}>
             Step {step}
-          </span>
+          </span> */}
         </div>
 
         {/* Card Body */}

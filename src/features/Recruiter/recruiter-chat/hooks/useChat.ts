@@ -42,7 +42,10 @@ export function useChat(): UseChatReturn {
   const [isLoadingSessions, setIsLoadingSessions] = useState(false);
   const [isCreatingSession, setIsCreatingSession] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  
   const abortRef = useRef<AbortController | null>(null);
+  // 💡 استخدام Ref لمتابعة حالة الحماية منعاً لتغيير الـ useCallback reference
+  const isCreatingRef = useRef(false); 
 
   const clearError = useCallback(() => setError(null), []);
 
@@ -50,12 +53,15 @@ export function useChat(): UseChatReturn {
     return () => { abortRef.current?.abort(); };
   }, []);
 
-const freshSignal = useCallback(() => {
-  abortRef.current?.abort();           // ← abort الأول أولاً
-  const controller = new AbortController();
-  abortRef.current = controller;
-  return controller.signal;
-}, []);
+  // ── Helper: إدارة الـ AbortController بشكل آمن ──────────────────────
+  const freshSignal = useCallback(() => {
+    if (abortRef.current) {
+      abortRef.current.abort();
+    }
+    const controller = new AbortController();
+    abortRef.current = controller;
+    return controller.signal;
+  }, []);
 
   // ── Fetch all sessions ──────────────────────────────────────────────────────
   const fetchSessions = useCallback(async () => {
@@ -71,11 +77,16 @@ const freshSignal = useCallback(() => {
     }
   }, []);
 
-  // ── Create new session then stream the first response ───────────────────────
+  // ── Create new session ──────────────────────────────────────────────────────
   const createSession = useCallback(async (jobId: number, firstPrompt: string) => {
+    if (isCreatingRef.current) return; // الحماية عن طريق الـ Ref مستقرة تماماً
+    
+    isCreatingRef.current = true;
     setIsCreatingSession(true);
     setError(null);
+    
     try {
+      const signal = freshSignal(); 
       const session = await chatService.createSession({ jobId, firstPrompt });
       setSessions((prev) => [session, ...prev]);
 
@@ -96,34 +107,44 @@ const freshSignal = useCallback(() => {
         session.sessionId,
         firstPrompt,
         (chunk) => appendChunk(setActiveSession, chunk),
-        freshSignal()
+        signal 
       );
     } catch (e) {
-      if ((e as Error).name !== 'AbortError') setError((e as Error).message);
+      if ((e as Error).name !== 'AbortError') {
+        setError((e as Error).message);
+      }
     } finally {
       setActiveSession((prev) => (prev ? { ...prev, isStreaming: false } : prev));
       setIsCreatingSession(false);
+      isCreatingRef.current = false;
     }
-  }, [freshSignal]);
+  }, [freshSignal]); // 💡 Reference ثابت لا يتغير بتغير حالة الـ Loading
 
   // ── Load existing session messages ──────────────────────────────────────────
   const selectSession = useCallback(async (sessionId: string) => {
     setError(null);
     try {
-      const sessionMeta = sessions.find((s) => s.sessionId === sessionId);
-      if (!sessionMeta) return;
-      const messages = await chatService.getMessages(sessionId);
-      setActiveSession({ ...sessionMeta, messages, isStreaming: false });
+      // نستخدم الـ Functional state لتجنب الاعتماد على sessions الخارجية
+      setSessions((currentSessions) => {
+        const sessionMeta = currentSessions.find((s) => s.sessionId === sessionId);
+        if (sessionMeta) {
+          chatService.getMessages(sessionId)
+            .then((messages) => {
+              setActiveSession({ ...sessionMeta, messages, isStreaming: false });
+            })
+            .catch((e) => setError((e as Error).message));
+        }
+        return currentSessions;
+      });
     } catch (e) {
       setError((e as Error).message);
     }
-  }, [sessions]);
+  }, []);
 
   // ── Send follow-up message ──────────────────────────────────────────────────
   const sendMessage = useCallback(async (sessionId: string, prompt: string) => {
     setError(null);
-
-    const signal = freshSignal(); // ← controller جديد قبل abort القديم
+    const signal = freshSignal(); 
 
     const userMsg: ChatMessage = {
       role: 'USER',
@@ -156,7 +177,7 @@ const freshSignal = useCallback(() => {
     } finally {
       setActiveSession((prev) => (prev ? { ...prev, isStreaming: false } : prev));
     }
-  }, [freshSignal]);
+  }, [freshSignal]); // 💡 إضافة الـ dependency الصحيح هنا
 
   // ── Delete session ──────────────────────────────────────────────────────────
   const deleteSession = useCallback(async (sessionId: string) => {

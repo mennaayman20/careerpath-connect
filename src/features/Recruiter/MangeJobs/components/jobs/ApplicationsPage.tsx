@@ -67,7 +67,9 @@ export const ApplicationsPage: React.FC<Props> = ({ job: jobProp }) => {
   const [selectedApp, setSelectedApp] = useState<ApplicationResponse | null>(null);
   const [search, setSearch]           = useState("");
 
-  useEffect(() => { fetchApplications(0); }, [fetchApplications]);
+  useEffect(() => {
+    fetchApplications();
+  }, [fetchApplications]);
 
   const visible = search.trim()
     ? applications.filter(
@@ -82,7 +84,7 @@ export const ApplicationsPage: React.FC<Props> = ({ job: jobProp }) => {
   return (
     <div className="min-h-screen font-sans bg-[#F8F9FC]">
       <Navbar />
-      
+
       {/* ══ Hero Banner ══════════════════════════════════════════════════════ */}
       <header className="relative overflow-hidden bg-[#2D236A]">
         <div className="relative z-10 max-w-screen-xl mx-auto px-6 md:px-10 py-10">
@@ -96,7 +98,6 @@ export const ApplicationsPage: React.FC<Props> = ({ job: jobProp }) => {
           </button>
 
           <div className="flex flex-wrap items-end justify-between gap-6">
-            {/* Left: Title block */}
             <div>
               <div className="inline-flex items-center gap-2 bg-[#1ca37b]/15 border border-[#1ca37b]/30 text-[#5de8b8] text-[10px] font-bold uppercase tracking-[0.18em] rounded-full px-3 py-1 mb-3 font-syne">
                 <span className="w-1.5 h-1.5 rounded-full bg-[#1ca37b] animate-pulse" />
@@ -168,8 +169,8 @@ export const ApplicationsPage: React.FC<Props> = ({ job: jobProp }) => {
 
       {/* ══ Main Content Area ═════════════════════════════════════════════════ */}
       <main className="max-w-screen-xl mx-auto px-6 md:px-10 py-8">
-        
-        {/* ── Excel Feature Row (Placed Clearly Above the Cards Stack) ── */}
+
+        {/* ── Excel Feature Row ── */}
         <div className="mb-6 flex items-center justify-between bg-white border border-[#2D236A]/5 p-4 rounded-3xl shadow-[0_4px_20px_rgba(45,35,106,0.02)] flex-wrap gap-4">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-[#1ca37b]/10 flex items-center justify-center text-[#1ca37b]">
@@ -182,9 +183,8 @@ export const ApplicationsPage: React.FC<Props> = ({ job: jobProp }) => {
           </div>
 
           <div className="flex items-center gap-3">
-            {/* Export Button */}
             <button
-              onClick={startExport}
+              onClick={() => startExport()}
               disabled={exporting}
               className="flex items-center gap-2 px-5 py-2.5 rounded-2xl font-syne text-[11px] font-extrabold uppercase tracking-wider border transition-all duration-300 shadow-sm disabled:cursor-not-allowed"
               style={{
@@ -212,32 +212,30 @@ export const ApplicationsPage: React.FC<Props> = ({ job: jobProp }) => {
               <span>{exporting ? "Exporting…" : "Export Excel"}</span>
             </button>
 
-{/* زر التحميل (Download Button) */}
-{exportTask?.status === "COMPLETED" && (
-  <button
-    onClick={downloadExport}
-    className="flex items-center gap-2 px-5 py-2.5 rounded-2xl font-syne text-[11px] font-extrabold uppercase tracking-wider border transition-all duration-300 shadow-md backdrop-blur-sm"
-    style={{
-      color: "#fff",
-      background: "linear-gradient(135deg, #1ca37b 0%, #158061 100%)",
-      borderColor: "#1ca37b",
-    }}
-    onMouseEnter={(e) => {
-      // هنا غيرنا الـ Hover لتدرج لوني أغمق سنة بدل اللون المصمت عشان نمنع الوميض الأبيض
-      e.currentTarget.style.background = "linear-gradient(135deg, #158061 0%, #0f5c45 100%)";
-      e.currentTarget.style.transform = "translateY(-1px)";
-      e.currentTarget.style.boxShadow = "0 4px 12px rgba(28,163,123,0.2)";
-    }}
-    onMouseLeave={(e) => {
-      e.currentTarget.style.background = "linear-gradient(135deg, #1ca37b 0%, #158061 100%)";
-      e.currentTarget.style.transform = "translateY(0)";
-      e.currentTarget.style.boxShadow = "none";
-    }}
-  >
-    <Download className="w-3.5 h-3.5 animate-pulse" />
-    <span>Download Ready</span>
-  </button>
-)}
+            {exportTask?.status === "COMPLETED" && (
+              <button
+                onClick={downloadExport}
+                className="flex items-center gap-2 px-5 py-2.5 rounded-2xl font-syne text-[11px] font-extrabold uppercase tracking-wider border transition-all duration-300 shadow-md backdrop-blur-sm"
+                style={{
+                  color: "#fff",
+                  background: "linear-gradient(135deg, #1ca37b 0%, #158061 100%)",
+                  borderColor: "#1ca37b",
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = "linear-gradient(135deg, #158061 0%, #0f5c45 100%)";
+                  e.currentTarget.style.transform = "translateY(-1px)";
+                  e.currentTarget.style.boxShadow = "0 4px 12px rgba(28,163,123,0.2)";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = "linear-gradient(135deg, #1ca37b 0%, #158061 100%)";
+                  e.currentTarget.style.transform = "translateY(0)";
+                  e.currentTarget.style.boxShadow = "none";
+                }}
+              >
+                <Download className="w-3.5 h-3.5 animate-pulse" />
+                <span>Download Ready</span>
+              </button>
+            )}
           </div>
         </div>
 
@@ -323,10 +321,10 @@ export const ApplicationsPage: React.FC<Props> = ({ job: jobProp }) => {
         </div>
       </div>
 
-      <AIChatFAB 
-        jobs={[]} 
+      <AIChatFAB
+        jobs={[]}
         directJobId={resolvedId}
-        tooltip="Ask AI about candidates & insights" 
+        tooltip="Ask AI about candidates & insights"
       />
 
       <Footer />
@@ -343,30 +341,23 @@ const StatusPill: React.FC<{
   color?: string;
   onClick: () => void;
 }> = ({ label, count, active, color = "#fff", onClick }) => {
-  
-  // تحديد الألوان بناءً على حالة الزرار (نشط أم لا) لضمان أعلى تباين فوق الخلفية الغامقة
-  const buttonStyle = active 
+
+  const buttonStyle = active
     ? {
         color: "#ffffff",
-        background: color, // بياخد اللون الصريح للحالة بدون أي تدرج أو شفافية عشان يظهر بقوة
+        background: color,
         borderColor: color,
-        boxShadow: `0 4px 14px ${color}40`, // لمسة ضوء خفيفة بلون الحالة
+        boxShadow: `0 4px 14px ${color}40`,
       }
     : {
-        color: "rgba(255, 255, 255, 0.85)", // أبيض واضح جداً وليس باهت
+        color: "rgba(255, 255, 255, 0.85)",
         background: "rgba(255, 255, 255, 0.06)",
-        borderColor: "rgba(255, 255, 255, 0.25)", // حدود ظاهرة تحدد شكل الزرار
+        borderColor: "rgba(255, 255, 255, 0.25)",
       };
 
   const countStyle = active
-    ? {
-        background: "rgba(255, 255, 255, 0.25)",
-        color: "#ffffff",
-      }
-    : {
-        background: "rgba(255, 255, 255, 0.12)",
-        color: "rgba(255, 255, 255, 0.70)",
-      };
+    ? { background: "rgba(255, 255, 255, 0.25)", color: "#ffffff" }
+    : { background: "rgba(255, 255, 255, 0.12)", color: "rgba(255, 255, 255, 0.70)" };
 
   return (
     <button
@@ -408,9 +399,22 @@ const ApplicationCard: React.FC<{
   onViewDetails: () => void;
   onUpdateStatus: (s: ApplicationStatus) => void;
 }> = ({ app, index, statusUpdating, onViewDetails, onUpdateStatus }) => {
-  const [menuOpen, setMenuOpen] = useState(false);
-  const sc        = STATUS_CONFIG[app.status] ?? STATUS_CONFIG.SUBMITTED;
+
+  const [menuOpen, setMenuOpen]         = useState(false);
+  const [pendingStatus, setPendingStatus] = useState<ApplicationStatus | null>(null);
+
+  const sc         = STATUS_CONFIG[app.status] ?? STATUS_CONFIG.SUBMITTED;
   const isUpdating = statusUpdating === app.id;
+
+  // ── الـ handler الجديد: HIRED و REJECTED بيفتحوا modal أول ──
+  const handleStatusClick = (s: ApplicationStatus) => {
+    setMenuOpen(false);
+    if (s === "HIRED" || s === "REJECTED") {
+      setPendingStatus(s);
+    } else {
+      onUpdateStatus(s);
+    }
+  };
 
   const matchColor =
     app.matchingRatio == null    ? "#94a3b8"
@@ -431,181 +435,286 @@ const ApplicationCard: React.FC<{
     .join("");
 
   return (
-    <div
-      className={`group relative rounded-3xl border bg-white transition-all duration-300 ${
-        menuOpen ? "z-40" : "hover:-translate-y-0.5"
-      }`}
-      style={{
-        borderColor: "rgba(45,35,106,0.10)",
-        boxShadow: menuOpen ? "0 10px 30px rgba(45,35,106,0.15)" : "0 2px 12px rgba(0,0,0,0.03)",
-        animationDelay: `${index * 40}ms`,
-      }}
-      onMouseEnter={(e) => {
-        if (!menuOpen) {
-          (e.currentTarget as HTMLElement).style.boxShadow = "0 12px 40px -8px rgba(45,35,106,0.13)";
-          (e.currentTarget as HTMLElement).style.borderColor = "rgba(45,35,106,0.18)";
-        }
-      }}
-      onMouseLeave={(e) => {
-        if (!menuOpen) {
-          (e.currentTarget as HTMLElement).style.boxShadow = "0 2px 12px rgba(0,0,0,0.03)";
-          (e.currentTarget as HTMLElement).style.borderColor = "rgba(45,35,106,0.10)";
-        }
-      }}
-    >
+    <>
       <div
-        className="absolute left-0 top-4 bottom-4 w-[3px] rounded-full"
-        style={{ background: sc.color }}
-      />
-
-      <div className="flex items-center gap-4 md:gap-6 px-6 py-5 pl-7">
-        {/* Avatar */}
+        className={`group relative rounded-3xl border bg-white transition-all duration-300 ${
+          menuOpen ? "z-40" : "hover:-translate-y-0.5"
+        }`}
+        style={{
+          borderColor: "rgba(45,35,106,0.10)",
+          boxShadow: menuOpen ? "0 10px 30px rgba(45,35,106,0.15)" : "0 2px 12px rgba(0,0,0,0.03)",
+          animationDelay: `${index * 40}ms`,
+        }}
+        onMouseEnter={(e) => {
+          if (!menuOpen) {
+            (e.currentTarget as HTMLElement).style.boxShadow = "0 12px 40px -8px rgba(45,35,106,0.13)";
+            (e.currentTarget as HTMLElement).style.borderColor = "rgba(45,35,106,0.18)";
+          }
+        }}
+        onMouseLeave={(e) => {
+          if (!menuOpen) {
+            (e.currentTarget as HTMLElement).style.boxShadow = "0 2px 12px rgba(0,0,0,0.03)";
+            (e.currentTarget as HTMLElement).style.borderColor = "rgba(45,35,106,0.10)";
+          }
+        }}
+      >
         <div
-          className="w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 font-syne font-extrabold text-[15px]"
-          style={{
-            background: `linear-gradient(135deg,${sc.color}22,${sc.color}10)`,
-            border: `1.5px solid ${sc.border}`,
-            color: sc.color,
-          }}
-        >
-          {initials || "?"}
-        </div>
+          className="absolute left-0 top-4 bottom-4 w-[3px] rounded-full"
+          style={{ background: sc.color }}
+        />
 
-        {/* Info */}
-        <div className="flex-1 min-w-0">
-          <p className="font-syne text-[15px] font-extrabold text-[#1a1540] truncate leading-tight mb-0.5">
-            {app.applicantFullName}
-          </p>
-          <p className="text-[12px] text-[#2D236A]/40 font-medium truncate">
-            {app.applicantEmail}
-          </p>
-          {app.university && (
-            <p className="mt-1 text-[11px] text-[#2D236A]/35 font-medium">
-              🎓 {app.university}
-            </p>
-          )}
-        </div>
-
-        {/* Match Score */}
-        {app.matchingRatio != null && (
-          <div className="hidden sm:flex flex-col items-center shrink-0">
-            <span className="font-syne text-[22px] font-black leading-none" style={{ color: matchColor }}>
-              {Math.round(app.matchingRatio * 100)}
-              <span className="text-[13px] font-bold">%</span>
-            </span>
-            <span
-              className="mt-0.5 text-[9px] font-extrabold uppercase tracking-widest font-syne px-2 py-0.5 rounded-full"
-              style={{ color: matchColor, background: `${matchColor}18` }}
-            >
-              {matchLabel}
-            </span>
-          </div>
-        )}
-
-        {/* Status Dropdown */}
-        <div className="relative shrink-0">
-          <button
-            onClick={() => setMenuOpen((v) => !v)}
-            disabled={isUpdating}
-            className="font-syne text-[10px] font-bold uppercase tracking-[0.15em] px-3.5 py-2 rounded-full border transition-all duration-200 flex items-center gap-1.5"
+        <div className="flex items-center gap-4 md:gap-6 px-6 py-5 pl-7">
+          {/* Avatar */}
+          <div
+            className="w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 font-syne font-extrabold text-[15px]"
             style={{
+              background: `linear-gradient(135deg,${sc.color}22,${sc.color}10)`,
+              border: `1.5px solid ${sc.border}`,
               color: sc.color,
-              background: sc.bg,
-              borderColor: sc.border,
-              opacity: isUpdating ? 0.55 : 1,
             }}
           >
-            {isUpdating ? "…" : sc.label}
-            <span className="opacity-50">▾</span>
-          </button>
+            {initials || "?"}
+          </div>
 
-          {menuOpen && (
-            <>
-              <div className="fixed inset-0 z-40" onClick={() => setMenuOpen(false)} />
-              <div
-                className="absolute right-0 z-50 rounded-2xl overflow-hidden shadow-2xl"
-                style={{
-                  top: "calc(100% + 6px)",
-                  minWidth: "200px",
-                  background: "white",
-                  border: "1px solid rgba(45,35,106,0.12)",
-                }}
+          {/* Info */}
+          <div className="flex-1 min-w-0">
+            <p className="font-syne text-[15px] font-extrabold text-[#1a1540] truncate leading-tight mb-0.5">
+              {app.applicantFullName}
+            </p>
+            <p className="text-[12px] text-[#2D236A]/40 font-medium truncate">
+              {app.applicantEmail}
+            </p>
+            {app.university && (
+              <p className="mt-1 text-[11px] text-[#2D236A]/35 font-medium">
+                🎓 {app.university}
+              </p>
+            )}
+          </div>
+
+          {/* Match Score */}
+          {app.matchingRatio != null && (
+            <div className="hidden sm:flex flex-col items-center shrink-0">
+              <span className="font-syne text-[22px] font-black leading-none" style={{ color: matchColor }}>
+                {Math.round(app.matchingRatio * 100)}
+                <span className="text-[13px] font-bold">%</span>
+              </span>
+              <span
+                className="mt-0.5 text-[9px] font-extrabold uppercase tracking-widest font-syne px-2 py-0.5 rounded-full"
+                style={{ color: matchColor, background: `${matchColor}18` }}
               >
-                <div className="px-4 py-2.5 border-b" style={{ borderColor: "rgba(45,35,106,0.07)", background: "rgba(45,35,106,0.02)" }}>
-                  <p className="font-syne text-[9px] font-bold uppercase tracking-[0.18em] text-[#2D236A]/35">
-                    Change Status
-                  </p>
-                </div>
-
-                <div className="py-1.5">
-                  {STATUSES.map((s) => {
-                    const cfg      = STATUS_CONFIG[s];
-                    const isActive = app.status === s;
-                    return (
-                      <button
-                        key={s}
-                        onClick={() => { setMenuOpen(false); onUpdateStatus(s); }}
-                        className="w-full text-left px-3 py-2 mx-1.5 transition-all duration-150 flex items-center gap-3 rounded-xl"
-                        style={{
-                          width: "calc(100% - 12px)",
-                          background: isActive ? `${cfg.color}12` : "transparent",
-                        }}
-                        onMouseEnter={(e) => {
-                          if (!isActive) (e.currentTarget as HTMLElement).style.background = `${cfg.color}0d`;
-                        }}
-                        onMouseLeave={(e) => {
-                          if (!isActive) (e.currentTarget as HTMLElement).style.background = "transparent";
-                        }}
-                      >
-                        <span
-                          className="w-2 h-2 rounded-full shrink-0"
-                          style={{ background: cfg.color, opacity: isActive ? 1 : 0.5 }}
-                        />
-                        <span
-                          className="font-syne text-[12px] font-bold flex-1"
-                          style={{ color: isActive ? cfg.color : "#374151" }}
-                        >
-                          {cfg.label}
-                        </span>
-                        {isActive && (
-                          <span
-                            className="text-[10px] font-extrabold font-syne"
-                            style={{ color: cfg.color }}
-                          >
-                            ✓
-                          </span>
-                        )}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-            </>
+                {matchLabel}
+              </span>
+            </div>
           )}
+
+          {/* Status Dropdown */}
+          <div className="relative shrink-0">
+            <button
+              onClick={() => setMenuOpen((v) => !v)}
+              disabled={isUpdating}
+              className="font-syne text-[10px] font-bold uppercase tracking-[0.15em] px-3.5 py-2 rounded-full border transition-all duration-200 flex items-center gap-1.5"
+              style={{
+                color: sc.color,
+                background: sc.bg,
+                borderColor: sc.border,
+                opacity: isUpdating ? 0.55 : 1,
+              }}
+            >
+              {isUpdating ? "…" : sc.label}
+              <span className="opacity-50">▾</span>
+            </button>
+
+            {menuOpen && (
+              <>
+                <div className="fixed inset-0 z-40" onClick={() => setMenuOpen(false)} />
+                <div
+                  className="absolute right-0 z-50 rounded-2xl overflow-hidden shadow-2xl"
+                  style={{
+                    top: "calc(100% + 6px)",
+                    minWidth: "200px",
+                    background: "white",
+                    border: "1px solid rgba(45,35,106,0.12)",
+                  }}
+                >
+                  <div className="px-4 py-2.5 border-b" style={{ borderColor: "rgba(45,35,106,0.07)", background: "rgba(45,35,106,0.02)" }}>
+                    <p className="font-syne text-[9px] font-bold uppercase tracking-[0.18em] text-[#2D236A]/35">
+                      Change Status
+                    </p>
+                  </div>
+
+                  <div className="py-1.5">
+                    {STATUSES.map((s) => {
+                      const cfg      = STATUS_CONFIG[s];
+                      const isActive = app.status === s;
+                      return (
+                        <button
+                          key={s}
+                          onClick={() => handleStatusClick(s)}
+                          className="w-full text-left px-3 py-2 mx-1.5 transition-all duration-150 flex items-center gap-3 rounded-xl"
+                          style={{
+                            width: "calc(100% - 12px)",
+                            background: isActive ? `${cfg.color}12` : "transparent",
+                          }}
+                          onMouseEnter={(e) => {
+                            if (!isActive) (e.currentTarget as HTMLElement).style.background = `${cfg.color}0d`;
+                          }}
+                          onMouseLeave={(e) => {
+                            if (!isActive) (e.currentTarget as HTMLElement).style.background = "transparent";
+                          }}
+                        >
+                          <span
+                            className="w-2 h-2 rounded-full shrink-0"
+                            style={{ background: cfg.color, opacity: isActive ? 1 : 0.5 }}
+                          />
+                          <span
+                            className="font-syne text-[12px] font-bold flex-1"
+                            style={{ color: isActive ? cfg.color : "#374151" }}
+                          >
+                            {cfg.label}
+                          </span>
+                          {isActive && (
+                            <span
+                              className="text-[10px] font-extrabold font-syne"
+                              style={{ color: cfg.color }}
+                            >
+                              ✓
+                            </span>
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
+
+          {/* View Button */}
+          <button
+            onClick={onViewDetails}
+            className="shrink-0 px-5 py-2 rounded-2xl font-syne text-[11px] font-bold uppercase tracking-wide border transition-all duration-300"
+            style={{
+              color: "#2D236A",
+              background: "transparent",
+              borderColor: "rgba(45,35,106,0.14)",
+            }}
+            onMouseEnter={(e) => {
+              (e.currentTarget as HTMLElement).style.background = "#2D236A";
+              (e.currentTarget as HTMLElement).style.color = "white";
+              (e.currentTarget as HTMLElement).style.borderColor = "#2D236A";
+            }}
+            onMouseLeave={(e) => {
+              (e.currentTarget as HTMLElement).style.background = "transparent";
+              (e.currentTarget as HTMLElement).style.color = "#2D236A";
+              (e.currentTarget as HTMLElement).style.borderColor = "rgba(45,35,106,0.14)";
+            }}
+          >
+            View →
+          </button>
+        </div>
+      </div>
+
+      {/* ── Confirmation Modal (HIRED / REJECTED only) ── */}
+      {pendingStatus && (
+        <ConfirmStatusModal
+          applicantName={app.applicantFullName ?? "this applicant"}
+          status={pendingStatus}
+          onConfirm={() => {
+            onUpdateStatus(pendingStatus);
+            setPendingStatus(null);
+          }}
+          onCancel={() => setPendingStatus(null)}
+        />
+      )}
+    </>
+  );
+};
+
+// ─── Confirmation Modal ───────────────────────────────────────────────────────
+
+const ConfirmStatusModal: React.FC<{
+  applicantName: string;
+  status: ApplicationStatus;
+  onConfirm: () => void;
+  onCancel: () => void;
+}> = ({ applicantName, status, onConfirm, onCancel }) => {
+  const isHired = status === "HIRED";
+  const color   = isHired ? "#047857" : "#b91c1c";
+  const bg      = isHired ? "rgba(4,120,87,0.08)"   : "rgba(185,28,28,0.08)";
+  const border  = isHired ? "rgba(4,120,87,0.25)"   : "rgba(185,28,28,0.25)";
+  const label   = isHired ? "Hired" : "Rejected";
+  const emoji   = isHired ? "🎉" : "⚠️";
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center"
+      style={{ background: "rgba(15,12,40,0.55)", backdropFilter: "blur(6px)" }}
+      onClick={onCancel}
+    >
+      <div
+        className="relative w-[90vw] max-w-md rounded-3xl p-8 shadow-2xl"
+        style={{ background: "white", border: `1.5px solid ${border}` }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Icon */}
+        <div
+          className="w-14 h-14 rounded-2xl flex items-center justify-center text-2xl mx-auto mb-5"
+          style={{ background: bg, border: `1.5px solid ${border}` }}
+        >
+          {emoji}
         </div>
 
-        {/* View Button */}
-        <button
-          onClick={onViewDetails}
-          className="shrink-0 px-5 py-2 rounded-2xl font-syne text-[11px] font-bold uppercase tracking-wide border transition-all duration-300"
-          style={{
-            color: "#2D236A",
-            background: "transparent",
-            borderColor: "rgba(45,35,106,0.14)",
-          }}
-          onMouseEnter={(e) => {
-            (e.currentTarget as HTMLElement).style.background = "#2D236A";
-            (e.currentTarget as HTMLElement).style.color = "white";
-            (e.currentTarget as HTMLElement).style.borderColor = "#2D236A";
-          }}
-          onMouseLeave={(e) => {
-            (e.currentTarget as HTMLElement).style.background = "transparent";
-            (e.currentTarget as HTMLElement).style.color = "#2D236A";
-            (e.currentTarget as HTMLElement).style.borderColor = "rgba(45,35,106,0.14)";
-          }}
-        >
-          View →
-        </button>
+        <h2 className="font-syne text-[18px] font-extrabold text-[#1a1540] text-center mb-2">
+          Confirm Status Change
+        </h2>
+
+        <p className="text-[13px] text-[#2D236A]/55 text-center leading-relaxed mb-6">
+          Are you sure you want to mark{" "}
+          <span className="font-bold text-[#1a1540]">{applicantName}</span>{" "}
+          as{" "}
+          <span className="font-extrabold font-syne" style={{ color }}>
+            {label}
+          </span>
+          ? This action can't be changed later.
+        </p>
+
+        <div className="flex gap-3">
+          {/* Cancel */}
+          <button
+            onClick={onCancel}
+            className="flex-1 py-3 rounded-2xl font-syne text-[12px] font-bold uppercase tracking-wider border transition-all"
+            style={{
+              color: "#2D236A",
+              background: "transparent",
+              borderColor: "rgba(45,35,106,0.15)",
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = "rgba(45,35,106,0.05)";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = "transparent";
+            }}
+          >
+            Cancel
+          </button>
+
+          {/* Confirm */}
+          <button
+            onClick={onConfirm}
+            className="flex-1 py-3 rounded-2xl font-syne text-[12px] font-bold uppercase tracking-wider text-white transition-all"
+            style={{ background: color, border: `1.5px solid ${color}` }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.opacity = "0.88";
+              e.currentTarget.style.transform = "translateY(-1px)";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.opacity = "1";
+              e.currentTarget.style.transform = "translateY(0)";
+            }}
+          >
+            Yes, Mark as {label}
+          </button>
+        </div>
       </div>
     </div>
   );
@@ -619,7 +728,7 @@ const SkeletonRow = () => (
 
 const EmptyState = () => (
   <div className="flex flex-col items-center justify-center py-28 text-center">
-    <p className=" text-[#2D236A]/70 font-bold">No applicants found</p>
+    <p className="text-[#2D236A]/70 font-bold">No applicants found</p>
     <p className="text-sm text-[#2D236A]/50 mt-1">
       Try clearing your search or selecting a different status.
     </p>

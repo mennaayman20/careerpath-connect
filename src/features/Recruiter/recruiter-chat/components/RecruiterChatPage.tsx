@@ -48,18 +48,25 @@ const locationState = location.state as {
   }, [fetchSessions]);
 
   // لو جه من الـ FAB مع sessionId جاهز — حمّله مباشرة بدون modal
+// ✅ التعديل الصحيح والمضمون لمنع تكرار الـ Stream
 useEffect(() => {
-  if (locationState?.sessionId) {
-    selectSession(locationState.sessionId);
+  // نقرأ الـ state الحالي مرة واحدة
+  const state = location.state as typeof locationState;
+  if (!state) return;
+
+  if (state.sessionId) {
+    selectSession(state.sessionId);
+    // مسح الـ state من الـ history فوراً عشان لو حصل ريندر ميعيدش نفسه
     window.history.replaceState({}, '');
-  } else if (locationState?.autoStart && locationState?.jobId) {
-    createSession(locationState.jobId, FIRST_PROMPT);
+  } else if (state.autoStart && state.jobId) {
+    createSession(state.jobId, FIRST_PROMPT);
     window.history.replaceState({}, '');
   } else if (defaultJobId) {
     setIsModalOpen(true);
   }
-}, [createSession, selectSession, defaultJobId]); // ← deps صح
-
+  
+  // 💡 تركنا الـ dependencies الفانكشنز لأننا بنعتمد على الـ state الممسوح كـ Guard
+}, [location.state, defaultJobId, createSession, selectSession]);
   // Auto-scroll
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -143,27 +150,64 @@ const handleNewChat = () => {
             </div>
           ) : (
             <>
-              <div className="chat-header">
-                <div className="chat-header__info">
-                  <div className="chat-header__dot" />
-                  <div>
-                    <h3 className="chat-header__title">
-                      {activeSession.title || `Job #${activeSession.jobId}`}
-                    </h3>
-                    <span className="chat-header__meta">
-                      Job ID {activeSession.jobId} ·{' '}
-                      {new Date(activeSession.createdAt).toLocaleDateString()}
-                    </span>
-                  </div>
-                </div>
-                {activeSession?.isStreaming && (
-  <div className="chat-header__streaming">
-    <span className="pulse-dot" />
-    AI is thinking… {/* لما يخلص، الـ buttons بترجع تشتغل */}
-  </div>
-)}
-              </div>
 
+<div className="chat-header" style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+  
+  {/* 💡 سهم العودة (Back Arrow) بتصميم احترافي يتماشى مع الـ Theme الخاص بكِ */}
+  <button 
+    onClick={() => window.history.back()} // أو استخدمي useNavigate من react-router-dom لو بتفضليها
+    aria-label="Go back"
+    className="chat-header__back-btn"
+    style={{
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      width: '36px',
+      height: '36px',
+      borderRadius: '50%',
+      border: '1px solid rgba(45, 35, 106, 0.15)',
+      background: 'transparent',
+      cursor: 'pointer',
+      color: '#2D236A', // نفس لون الهوية الخاص بكِ
+      transition: 'all 0.2s ease',
+    }}
+    onMouseEnter={(e) => {
+      e.currentTarget.style.background = 'rgba(45, 35, 106, 0.08)';
+      e.currentTarget.style.transform = 'translateX(-3px)';
+    }}
+    onMouseLeave={(e) => {
+      e.currentTarget.style.background = 'transparent';
+      e.currentTarget.style.transform = 'translateX(0)';
+    }}
+  >
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+      <line x1="19" y1="12" x2="5" y2="12"></line>
+      <polyline points="12 19 5 12 12 5"></polyline>
+    </svg>
+  </button>
+
+  <div className="chat-header__info" style={{ flex: 1 }}>
+    <div className="chat-header__info-flex" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+      <div className="chat-header__dot" />
+      <div>
+        <h3 className="chat-header__title" style={{ margin: 0 }}>
+          {activeSession.title || `Job #${activeSession.jobId}`}
+        </h3>
+        <span className="chat-header__meta">
+          Job ID {activeSession.jobId} ·{' '}
+          {new Date(activeSession.createdAt).toLocaleDateString()}
+        </span>
+      </div>
+    </div>
+  </div>
+
+  {activeSession?.isStreaming && (
+    <div className="chat-header__streaming">
+      <span className="pulse-dot" />
+      AI is thinking…
+    </div>
+  )}
+</div>
               <div className="chat-messages">
                 {activeSession.messages.map((msg, idx) => (
                   <ChatMessageItem

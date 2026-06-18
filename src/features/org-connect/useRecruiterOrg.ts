@@ -1,29 +1,37 @@
-import { useState, useEffect } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import type { OrganizationResponse } from "./organization.interfaces";
 import organizationService from "./organization.service";
 
 export function useRecruiterOrg() {
-  const [org, setOrg] = useState<OrganizationResponse | null>(null);
-  const [loading, setLoading] = useState(true);
+  const queryClient = useQueryClient();
 
-  useEffect(() => {
-    setLoading(true);
-    organizationService
-      .getMyOrganization()          // ← GET /user/me/organization
-      .then((data) => setOrg(data))
-      .catch(() => setOrg(null))
-      .finally(() => setLoading(false));
-  }, []);
+  // جلب بيانات المنظمة باستخدام useQuery
+  const { data: org, isLoading } = useQuery<OrganizationResponse | null>({
+    queryKey: ["myOrganization"],
+    queryFn: async () => {
+      try {
+        return await organizationService.getMyOrganization();
+      } catch {
+        return null;
+      }
+    },
+    // خيارات إضافية مفيدة:
+    staleTime: 1000 * 60 * 5, // اعتبار البيانات فريش لمدة 5 دقائق لتقليل الـ API Calls
+  });
 
+  // تحديث الكاش يدوياً عند حدوث الاتصال بنجاح
   const onOrgConnected = (connectedOrg: OrganizationResponse) => {
-    setOrg(connectedOrg);
+    queryClient.setQueryData(["myOrganization"], connectedOrg);
   };
 
+  // التأكد من أن القيمة الراجعة هي null في حال عدم وجود بيانات وليس undefined
+  const currentOrg = org ?? null;
+
   return {
-    org,
-   hasOrg: org !== null && org.verified === true,
-    orgId: org?.id ?? null,         // ← بييجي من الـ API مباشرة
-    loading,
+    org: currentOrg,
+    hasOrg: currentOrg !== null && currentOrg.verified === true,
+    orgId: currentOrg?.id ?? null,
+    loading: isLoading,
     onOrgConnected,
   };
 }

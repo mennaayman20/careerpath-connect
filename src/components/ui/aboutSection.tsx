@@ -24,11 +24,9 @@ const AboutSection = () => {
           >
             <div className="absolute -left-4 top-0 bottom-0 w-1 bg-gradient-to-b from-green-300 via-purple-500 to-primary rounded-full hidden md:block" />
             <p className="text-white text-m leading-relaxed">
-              Where talent meets opportunity. Whether you're a job seeker searching for your dream company or a
-              recruiter looking for top talent, our platform uses intelligent ranking and smart matching to connect
-              the right people with the right opportunities. Hiring has never been easier—personalized, precise, and
-              powerful.
-            </p>
+UPPlY is redefining the job market by eliminating the noise of traditional recruitment. 
+By combining smart CV analysis with real-time semantic matching, we bridge the gap between top talent and visionary companies instantly. 
+Welcome to a streamlined, data-driven ecosystem built for pure professional growth. </p>
           </motion.div>
         </div>
       </div>

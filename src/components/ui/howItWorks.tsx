@@ -30,7 +30,10 @@ const HowItWorks = () => {
           <p className="text-[11px] font-medium tracking-widest uppercase text-violet-600 dark:text-violet-400 mb-2">
             Process
           </p>
-          <h2 className="text-3xl font-semibold tracking-tight text-foreground">How It Works</h2>
+                    <h3 className="text-3xl sm:text-4xl font-bold tracking-tight text-foreground">
+How It Works <span className="bg-gradient-to-r from-violet-600 to-indigo-600 dark:from-violet-400 dark:to-cyan-400 bg-clip-text text-transparent">
+   </span>
+</h3>
         </div>
 
         <div className="grid lg:grid-cols-2 gap-12 max-w-4xl mx-auto items-center">

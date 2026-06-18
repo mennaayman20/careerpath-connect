@@ -1,164 +1,131 @@
 import { useState, useCallback } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { applicationService } from "../services/application.service";
 import { recruiterJobService } from "../services/recruiterJob.service";
-import {
-  ApplicationResponse,
+import type {
   ApplicationStatus,
-  PaginatedApplicationsResponse,
   ExportTaskResponse,
 } from "../types/recruiter.types";
 import { toast } from "sonner";
 import { api } from "@/lib/api";
 
-
 export const useApplications = (jobId: number) => {
-  const [applications, setApplications] = useState<ApplicationResponse[]>([]);
-  const [pagination, setPagination] = useState({
-    page: 0,
-    size: 10,
-    totalPages: 0,
-    totalElements: 0,
-  });
+  const queryClient = useQueryClient();
+
+  // 1. حالات التحكم المحلية فقط (UI State)
+  const [page, setPage] = useState(0);
+  const [size] = useState(10);
   const [activeStatus, setActiveStatus] = useState<ApplicationStatus | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [statusUpdating, setStatusUpdating] = useState<number | null>(null);
-  const [exporting, setExporting] = useState(false);
-  const [exportTask, setExportTask] = useState<ExportTaskResponse | null>(null);
+  const [taskId, setTaskId] = useState<string | null>(null);
 
-  const fetchApplications = useCallback(
-    async (page = 0, size = 10, status?: ApplicationStatus) => {
-      setLoading(true);
-      try {
-        let data: PaginatedApplicationsResponse;
-        if (status) {
-          data = await applicationService.getApplicationsByStatus(jobId, status, page, size);
-        } else {
-          data = await applicationService.getApplicationsByJob(jobId, page, size);
-        }
-        setApplications(data.content);
-        setPagination({
-          page: data.number,
-          size: data.size,
-          totalPages: data.totalPages,
-          totalElements: data.totalElements,
-        });
-      } catch {
-        toast.error("Failed to load applications");
-      } finally {
-        setLoading(false);
+  // 2. Query: جلب طلبات التوظيف (تتحدث تلقائياً عند تغيير الـ page أو الـ status)
+  const { data: applicationsData, isLoading: loading } = useQuery({
+    queryKey: ["applications", jobId, page, activeStatus],
+    queryFn: () => {
+      if (activeStatus) {
+        return applicationService.getApplicationsByStatus(jobId, activeStatus, page, size);
       }
+      return applicationService.getApplicationsByJob(jobId, page, size);
     },
-    [jobId]
-  );
+    placeholderData: (previousData) => previousData, // تجربة مستخدم سلسة أثناء التنقل بين الصفحات
+  });
 
-  const filterByStatus = useCallback(
-    (status: ApplicationStatus | null) => {
-      setActiveStatus(status);
-      fetchApplications(0, pagination.size, status ?? undefined);
-    },
-    [fetchApplications, pagination.size]
-  );
-
-  const updateStatus = useCallback(
-    async (applicationId: number, newStatus: ApplicationStatus) => {
-      setStatusUpdating(applicationId);
-      try {
-        const updated = await applicationService.updateApplicationStatus(
-          applicationId,
-          newStatus
-        );
-        setApplications((prev) =>
-          prev.map((app) =>
-            app.id === applicationId ? { ...app, status: updated.status } : app
-          )
-        );
-        toast.success("Status updated");
-      } catch {
-        toast.error("Failed to update status");
-      } finally {
-        setStatusUpdating(null);
+  // 3. Query: عمل Polling لحالة الـ Export (تعمل فقط عندما يتوفر taskId)
+  const { data: exportTask } = useQuery<ExportTaskResponse | null>({
+    queryKey: ["exportStatus", jobId, taskId],
+    queryFn: () => recruiterJobService.getExportStatus(jobId, taskId!),
+    enabled: !!taskId,
+    refetchInterval: (query) => {
+      const task = query.state.data;
+      // استمر في عمل Request كل ثانيتين طالما الحالة ليست نوتة نهائية
+      if (task && (task.status === "COMPLETED" || task.status === "FAILED" || task.downloadUrl)) {
+        return false;
       }
+      return 2000;
     },
-    []
-  );
+  });
 
-  // ── Export to Excel flow ───────────────────────────────────────────────────
-  const startExport = useCallback(async () => {
-    setExporting(true);
-    setExportTask(null);
-    try {
-      const task = await recruiterJobService.startExportApplications(jobId);
-      setExportTask(task);
+  // مراقبة تحديثات الـ Export لإظهار الـ Toasts المناسبة
+  const isExporting = !!taskId && exportTask?.status !== "COMPLETED" && exportTask?.status !== "FAILED";
+
+  // 4. Mutation: تحديث حالة طلب التوظيف
+  const updateStatusMutation = useMutation({
+    mutationFn: ({ appId, newStatus }: { appId: number; newStatus: ApplicationStatus }) =>
+      applicationService.updateApplicationStatus(appId, newStatus),
+    onSuccess: () => {
+      toast.success("Status updated");
+      // إعادة جلب البيانات فوراً لتحديث القائمة في الخلفية
+      queryClient.invalidateQueries({ queryKey: ["applications", jobId] });
+    },
+    onError: () => {
+      toast.error("Failed to update status");
+    },
+  });
+
+  // 5. Mutation: بدء عملية الـ Export
+  const startExportMutation = useMutation({
+    mutationFn: () => recruiterJobService.startExportApplications(jobId),
+    onSuccess: (task) => {
+      setTaskId(task.taskId);
       toast.success("Export started, polling status...");
-      pollExportStatus(task.taskId);
-    } catch {
-      toast.error("Export failed to start");
-      setExporting(false);
-    }
-  }, [jobId]);
-
-  const pollExportStatus = useCallback(
-    async (taskId: string) => {
-      const interval = setInterval(async () => {
-        try {
-          const status = await recruiterJobService.getExportStatus(jobId, taskId);
-          setExportTask(status);
-          if (status.status === "COMPLETED" || status.downloadUrl) {
-            clearInterval(interval);
-            setExporting(false);
-            toast.success("Export ready! Click Download.");
-          } else if (status.status === "FAILED") {
-            clearInterval(interval);
-            setExporting(false);
-            toast.error("Export failed");
-          }
-        } catch {
-          clearInterval(interval);
-          setExporting(false);
-        }
-      }, 2000);
     },
-    [jobId]
-  );
+    onError: () => {
+      toast.error("Export failed to start");
+    },
+  });
 
-const downloadExport = useCallback(async () => {
-  if (!exportTask?.taskId) return;
-  try {
-    const response = await api.get(
-      `/jobs/${jobId}/applications/export/${exportTask.taskId}/download`,
-      { responseType: "blob" }  // ← المهم هنا
-    );
-    const url = URL.createObjectURL(new Blob([response.data]));
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = `applications-job-${jobId}.xlsx`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-    toast.success("Downloaded!");
-  } catch {
-    toast.error("Download failed");
-  }
-}, [jobId, exportTask]);
+  // ─── Actions ────────────────────────────────────────────────────────────────
 
-  const goToPage = useCallback(
-    (page: number) => fetchApplications(page, pagination.size, activeStatus ?? undefined),
-    [fetchApplications, pagination.size, activeStatus]
-  );
+  const filterByStatus = useCallback((status: ApplicationStatus | null) => {
+    setActiveStatus(status);
+    setPage(0); // العودة للصفحة الأولى دائماً عند الفلترة
+  }, []);
+
+  const goToPage = useCallback((newPage: number) => {
+    setPage(newPage);
+  }, []);
+
+  const downloadExport = useCallback(async () => {
+    if (!taskId) return;
+    try {
+      const response = await api.get(
+        `/jobs/${jobId}/applications/export/${taskId}/download`,
+        { responseType: "blob" }
+      );
+      const url = URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `applications-job-${jobId}.xlsx`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      toast.success("Downloaded!");
+    } catch {
+      toast.error("Download failed");
+    }
+  }, [jobId, taskId]);
+
+  // تجهيز بيانات الـ pagination بالشكل القديم لكي لا يتأثر الـ UI الحالي لديك
+  const pagination = {
+    page: applicationsData?.number ?? 0,
+    size: applicationsData?.size ?? 10,
+    totalPages: applicationsData?.totalPages ?? 0,
+    totalElements: applicationsData?.totalElements ?? 0,
+  };
 
   return {
-    applications,
+    applications: applicationsData?.content ?? [],
     pagination,
     activeStatus,
     loading,
-    statusUpdating,
-    exporting,
-    exportTask,
-    fetchApplications,
+    statusUpdating: updateStatusMutation.isPending ? updateStatusMutation.variables?.appId ?? null : null,
+    exporting: isExporting,
+    exportTask: exportTask ?? null,
+    fetchApplications: () => queryClient.invalidateQueries({ queryKey: ["applications", jobId] }),
     filterByStatus,
-    updateStatus,
-    startExport,
+    updateStatus: (appId: number, newStatus: ApplicationStatus) => updateStatusMutation.mutate({ appId, newStatus }),
+    startExport: startExportMutation.mutate,
     downloadExport,
     goToPage,
   };
