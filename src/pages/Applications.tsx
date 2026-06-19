@@ -1,3 +1,5 @@
+import React from 'react';
+import styled from 'styled-components';
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { FileText, Search, Check, X, Circle } from "lucide-react";
@@ -32,6 +34,113 @@ const statusBadge: Record<string, { label: string; bg: string; text: string }> =
 const matchColor = (pct: number) =>
   pct >= 75 ? "#1ca37b" : pct >= 50 ? "#EF9F27" : "#E24B4A";
 
+// ── Explore Jobs Button Component ──────────────────────────────────────────
+
+const ExploreJobsButton = ({ onClick }: { onClick: () => void }) => {
+  return (
+    <StyledWrapper onClick={onClick}>
+      <button className="learn-more">
+        <span className="circle" aria-hidden="true">
+          <span className="icon arrow" />
+        </span>
+        <span className="button-text">Explore More</span>
+      </button>
+    </StyledWrapper>
+  );
+};
+
+const StyledWrapper = styled.div`
+  display: inline-block;
+  button {
+   position: relative;
+   display: inline-block;
+   cursor: pointer;
+   outline: none;
+   border: 0;
+   vertical-align: middle;
+   text-decoration: none;
+   background: transparent;
+   padding: 0;
+   font-size: inherit;
+   font-family: inherit;
+  }
+
+  button.learn-more {
+   width: 9.5rem; /* تم تصغير العرض الإجمالي */
+   height: auto;
+  }
+
+  button.learn-more .circle {
+   transition: all 0.45s cubic-bezier(0.65, 0, 0.076, 1);
+   position: relative;
+   display: block;
+   margin: 0;
+   width: 2.2rem; /* تم تصغير قطر الدائرة */
+   height: 2.2rem;
+   background: #1ca37b;
+   border-radius: 1.1rem;
+  }
+
+  button.learn-more .circle .icon {
+   transition: all 0.45s cubic-bezier(0.65, 0, 0.076, 1);
+   position: absolute;
+   top: 0;
+   bottom: 0;
+   margin: auto;
+   background: #fff;
+  }
+
+  button.learn-more .circle .icon.arrow {
+   transition: all 0.45s cubic-bezier(0.65, 0, 0.076, 1);
+   left: 0.5rem;
+   width: 0.85rem; /* تم تصغير السهم */
+   height: 0.1rem;
+   background: none;
+  }
+
+  button.learn-more .circle .icon.arrow::before {
+   position: absolute;
+   content: "";
+   top: -0.22rem;
+   right: 0.04rem;
+   width: 0.45rem;
+   height: 0.45rem;
+   border-top: 0.1rem solid #fff;
+   border-right: 0.1rem solid #fff;
+   transform: rotate(45deg);
+  }
+
+  button.learn-more .button-text {
+   transition: all 0.45s cubic-bezier(0.65, 0, 0.076, 1);
+   position: absolute;
+   top: 0;
+   left: 0;
+   right: 0;
+   bottom: 0;
+   padding: 0.55rem 0; /* تقليل الـ padding الداخلي */
+   margin: 0 0 0 1.4rem;
+   color: #1ca37b;
+   font-size: 12.5px; /* تصغير حجم الخط قليلاً */
+   font-weight: 700;
+   line-height: 1.5;
+   text-align: center;
+   text-transform: uppercase;
+  }
+
+  button:hover .circle {
+   width: 100%;
+  }
+
+  button:hover .circle .icon.arrow {
+   background: #fff;
+   transform: translate(0.7rem, 0);
+  }
+
+  button:hover .button-text {
+   color: #fff;
+  }
+`;
+
 // ── Timeline ─────────────────────────────────────────────────────────────────
 
 function ApplicationTimeline({ status }: { status: Application["status"] }) {
@@ -39,7 +148,6 @@ function ApplicationTimeline({ status }: { status: Application["status"] }) {
   const isWithdrawn = status === "WITHDRAWN";
   const isTerminal  = isRejected || isWithdrawn;
 
-  // لو rejected/withdrawn نقطع الـ timeline بعد SHORTLISTED ونضيف الـ terminal step
   const steps = isTerminal
     ? [...STEPS.slice(0, 3), { key: status, label: isRejected ? "Rejected" : "Withdrawn" }]
     : [...STEPS];
@@ -85,7 +193,7 @@ function ApplicationTimeline({ status }: { status: Application["status"] }) {
                 <div className="w-2 h-2 rounded-full"
                   style={{ background: "#378ADD" }} />
               )}
-              {isTermStep && isRejected  && <X      className="w-3 h-3" style={{ color: "#E24B4A" }} strokeWidth={3} />}
+              {isTermStep && isRejected  && <X       className="w-3 h-3" style={{ color: "#E24B4A" }} strokeWidth={3} />}
               {isTermStep && isWithdrawn && <Circle className="w-2.5 h-2.5" style={{ color: "#888" }} />}
             </div>
 
@@ -107,28 +215,6 @@ function ApplicationTimeline({ status }: { status: Application["status"] }) {
   );
 }
 
-// ── Match bar ────────────────────────────────────────────────────────────────
-
-// function MatchBar({ pct }: { pct: number }) {
-//   const color = matchColor(pct);
-//   return (
-//     <div className="flex items-center gap-2.5 px-4 pb-4">
-//       <span className="text-[11px] font-semibold text-muted-foreground w-9">Match</span>
-//       <div className="flex-1 h-1 bg-muted rounded-full overflow-hidden">
-//         <motion.div className="h-full rounded-full"
-//           style={{ background: color }}
-//           initial={{ width: 0 }}
-//           animate={{ width: `${pct}%` }}
-//           transition={{ duration: 1, ease: "easeOut" }}
-//         />
-//       </div>
-//       <span className="text-[11px] font-bold font-mono w-7 text-right" style={{ color }}>
-//         {pct}%
-//       </span>
-//     </div>
-//   );
-// }
-
 // ── Main ─────────────────────────────────────────────────────────────────────
 
 const Applications = () => {
@@ -142,16 +228,25 @@ const Applications = () => {
       <div className="container flex-1 py-10 max-w-5xl">
 
         {/* Header */}
-        <div className="mb-8 flex items-center gap-4">
-          <div className="w-12 h-12 rounded-xl bg-[#e8f5f0] flex items-center justify-center shrink-0">
-            <FileText className="h-6 w-6 text-[#1ca37b]" />
+        <div className="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 rounded-xl bg-[#e8f5f0] flex items-center justify-center shrink-0">
+              <FileText className="h-6 w-6 text-[#1ca37b]" />
+            </div>
+            <div>
+              <h1 className="font-display text-3xl font-bold text-foreground">My applications</h1>
+              <p className="text-sm text-muted-foreground mt-0.5">
+                Track and manage your AI-matched job applications
+              </p>
+            </div>
           </div>
-          <div>
-            <h1 className="font-display text-3xl font-bold text-foreground">My applications</h1>
-            <p className="text-sm text-muted-foreground mt-0.5">
-              Track and manage your AI-matched job applications
-            </p>
-          </div>
+          
+          {/* الزرار متاح هنا بحجمه الجديد الأصغر والأنيق */}
+          {!isLoading && !error && (
+            <div className="shrink-0">
+              <ExploreJobsButton onClick={() => navigate("/jobs")} />
+            </div>
+          )}
         </div>
 
         {/* Loading */}
@@ -177,7 +272,6 @@ const Applications = () => {
           <div className="flex flex-col gap-3">
             {applications.map((app, i) => {
               const badge = statusBadge[app.status] ?? { label: app.status, bg: "#f5f5f3", text: "#666" };
-              const pct   = Math.round(app.matchingRatio ?? 0);
 
               return (
                 <motion.div
@@ -209,7 +303,6 @@ const Applications = () => {
 
                   {/* Timeline */}
                   <ApplicationTimeline status={app.status} />
-
                   
                 </motion.div>
               );

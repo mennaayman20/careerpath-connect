@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import { Search, MapPin, Clock, Building2, Briefcase, X, Sparkles, Star, Globe, Mail, ChevronRight, ChevronLeft, FileText } from "lucide-react";
+import { Search, MapPin, Clock, Building2, Briefcase, X, Sparkles, Star, Globe, Mail, ChevronRight, ChevronLeft, FileText, ArrowRight } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { motion } from "framer-motion";
 import { useQuery } from "@tanstack/react-query";
@@ -294,7 +294,69 @@ const JobDescription = ({ description }: { description: string }) => {
           <div className="flex gap-6">
           
             {/* Job list */}
+
             <div className={`flex-1 space-y-4 ${selectedJob ? "hidden md:block md:max-w-md" : ""}`}>
+
+
+
+
+
+
+
+
+{/* Recommended Banner */}
+<div
+  onClick={() => navigate('/matched-jobs')}
+  className="relative cursor-pointer overflow-hidden rounded-2xl mb-4
+             bg-gradient-to-r from-[#2D236A] to-[#3d2f8a]
+             border border-violet-500/20 p-4
+             group hover:shadow-lg hover:shadow-violet-900/20 transition-all duration-300"
+>
+  {/* shine sweep */}
+  <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent
+                   -translate-x-full group-hover:translate-x-full transition-transform duration-700 ease-in-out pointer-events-none" />
+
+  <div className="relative z-10 flex items-center justify-between gap-4">
+    <div className="flex items-center gap-3">
+      {/* icon circle */}
+      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#1ca37b]/20 border border-[#1ca37b]/30">
+        <Sparkles className="h-5 w-5 text-[#5de8b8]" />
+      </div>
+      <div>
+        <p className="text-[11px] font-bold uppercase tracking-widest text-[#5de8b8]/70 mb-0.5">
+          AI-Powered
+        </p>
+        <p className="text-[15px] font-semibold text-white leading-tight">
+          See jobs recommended for you
+        </p>
+      </div>
+    </div>
+
+    <div className="flex items-center gap-2 shrink-0">
+      <span className="hidden sm:block text-[13px] text-white/60 group-hover:text-white/90 transition-colors">
+        View all
+      </span>
+      <div className="flex h-8 w-8 items-center justify-center rounded-full bg-white/10 group-hover:bg-white/20 transition-colors">
+        <ArrowRight className="h-4 w-4 text-white group-hover:translate-x-0.5 transition-transform duration-300" />
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
               {jobs.length === 0 ? (
                 <p className="py-12 text-center text-muted-foreground">No jobs found</p>
               ) : (
