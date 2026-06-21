@@ -22,7 +22,7 @@ import { useProfile } from "@/hooks/useProfile";
 import { AutoFillSection } from "@/components/ui/AutoFillSection";
 import { ProfileViewMode } from "./Profileviewmode"; // Ensured safe casing for deployment builds
 import { useLocation } from "react-router-dom";
-
+import { ProfileAvatar } from "./ProfileAvatar";
 const Profile = () => {
   const { toast } = useToast();
   const { personal, setPersonal, loading, handleSave } = useProfileManager();
@@ -102,11 +102,7 @@ useEffect(() => {
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-8">
             <div className="flex flex-wrap items-center gap-6">
               {/* Avatar */}
-              <div className="relative flex-shrink-0">
-                <div className="h-24 w-24 rounded-full bg-secondary border border-border flex items-center justify-center shadow-sm">
-                  <User className="h-11 w-11 text-muted-foreground opacity-50" />
-                </div>
-              </div>
+              <ProfileAvatar />
 
               {/* Info */}
               <div className="min-w-[180px]">

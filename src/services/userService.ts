@@ -138,5 +138,40 @@ confirmResumeAutoFill: async (
 
 
 
+// profile picture
+getProfilePicture: async (): Promise<string> => {
+  const response = await api.get('/user/me/profile-picture', {
+    responseType: "blob",
+  });
+  return URL.createObjectURL(response.data);
+},
+
+uploadProfilePicture: async (file: File): Promise<void> => {
+  const formData = new FormData();
+  formData.append("file", file);
+  await api.post('/user/me/profile-picture', formData, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
+},
+
+deleteProfilePicture: async (): Promise<void> => {
+  await api.delete('/user/me/profile-picture');
+},
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 } 
 
