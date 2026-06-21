@@ -33,9 +33,9 @@ const getRelativeTime = (date: string | Date): string => {
 };
 
 const getTier = (pct: number) => {
-  if (pct >= 80) return "gold";
-  if (pct >= 65) return "silver";
-  return "bronze";
+  if (pct >= 80) return "gold";      // من 80 إلى 100 -> Best match
+  if (pct >= 75) return "silver";    // من 75 إلى أقل من 80 -> Strong match
+  return "bronze";                   // أقل من 75 تلقائياً -> Good match (الأورنج)
 };
 
 const tierConfig = {
