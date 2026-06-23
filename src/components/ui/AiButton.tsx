@@ -6,7 +6,7 @@ interface AiButtonProps {
 
 export const AiButton: React.FC<AiButtonProps> = ({ onClick }) => {
     const handleClick = () => {
-    window.open("https://upplyinterview.up.railway.app/recruiter", "_blank");
+    window.open("https://upply-interview-production.up.railway.app/recruiter", "_blank");
     onClick?.();
   };
   return (
